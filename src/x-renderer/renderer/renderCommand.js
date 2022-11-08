@@ -3,9 +3,8 @@ import { RenderApi } from './renderApi';
 export class RenderCommand {
 }
 
-RenderCommand.Render_API = RenderApi.Create();
-
 RenderCommand.Init = function() {
+    RenderCommand.Render_API = RenderApi.Create();
     RenderCommand.Render_API.init();
 }
 
