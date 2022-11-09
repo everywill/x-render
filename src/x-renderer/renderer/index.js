@@ -2,8 +2,8 @@ import { RenderCommand } from './renderCommand';
 
 export class Renderer {}
 
-Renderer.Init = function() {
-    RenderCommand.Init();
+Renderer.Init = function(options) {
+    return RenderCommand.Init(options);
 }
 
 Renderer.Submit = function(shader, vao) {

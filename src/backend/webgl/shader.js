@@ -8,6 +8,7 @@ export class GLShader extends Shader {
     constructor(name, vertexSrc, fragmentSrc) {
         super();
         this.name = name;
+        this.varLocs = {};
         this.createProgram(vertexSrc, fragmentSrc);
     }
 
@@ -52,6 +53,11 @@ export class GLShader extends Shader {
         this.id = program;
     }
 
+    allocVar(name, loc) {
+        loc = this.gl.getUniformLocation(this.id, name);
+        this.allocVar[name] = loc;
+    }
+
     bind() {
         this.gl.useProgram(this.id);
     }
@@ -63,7 +69,7 @@ export class GLShader extends Shader {
         this.uploadUniformInt(name, value);
     }
     uploadUniformInt(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniform1i(loc, value);
     }
 
@@ -71,7 +77,7 @@ export class GLShader extends Shader {
         this.uploadUniformIntArray(name, value);
     }
     uploadUniformIntArray(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = tthis.allocVar[name];
         this.gl.uniform1iv(loc, value);
     }
 
@@ -79,7 +85,7 @@ export class GLShader extends Shader {
         this.uploadUniformFloat(name, value);
     }
     uploadUniformFloat(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniform1f(loc, value);
     }
 
@@ -87,7 +93,7 @@ export class GLShader extends Shader {
         this.uploadUniformFloat2(name, value);
     }
     uploadUniformFloat2(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniform2fv(loc, value);
     }
 
@@ -95,7 +101,7 @@ export class GLShader extends Shader {
         this.uploadUniformFloat3(name, value);
     }
     uploadUniformFloat3(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniform3fv(loc, value);
     }
 
@@ -103,7 +109,7 @@ export class GLShader extends Shader {
         this.uploadUniformFloat4(name, value);
     }
     uploadUniformFloat4(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniform4fv(loc, value);
     }
 
@@ -111,7 +117,7 @@ export class GLShader extends Shader {
         this.uploadUniformMat4(name, value);
     }
     uploadUniformMat4(name, value) {
-        const loc = this.gl.getUniformLocation(this.id, name);
+        const loc = this.allocVar[name];
         this.gl.uniformMatrix4fv(loc, value); // value is 16x element array
     }
 }

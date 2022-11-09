@@ -58,10 +58,10 @@
   var log_default = logger;
 
   // src/x-renderer/core/entry.js
-  function run(createApp2, logLevel = LogLevels.LOG) {
+  async function run(createApp2, logLevel = LogLevels.LOG) {
     log_default.setLevel(logLevel);
     log_default.info("Crearing App");
-    const app = createApp2();
+    const app = await createApp2();
     log_default.info("App starts");
     app.run();
     log_default.info("App terminated");
@@ -119,9 +119,9 @@
   // src/x-renderer/renderer/renderCommand.js
   var RenderCommand = class {
   };
-  RenderCommand.Init = function() {
+  RenderCommand.Init = function(options) {
     RenderCommand.Render_API = RenderApi.Create();
-    RenderCommand.Render_API.init();
+    return RenderCommand.Render_API.init(options);
   };
   RenderCommand.SetClearColor = function(color) {
     RenderCommand.Render_API.setClearColor(color);
@@ -136,8 +136,8 @@
   // src/x-renderer/renderer/index.js
   var Renderer = class {
   };
-  Renderer.Init = function() {
-    RenderCommand.Init();
+  Renderer.Init = function(options) {
+    return RenderCommand.Init(options);
   };
   Renderer.Submit = function(shader, vao) {
     shader.bind();
@@ -195,7 +195,9 @@
     constructor(options) {
       this.layerStack = new LayerStack();
       Context.Create(options);
-      Renderer.Init();
+    }
+    async init(options) {
+      await Renderer.Init(options);
     }
     pushLayer(layer) {
       this.layerStack.pushLayer(layer);
@@ -489,6 +491,8 @@
     }
     unbind() {
     }
+    allocVar(name, loc) {
+    }
     setInt(name, value) {
     }
     setIntArray(name, value) {
@@ -513,6 +517,7 @@
     constructor(name, vertexSrc, fragmentSrc) {
       super();
       this.name = name;
+      this.varLocs = {};
       this.createProgram(vertexSrc, fragmentSrc);
     }
     createProgram(vSrc, fSrc) {
@@ -547,6 +552,10 @@
       }
       this.id = program;
     }
+    allocVar(name, loc) {
+      loc = this.gl.getUniformLocation(this.id, name);
+      this.allocVar[name] = loc;
+    }
     bind() {
       this.gl.useProgram(this.id);
     }
@@ -557,49 +566,49 @@
       this.uploadUniformInt(name, value);
     }
     uploadUniformInt(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniform1i(loc, value);
     }
     setIntArray(name, value) {
       this.uploadUniformIntArray(name, value);
     }
     uploadUniformIntArray(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = tthis.allocVar[name];
       this.gl.uniform1iv(loc, value);
     }
     setFloat(name, value) {
       this.uploadUniformFloat(name, value);
     }
     uploadUniformFloat(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniform1f(loc, value);
     }
     setFloat2(name, value) {
       this.uploadUniformFloat2(name, value);
     }
     uploadUniformFloat2(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniform2fv(loc, value);
     }
     setFloat3(name, value) {
       this.uploadUniformFloat3(name, value);
     }
     uploadUniformFloat3(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniform3fv(loc, value);
     }
     setFloat4(name, value) {
       this.uploadUniformFloat4(name, value);
     }
     uploadUniformFloat4(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniform4fv(loc, value);
     }
     setMat4(name, value) {
       this.uploadUniformMat4(name, value);
     }
     uploadUniformMat4(name, value) {
-      const loc = this.gl.getUniformLocation(this.id, name);
+      const loc = this.allocVar[name];
       this.gl.uniformMatrix4fv(loc, value);
     }
   };
@@ -679,15 +688,17 @@
 
   // sandbox/sandboxApp.js
   var SandboxApp = class extends Application {
-    constructor(options) {
-      super(options);
+    async init(options) {
+      await super.init(options);
       this.pushLayer(new ExampleLayer());
     }
   };
-  function createApp() {
+  async function createApp() {
     const canvas = document.getElementById("canvas");
     RenderApi.CURRENT_TYPE = API.WEBGL;
-    return new SandboxApp({ canvas });
+    const app = new SandboxApp({ canvas });
+    await app.init({});
+    return app;
   }
 
   // sandbox/index.js

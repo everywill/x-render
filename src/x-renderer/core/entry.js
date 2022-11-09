@@ -1,10 +1,10 @@
 import logger, { LogLevels } from './log';
 
-export default function run(createApp, logLevel = LogLevels.LOG) {
+export default async function run(createApp, logLevel = LogLevels.LOG) {
     logger.setLevel(logLevel);
 
     logger.info('Crearing App');
-    const app = createApp();
+    const app = await createApp();
     
     logger.info('App starts');
     app.run();

@@ -4,6 +4,8 @@ export class Shader {
     unbind() {}
 
     // uniform
+    allocVar(name, loc) {}
+
     setInt(name, value) {}
     setIntArray(name, value) {}
     setFloat(name, value) {}

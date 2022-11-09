@@ -6,7 +6,10 @@ export class Application {
     constructor(options) {
         this.layerStack = new LayerStack();
         Context.Create(options);
-        Renderer.Init();
+    }
+
+    async init(options) {
+        await Renderer.Init(options);
     }
 
     pushLayer(layer) {

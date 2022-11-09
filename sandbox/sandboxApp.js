@@ -6,14 +6,16 @@ import {
 import { ExampleLayer } from "./exampleLayer";
 
 class SandboxApp extends Application {
-    constructor(options) {
-        super(options);
+    async init(options) {
+        await super.init(options);
         this.pushLayer(new ExampleLayer());
-    }
+    } 
 }
 
-export function createApp() {
+export async function createApp() {
     const canvas = document.getElementById('canvas');
     RenderApi.CURRENT_TYPE = API.WEBGL;
-    return new SandboxApp({ canvas });
+    const app = new SandboxApp({ canvas });
+    await app.init({});
+    return app;
 }
