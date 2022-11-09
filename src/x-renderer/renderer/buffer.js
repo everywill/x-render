@@ -1,7 +1,4 @@
-import { RenderApi, API } from './renderApi';
-import { GLIndexBuffer, GLVertexBuffer } from '../../backend/webgl/buffer';
-
-export const ShaderDataTypeMap = {
+export const ShaderDataType = {
     Float: 'Float',
     Float2: 'Float2',
     Float3: 'Float3',
@@ -55,14 +52,10 @@ class BufferElement {
 }
 
 export class BufferLayout {
-    get numElements() {
-        return this.elements.length;
-    }
-
     constructor(list) {
         this.elements = [];
         for(let item of list) {
-            const { type, name, normalized } = item;
+            const { type, name, normalized = false } = item;
             const el = new BufferElement(type, name, normalized);
             this.elements.push(el);
         }
@@ -80,6 +73,7 @@ export class BufferLayout {
     }
 } 
 
+// Abstraction of Vertex Resource
 export class VertexBuffer {
     bind() {}
     unbind() {}
@@ -88,20 +82,8 @@ export class VertexBuffer {
     setLayout(layout) {}
 }
 
-VertexBuffer.Create = function(data, offset) {
-    if(RenderApi.CURRENT_TYPE === API.WEBGL) {
-        return new GLVertexBuffer(data, offset);
-    }
-}
-
 export class IndexBuffer {
     bind() {}
     unbind() {}
     getCount() {}
-}
-
-IndexBuffer.Create = function(data) {
-    if(RenderApi.CURRENT_TYPE === API.WEBGL) {
-        return new GLIndexBuffer(data);
-    }
 }

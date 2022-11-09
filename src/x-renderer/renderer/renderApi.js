@@ -1,10 +1,15 @@
 import { Context } from '../core/context';
-import { GLRenderApi } from '../../backend/webgl/renderApi'
 
 export const API = {
     WEBGL: 0,
     WEBGPU: 1,
 }
+
+export const MASKTYPE = {
+    COLOR: 'Color',
+    DEPTH: 'Depth',
+    STENCIL: 'Stencil',
+};
 
 export class RenderApi {
     get ctx() { return Context.CURRENT; }
@@ -15,9 +20,3 @@ export class RenderApi {
 }
 
 RenderApi.CURRENT_TYPE = undefined;
-
-RenderApi.Create = function() {
-    if(RenderApi.CURRENT_TYPE === API.WEBGL) {
-        return new GLRenderApi();
-    }
-}

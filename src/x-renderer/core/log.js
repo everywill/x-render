@@ -44,26 +44,26 @@ class Logger {
     }
 
     info(fnName, action, ...data) {
-        this._log('info', fnName, action, data);
+        this.echo('info', fnName, data);
     }
 
     log(fnName, action, ...data) {
-        this._log('log', fnName, action, data);
+        this.echo('log', fnName, data);
     }
 
     debug(fnName, action, ...data) {
-        this._log('debug', fnName, action, data);
+        this.echo('debug', fnName, data);
     }
 
     warn(fnName, action, ...data) {
-        this._log('warn', fnName, action, data);
+        this.echo('warn', fnName, data);
     }
 
     error(fnName, action, ...data) {
-        this._log('error', fnName, action, data);
+        this.echo('error', fnName, data);
     }
 }
 
-const logger = new Logger();
+const logger = new Logger({});
 
 export default logger;

@@ -1,0 +1,29 @@
+{
+  "name": "x-render",
+  "version": "1.0.0",
+  "description": "A universal renderer backended with WebGL/WebGPU",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "esbuild": "^0.15.13"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild sandbox/index.js --bundle --outdir=./demo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/everywill/x-render.git"
+  },
+  "keywords": [
+    "WebGL",
+    "WebGPU",
+    "RenderEngine"
+  ],
+  "author": "everywill",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/everywill/x-render/issues"
+  },
+  "homepage": "https://github.com/everywill/x-render#readme"
+}

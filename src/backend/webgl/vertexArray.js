@@ -1,11 +1,12 @@
 import { VertexArray } from '../../x-renderer/renderer/vertexArray';
 import { Context } from '../../x-renderer/core/context';
-import { ShaderDataTypeMap } from '../../x-renderer/renderer/buffer';
+import { ShaderDataType } from '../../x-renderer/renderer/buffer';
 
 export class GLVertexArray extends VertexArray {
-    get gl() { return Context.CURRENT }
+    get gl() { return Context.CURRENT; }
 
     constructor() {
+        super();
         this.id = this.gl.createVertexArray();
         this.vertexBufferIndex = 0;  // layout index
         this.vertexBuffers = [];
@@ -20,33 +21,35 @@ export class GLVertexArray extends VertexArray {
     }
 
     addVertexBuffer(vertexBuffer) {
-        if(vertexBuffer.getLayout().numElements > 0) {
+        if(vertexBuffer.getLayout().length > 0) {
             this.gl.bindVertexArray(this.id);
             vertexBuffer.bind();
 
             const layout = vertexBuffer.getLayout();
             for(let el of layout) {
                 switch(el.type) {
-                    case ShaderDataTypeMap.Float:
-                    case ShaderDataTypeMap.Float2:
-                    case ShaderDataTypeMap.Float3:
-                    case ShaderDataTypeMap.Float4:
+                    case ShaderDataType.Float:
+                    case ShaderDataType.Float2:
+                    case ShaderDataType.Float3:
+                    case ShaderDataType.Float4:
                     {
-                        this.gl.enableVertexAttribArray(this.vertexBufferIndex++);
+                        this.gl.enableVertexAttribArray(this.vertexBufferIndex);
                         this.gl.vertexAttribPointer(this.vertexBufferIndex, el.size, this.gl.FLOAT, el.normalized, layout.stride, el.offset);
+                        this.vertexBufferIndex++;
                         break;
                     }
-                    case ShaderDataTypeMap.Int:
-                    case ShaderDataTypeMap.Int2:
-                    case ShaderDataTypeMap.Int3:
-                    case ShaderDataTypeMap.int4:
+                    case ShaderDataType.Int:
+                    case ShaderDataType.Int2:
+                    case ShaderDataType.Int3:
+                    case ShaderDataType.int4:
                     {
-                        this.gl.enableVertexAttribArray(this.vertexBufferIndex++);
+                        this.gl.enableVertexAttribArray(this.vertexBufferIndex);
                         this.gl.vertexAttribIPointer(this.vertexBufferIndex, el.size, this.gl.INT, layout.stride, el.offset);
+                        this.vertexBufferIndex++
                         break;
                     }
-                    case ShaderDataTypeMap.Mat3:
-                    case ShaderDataTypeMap.Mat4:
+                    case ShaderDataType.Mat3:
+                    case ShaderDataType.Mat4:
                     {
                         const count = el.getComponentCount();
                         for(let i=0; i<count; i++) {
