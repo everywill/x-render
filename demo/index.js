@@ -262,7 +262,7 @@
     Int3: "Int3",
     int4: "Int4"
   };
-  var ShaderDataTypeSizeMap = {
+  var ShaderDataTypeSize = {
     Float: 4,
     Float2: 4 * 2,
     Float3: 4 * 3,
@@ -290,7 +290,7 @@
     constructor(type, name, normalized) {
       this.name = name;
       this.type = type;
-      this.size = ShaderDataTypeCompCount[type];
+      this.size = ShaderDataTypeSize[type];
       this.offset = 0;
       this.normalized = normalized;
     }
@@ -299,6 +299,9 @@
     }
   };
   var BufferLayout = class {
+    get length() {
+      return this.elements.length;
+    }
     constructor(list) {
       this.elements = [];
       for (let item of list) {
@@ -306,10 +309,13 @@
         const el = new BufferElement(type, name, normalized);
         this.elements.push(el);
       }
+      this.stride = 0;
       this.calculateOffsetAndStride();
     }
+    [Symbol.iterator]() {
+      return this.elements.values();
+    }
     calculateOffsetAndStride() {
-      this.stride = 0;
       let offset = 0;
       for (let el of this.elements) {
         el.offset = offset;
@@ -346,6 +352,9 @@
     }
     constructor(data, offset = 0) {
       super();
+      if (!(data instanceof Float32Array)) {
+        data = new Float32Array(data);
+      }
       this.id = this.gl.createBuffer();
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.id);
       this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW, offset);
@@ -361,7 +370,7 @@
       this.gl.bufferSubData(this.gl.ARRAY_BUFFER, dstOffset, data, srcOffset, size);
     }
     getLayout() {
-      return this.layout.elements;
+      return this.layout;
     }
     setLayout(layout) {
       this.layout = layout;
@@ -373,6 +382,9 @@
     }
     constructor(data, count) {
       super();
+      if (!(data instanceof Uint16Array)) {
+        data = new Uint16Array(data);
+      }
       this.id = this.gl.createBuffer();
       this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.id);
       this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
@@ -432,10 +444,10 @@
       this.gl.bindVertexArray(null);
     }
     addVertexBuffer(vertexBuffer) {
-      if (vertexBuffer.getLayout().length > 0) {
+      const layout = vertexBuffer.getLayout();
+      if (layout.length > 0) {
         this.gl.bindVertexArray(this.id);
         vertexBuffer.bind();
-        const layout = vertexBuffer.getLayout();
         for (let el of layout) {
           switch (el.type) {
             case ShaderDataType.Float:
@@ -443,7 +455,7 @@
             case ShaderDataType.Float3:
             case ShaderDataType.Float4: {
               this.gl.enableVertexAttribArray(this.vertexBufferIndex);
-              this.gl.vertexAttribPointer(this.vertexBufferIndex, el.size, this.gl.FLOAT, el.normalized, layout.stride, el.offset);
+              this.gl.vertexAttribPointer(this.vertexBufferIndex, el.getComponentCount(), this.gl.FLOAT, el.normalized, layout.stride, el.offset);
               this.vertexBufferIndex++;
               break;
             }
@@ -452,7 +464,7 @@
             case ShaderDataType.Int3:
             case ShaderDataType.int4: {
               this.gl.enableVertexAttribArray(this.vertexBufferIndex);
-              this.gl.vertexAttribIPointer(this.vertexBufferIndex, el.size, this.gl.INT, layout.stride, el.offset);
+              this.gl.vertexAttribIPointer(this.vertexBufferIndex, el.getComponentCount(), this.gl.INT, layout.stride, el.offset);
               this.vertexBufferIndex++;
               break;
             }
@@ -628,7 +640,7 @@
     constructor() {
       super("example_layer");
       const vertexArray = VertexArray.Create();
-      const vertices = new Float32Array([
+      const vertices = [
         -0.5,
         -0.5,
         0,
@@ -638,14 +650,14 @@
         0,
         0.5,
         0
-      ]);
+      ];
       const vertexBuffer = VertexBuffer.Create(vertices);
       const layout = new BufferLayout([
         { type: ShaderDataType.Float3, name: "a_Position" }
       ]);
       vertexBuffer.setLayout(layout);
       vertexArray.addVertexBuffer(vertexBuffer);
-      const indices = new Uint16Array([0, 1, 2]);
+      const indices = [0, 1, 2];
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       const vertexShaderSource = `#version 300 es

@@ -13,11 +13,11 @@ export class ExampleLayer extends Layer {
         super('example_layer');
         const vertexArray = VertexArray.Create();
 
-        const vertices = new Float32Array([
+        const vertices = [
             -0.5, -0.5, 0,
             0.5, -0.5, 0,
             0, 0.5, 0
-        ]);
+        ];
 
         const vertexBuffer = VertexBuffer.Create(vertices);
         const layout = new BufferLayout([
@@ -26,7 +26,7 @@ export class ExampleLayer extends Layer {
         vertexBuffer.setLayout(layout);
         vertexArray.addVertexBuffer(vertexBuffer);
 
-        const indices = new Uint16Array([0, 1, 2]);
+        const indices = [0, 1, 2];
         const indexBuffer = IndexBuffer.Create(indices);
         vertexArray.setIndexBuffer(indexBuffer);
 

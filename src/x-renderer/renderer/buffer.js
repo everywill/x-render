@@ -11,7 +11,7 @@ export const ShaderDataType = {
     int4: 'Int4',
 };
 
-export const ShaderDataTypeSizeMap = {
+export const ShaderDataTypeSize = {
     Float: 4,
     Float2: 4*2,
     Float3: 4*3,
@@ -41,7 +41,7 @@ class BufferElement {
     constructor(type, name, normalized) {
         this.name = name;
         this.type = type;
-        this.size = ShaderDataTypeCompCount[type];
+        this.size = ShaderDataTypeSize[type];
         this.offset = 0; // temporary value
         this.normalized = normalized;
     }
@@ -52,6 +52,9 @@ class BufferElement {
 }
 
 export class BufferLayout {
+    get length() {
+        return this.elements.length;
+    }
     constructor(list) {
         this.elements = [];
         for(let item of list) {
@@ -59,11 +62,15 @@ export class BufferLayout {
             const el = new BufferElement(type, name, normalized);
             this.elements.push(el);
         }
+        this.stride = 0;
         this.calculateOffsetAndStride();
     }
 
+    [Symbol.iterator]() {
+        return this.elements.values();
+    }
+
     calculateOffsetAndStride() {
-        this.stride = 0;
         let offset = 0;
         for(let el of this.elements) {
             el.offset = offset;

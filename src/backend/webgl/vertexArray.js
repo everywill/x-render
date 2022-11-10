@@ -21,11 +21,11 @@ export class GLVertexArray extends VertexArray {
     }
 
     addVertexBuffer(vertexBuffer) {
-        if(vertexBuffer.getLayout().length > 0) {
+        const layout = vertexBuffer.getLayout();
+        if(layout.length > 0) {
             this.gl.bindVertexArray(this.id);
             vertexBuffer.bind();
 
-            const layout = vertexBuffer.getLayout();
             for(let el of layout) {
                 switch(el.type) {
                     case ShaderDataType.Float:
@@ -34,7 +34,7 @@ export class GLVertexArray extends VertexArray {
                     case ShaderDataType.Float4:
                     {
                         this.gl.enableVertexAttribArray(this.vertexBufferIndex);
-                        this.gl.vertexAttribPointer(this.vertexBufferIndex, el.size, this.gl.FLOAT, el.normalized, layout.stride, el.offset);
+                        this.gl.vertexAttribPointer(this.vertexBufferIndex, el.getComponentCount(), this.gl.FLOAT, el.normalized, layout.stride, el.offset);
                         this.vertexBufferIndex++;
                         break;
                     }
@@ -44,7 +44,7 @@ export class GLVertexArray extends VertexArray {
                     case ShaderDataType.int4:
                     {
                         this.gl.enableVertexAttribArray(this.vertexBufferIndex);
-                        this.gl.vertexAttribIPointer(this.vertexBufferIndex, el.size, this.gl.INT, layout.stride, el.offset);
+                        this.gl.vertexAttribIPointer(this.vertexBufferIndex, el.getComponentCount(), this.gl.INT, layout.stride, el.offset);
                         this.vertexBufferIndex++
                         break;
                     }

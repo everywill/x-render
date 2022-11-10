@@ -4,8 +4,11 @@ import { Context } from '../../x-renderer/core/context';
 export class GLVertexBuffer extends VertexBuffer {
     get gl() { return Context.CURRENT }
 
-    constructor(data, offset = 0) {
+    constructor(data, offset = 0) {  // check data is TypedArray
         super();
+        if(!(data instanceof Float32Array)) {
+            data = new Float32Array(data);
+        }
         this.id = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.id);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW, offset);
@@ -24,7 +27,7 @@ export class GLVertexBuffer extends VertexBuffer {
         this.gl.bufferSubData(this.gl.ARRAY_BUFFER, dstOffset, data, srcOffset, size);
     }
     getLayout() {
-        return this.layout.elements;
+        return this.layout;
     }
     setLayout(layout) {
         this.layout = layout;
@@ -36,6 +39,9 @@ export class GLIndexBuffer extends IndexBuffer {
 
     constructor(data, count) {
         super();
+        if(!(data instanceof Uint16Array)) {
+            data = new Uint16Array(data);
+        }
         this.id = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.id);
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
