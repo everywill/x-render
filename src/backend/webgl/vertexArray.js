@@ -58,6 +58,7 @@ export class GLVertexArray extends VertexArray {
                             this.gl.vertexAttribDivisor(this.vertexBufferIndex, 1);
                             this.vertexBufferIndex++;
                         }
+                        break;
                     }
                 }
             }

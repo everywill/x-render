@@ -33,8 +33,8 @@ export class Application {
         for(let layer of this.layerStack.layers) {
             layer.onUpdate(0);
         }
-        requestAnimationFrame(() => {
-            this.run();
-        })
+        // requestAnimationFrame(() => {
+        //     this.run();
+        // })
     }
 }

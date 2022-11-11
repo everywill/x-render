@@ -1,10 +1,12 @@
 import { RenderApi, API } from './renderApi';
-import { GLVertexArray } from '../../backend/webgl/vertexArray';
 import { VertexArray } from './vertexArray';
+import { GLVertexArray } from '../../backend/webgl/vertexArray';
+import { GPUVertexArray } from '../../backend/webgpu/vertexArray';
 
 VertexArray.Create = function() {
-    if(RenderApi.CURRENT_TYPE === API.WEBGL) {
-        return new GLVertexArray();
+    switch(RenderApi.CURRENT_TYPE) {
+        case API.WEBGL: return new GLVertexArray();
+        case API.WEBGPU: return new GPUVertexArray();
     }
 }
 

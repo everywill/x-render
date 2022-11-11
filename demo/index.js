@@ -75,14 +75,6 @@
   };
   Context.CURRENT = void 0;
 
-  // src/backend/webgl/context.js
-  var GLContext = class extends Context {
-    constructor(options) {
-      super(options);
-      this.context = this.canvas.getContext("webgl2");
-    }
-  };
-
   // src/x-renderer/renderer/renderApi.js
   var API = {
     WEBGL: 0,
@@ -108,11 +100,30 @@
   };
   RenderApi.CURRENT_TYPE = void 0;
 
+  // src/backend/webgl/context.js
+  var GLContext = class extends Context {
+    constructor(options) {
+      super(options);
+      this.context = this.canvas.getContext("webgl2");
+    }
+  };
+
+  // src/backend/webgpu/context.js
+  var GPUContext = class extends Context {
+    constructor(options) {
+      super(options);
+      this.context = this.canvas.getContext("webgpu");
+    }
+  };
+
   // src/x-renderer/core/contextPubic.js
   Context.Create = function(options) {
     const api = RenderApi.CURRENT_TYPE;
-    if (api === API.WEBGL) {
-      Context.CURRENT = new GLContext(options).context;
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        Context.CURRENT = new GLContext(options).context;
+      case API.WEBGPU:
+        Context.CURRENT = new GPUContext(options).context;
     }
   };
 
@@ -215,9 +226,6 @@
       for (let layer of this.layerStack.layers) {
         layer.onUpdate(0);
       }
-      requestAnimationFrame(() => {
-        this.run();
-      });
     }
   };
 
@@ -242,10 +250,50 @@
     }
   };
 
+  // src/backend/webgpu/renderApi.js
+  var GPURenderApi = class extends RenderApi {
+    async init(options) {
+      const adapter = await navigator.gpu.requestAdapter();
+      const device = await adapter.requestDevice();
+      const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+      this.ctx.configure({
+        device,
+        format: presentationFormat
+      });
+      Context.device = device;
+    }
+    setClearColor(color) {
+      this.clearColor = color;
+    }
+    clear(mask) {
+    }
+    drawIndexed(vao, indexCount) {
+      const commandEncoder = Context.device.createCommandEncoder();
+      const renderPassDescriptor = {
+        colorAttachments: [{
+          view: Context.CURRENT.getCurrentTexture().createView(),
+          clearValue: this.clearColor,
+          loadOp: "clear",
+          storeOp: "store"
+        }]
+      };
+      const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+      passEncoder.setPipeline(Context.CURRENT_SHADER.pipeline);
+      vao.upload(passEncoder);
+      const count = indexCount ? indexCount : vao.indexBuffer.getCount();
+      passEncoder.drawIndexed(count);
+      passEncoder.end();
+      Context.device.queue.submit([commandEncoder.finish()]);
+    }
+  };
+
   // src/x-renderer/renderer/renderApiPublic.js
   RenderApi.Create = function() {
-    if (RenderApi.CURRENT_TYPE === API.WEBGL) {
-      return new GLRenderApi();
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLRenderApi();
+      case API.WEBGPU:
+        return new GPURenderApi();
     }
   };
 
@@ -401,15 +449,83 @@
     }
   };
 
+  // src/backend/webgpu/buffer.js
+  var GPUVertexBuffer = class extends VertexBuffer {
+    get device() {
+      return Context.device;
+    }
+    constructor(data) {
+      super();
+      if (!(data instanceof Float32Array)) {
+        data = new Float32Array(data);
+      }
+      const buffer = this.device.createBuffer({
+        size: data.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true
+      });
+      new Float32Array(buffer.getMappedRange()).set(data);
+      buffer.unmap();
+      this.buffer = buffer;
+    }
+    bind(passEncoder, index) {
+      passEncoder.setVertexBuffer(index, this.buffer);
+    }
+    unbind() {
+    }
+    setData(data) {
+    }
+    getLayout() {
+      return this.layout;
+    }
+    setLayout(layout) {
+      this.layout = layout;
+    }
+  };
+  var GPUIndexBuffer = class extends IndexBuffer {
+    get device() {
+      return Context.device;
+    }
+    constructor(data, count) {
+      super();
+      if (!(data instanceof Uint32Array)) {
+        data = new Uint32Array(data);
+      }
+      const buffer = this.device.createBuffer({
+        size: data.byteLength,
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true
+      });
+      new Uint32Array(buffer.getMappedRange()).set(data);
+      buffer.unmap();
+      this.buffer = buffer;
+      this.count = count ? count : data.length;
+    }
+    bind(passEncoder) {
+      passEncoder.setIndexBuffer(this.buffer, "uint32");
+    }
+    unbind() {
+    }
+    getCount() {
+      return this.count;
+    }
+  };
+
   // src/x-renderer/renderer/bufferPublic.js
   VertexBuffer.Create = function(data, offset) {
-    if (RenderApi.CURRENT_TYPE === API.WEBGL) {
-      return new GLVertexBuffer(data, offset);
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLVertexBuffer(data, offset);
+      case API.WEBGPU:
+        return new GPUVertexBuffer(data, offset);
     }
   };
   IndexBuffer.Create = function(data) {
-    if (RenderApi.CURRENT_TYPE === API.WEBGL) {
-      return new GLIndexBuffer(data);
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLIndexBuffer(data);
+      case API.WEBGPU:
+        return new GPUIndexBuffer(data);
     }
   };
 
@@ -477,6 +593,7 @@
                 this.gl.vertexAttribDivisor(this.vertexBufferIndex, 1);
                 this.vertexBufferIndex++;
               }
+              break;
             }
           }
         }
@@ -490,10 +607,103 @@
     }
   };
 
+  // src/backend/webgpu/vertexArray.js
+  var GPUVertexArray = class extends VertexArray {
+    get device() {
+      return Context.device;
+    }
+    get vertexBufferDesc() {
+      return this.vertexBuffers.map((item) => item.desc);
+    }
+    constructor() {
+      super();
+      this.vertexBufferIndex = 0;
+      this.vertexBuffers = [];
+      this.indexBuffer = void 0;
+    }
+    bind() {
+      Context.CURRENT_VAO = this;
+    }
+    unbind() {
+      Context.CURRENT_VAO = void 0;
+    }
+    upload(passEncoder) {
+      for (let i = 0; i < this.vertexBuffers.length; i++) {
+        this.vertexBuffers[i].vBuffer.bind(passEncoder, i);
+      }
+      this.indexBuffer.bind(passEncoder);
+    }
+    addVertexBuffer(vertexBuffer) {
+      const layout = vertexBuffer.getLayout();
+      if (layout.length > 0) {
+        let bufferDesc = {
+          attributes: [],
+          arrayStride: layout.stride,
+          stepMode: "vertex"
+        };
+        let attribDesc;
+        for (let el of layout) {
+          switch (el.type) {
+            case ShaderDataType.Float:
+            case ShaderDataType.Float2:
+            case ShaderDataType.Float3:
+            case ShaderDataType.Float4: {
+              attribDesc = {
+                shaderLocation: this.vertexBufferIndex,
+                offset: el.offset,
+                format: el.getComponentCount() > 1 ? `float32x${el.getComponentCount()}` : "float32"
+              };
+              bufferDesc.attributes.push(attribDesc);
+              this.vertexBufferIndex++;
+              break;
+            }
+            case ShaderDataType.Int:
+            case ShaderDataType.Int2:
+            case ShaderDataType.Int3:
+            case ShaderDataType.Int4: {
+              attribDesc = {
+                shaderLocation: this.vertexBufferIndex,
+                offset: el.offset,
+                format: el.getComponentCount() > 1 ? `sint32x${el.getComponentCount()}` : "sint32"
+              };
+              bufferDesc.attributes.push(attribDesc);
+              this.vertexBufferIndex++;
+              break;
+            }
+            case ShaderDataType.Mat3:
+            case ShaderDataType.Mat4: {
+              const count = el.getComponentCount();
+              for (let i = 0; i < count; i++) {
+                attribDesc = {
+                  shaderLocation: this.vertexBufferIndex,
+                  offset: el.offset + 4 * count * i,
+                  format: "float32x4"
+                };
+                bufferDesc.attributes.push(attribDesc);
+                this.vertexBufferIndex++;
+              }
+              break;
+            }
+          }
+        }
+        this.vertexBuffers.push({
+          desc: bufferDesc,
+          vBuffer: vertexBuffer
+        });
+      }
+    }
+    setIndexBuffer(indexBuffer) {
+      this.indexBuffer = indexBuffer;
+    }
+  };
+
   // src/x-renderer/renderer/vertexArrayPublic.js
   VertexArray.Create = function() {
-    if (RenderApi.CURRENT_TYPE === API.WEBGL) {
-      return new GLVertexArray();
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLVertexArray();
+      case API.WEBGPU:
+        return new GPUVertexArray();
     }
   };
 
@@ -625,10 +835,64 @@
     }
   };
 
+  // src/backend/webgpu/shader.js
+  var GPUShader = class extends Shader {
+    get device() {
+      return Context.device;
+    }
+    get pipeline() {
+      if (!this._pipeline) {
+        this.pipelineDesc.vertex.buffers = Context.CURRENT_VAO.vertexBufferDesc;
+        this._pipeline = this.device.createRenderPipeline(this.pipelineDesc);
+      }
+      return this._pipeline;
+    }
+    constructor(name, vertexSrc, fragmentSrc, vertexEntry = "main", fragmentEntry = "main") {
+      super();
+      this.name = name;
+      this.pipelineDesc = {
+        layout: "auto",
+        primitive: {
+          frontFace: "ccw",
+          cullMode: "none",
+          topology: "triangle-list"
+        }
+      };
+      this.createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry);
+    }
+    createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
+      this.device.pushErrorScope("validation");
+      const vShaderModule = this.device.createShaderModule({ code: vertexSrc });
+      const vertexDesc = {
+        module: vShaderModule,
+        entryPoint: vertexEntry
+      };
+      this.pipelineDesc.vertex = vertexDesc;
+      const fShaderModule = this.device.createShaderModule({ code: fragmentSrc });
+      const fragmentDesc = {
+        module: fShaderModule,
+        entryPoint: fragmentEntry,
+        targets: [{
+          format: navigator.gpu.getPreferredCanvasFormat()
+        }]
+      };
+      this.pipelineDesc.fragment = fragmentDesc;
+    }
+    bind() {
+      Context.CURRENT_SHADER = this;
+    }
+    unbind() {
+      Context.CURRENT_SHADER = void 0;
+    }
+  };
+
   // src/x-renderer/renderer/shaderPublic.js
   Shader.Create = function(name, vertexShaderSrc, fragmentShaderSrc) {
-    if (RenderApi.CURRENT_TYPE === API.WEBGL) {
-      return new GLShader(name, vertexShaderSrc, fragmentShaderSrc);
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLShader(name, vertexShaderSrc, fragmentShaderSrc);
+      case API.WEBGPU:
+        return new GPUShader(name, vertexShaderSrc, fragmentShaderSrc);
     }
   };
 
@@ -660,29 +924,27 @@
       const indices = [0, 1, 2];
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
-      const vertexShaderSource = `#version 300 es
-
-            layout(location = 0) in vec3 a_Position;
-            
-            out vec3 v_Position;
-
-            void main()
-			{
-				v_Position = a_Position;
-				gl_Position = vec4(a_Position, 1.0);	
-			}`;
-      const fragmentShaderSource = `#version 300 es
-
-            precision highp float;
-
-            layout(location = 0) out vec4 color;
-            
-            in vec3 v_Position;
-
-            void main()
-			{
-				color = vec4(v_Position * 0.5 + 0.5, 1.0);
-			}`;
+      const vertexShaderSource = `struct VertexOutput {
+                @builtin(position) Position : vec4<f32>,
+                @location(0) fragPosition : vec3<f32>,
+            }
+            @vertex
+            fn main(
+                @location(0) position : vec3<f32>
+            ) -> VertexOutput {
+                var output: VertexOutput;
+                output.Position = vec4(position, 1.0);
+                output.fragPosition = position;
+                return output;
+            }`;
+      const fragmentShaderSource = `
+            @fragment
+            fn main(
+                @location(0) fragPosition : vec3<f32>,
+            ) -> @location(0) vec4<f32> {
+                return vec4(fragPosition * 0.5 + 0.5, 1.0);
+            }
+        `;
       const shader = Shader.Create("VertexPosColor", vertexShaderSource, fragmentShaderSource);
       this.vertexArray = vertexArray;
       this.shader = shader;
@@ -707,7 +969,7 @@
   };
   async function createApp() {
     const canvas = document.getElementById("canvas");
-    RenderApi.CURRENT_TYPE = API.WEBGL;
+    RenderApi.CURRENT_TYPE = API.WEBGPU;
     const app = new SandboxApp({ canvas });
     await app.init({});
     return app;

@@ -14,4 +14,31 @@ export class GPURenderApi extends RenderApi {
         });
         Context.device = device;
     }
+    setClearColor(color) {
+        this.clearColor = color;
+    }
+
+    clear(mask) {}
+
+    drawIndexed(vao, indexCount) {
+        const commandEncoder = Context.device.createCommandEncoder();
+        const renderPassDescriptor = {
+            colorAttachments: [{
+                view: Context.CURRENT.getCurrentTexture().createView(),
+                clearValue: this.clearColor,
+                loadOp: 'clear',
+                storeOp: 'store',
+            }],
+        };
+
+        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+        passEncoder.setPipeline(Context.CURRENT_SHADER.pipeline);
+
+        vao.upload(passEncoder);
+
+        const count = indexCount ? indexCount : vao.indexBuffer.getCount();
+        passEncoder.drawIndexed(count);
+        passEncoder.end();
+        Context.device.queue.submit([commandEncoder.finish()]);
+    }
 }

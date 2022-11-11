@@ -14,7 +14,7 @@ class SandboxApp extends Application {
 
 export async function createApp() {
     const canvas = document.getElementById('canvas');
-    RenderApi.CURRENT_TYPE = API.WEBGL;
+    RenderApi.CURRENT_TYPE = API.WEBGPU;
     const app = new SandboxApp({ canvas });
     await app.init({});
     return app;
