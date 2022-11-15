@@ -30,7 +30,7 @@ export class ExampleLayer extends Layer {
         const indexBuffer = IndexBuffer.Create(indices);
         vertexArray.setIndexBuffer(indexBuffer);
 
-        /*--- GLSL ES 3.0 ---*/
+        /*--- GLSL ES 3.0 for WebGL2---*/
         // const vertexShaderSource = 
         //     `#version 300 es
 
@@ -59,6 +59,7 @@ export class ExampleLayer extends Layer {
 		// 	}`;
         /*--- GLSL ES 3.0 ---*/
 
+        /*--- WGSL for WebGPU ---*/
         const vertexShaderSource = 
             `struct VertexOutput {
                 @builtin(position) Position : vec4<f32>,
@@ -82,6 +83,7 @@ export class ExampleLayer extends Layer {
                 return vec4(fragPosition * 0.5 + 0.5, 1.0);
             }
         `;
+        /*--- WGSL ---*/
 
         const shader = Shader.Create('VertexPosColor', vertexShaderSource, fragmentShaderSource);
 
