@@ -13,9 +13,8 @@ export class GPUShader extends Shader {
         return this._pipeline;
     }
 
-    constructor(name, vertexSrc, fragmentSrc, vertexEntry = 'main', fragmentEntry = 'main') {
+    constructor(vertexSrc, fragmentSrc, vertexEntry = 'main', fragmentEntry = 'main') {
         super();
-        this.name = name;
         // this.varLocs = {};  // item: {group, binding}
         // this.bindGroups = [];
         this.pipelineDesc = { 

@@ -5,9 +5,8 @@ import logger from '../../x-renderer/core/log';
 export class GLShader extends Shader {
     get gl() { return Context.CURRENT; }
 
-    constructor(name, vertexSrc, fragmentSrc) {
+    constructor(vertexSrc, fragmentSrc) {
         super();
-        this.name = name;
         this.varLocs = {};
         this.createProgram(vertexSrc, fragmentSrc);
     }

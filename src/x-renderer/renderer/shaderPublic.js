@@ -3,10 +3,10 @@ import { Shader } from './shader';
 import { GLShader } from '../../backend/webgl/shader';
 import { GPUShader } from '../../backend/webgpu/shader';
 
-Shader.Create = function(name, vertexShaderSrc, fragmentShaderSrc) {
+Shader.Create = function(vertexShaderSrc, fragmentShaderSrc) {
     switch(RenderApi.CURRENT_TYPE) {
-        case API.WEBGL: return new GLShader(name, vertexShaderSrc, fragmentShaderSrc);
-        case API.WEBGPU: return new GPUShader(name, vertexShaderSrc, fragmentShaderSrc);
+        case API.WEBGL: return new GLShader(vertexShaderSrc, fragmentShaderSrc);
+        case API.WEBGPU: return new GPUShader(vertexShaderSrc, fragmentShaderSrc);
     }
 }
 
@@ -19,7 +19,7 @@ class ShaderLibrary {
         const text = await fetch(path)
             .then((res) => res.text());
         const shaderSource = this.preProcess(text);
-        this.shaders.set(name, Shader.Create(name, shaderSource.vertex, shaderSource.fragment));
+        this.shaders.set(name, Shader.Create(shaderSource.vertex, shaderSource.fragment));
     }
 
     preProcess(text) {

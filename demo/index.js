@@ -738,9 +738,8 @@
     get gl() {
       return Context.CURRENT;
     }
-    constructor(name, vertexSrc, fragmentSrc) {
+    constructor(vertexSrc, fragmentSrc) {
       super();
-      this.name = name;
       this.varLocs = {};
       this.createProgram(vertexSrc, fragmentSrc);
     }
@@ -849,9 +848,8 @@
       }
       return this._pipeline;
     }
-    constructor(name, vertexSrc, fragmentSrc, vertexEntry = "main", fragmentEntry = "main") {
+    constructor(vertexSrc, fragmentSrc, vertexEntry = "main", fragmentEntry = "main") {
       super();
-      this.name = name;
       this.pipelineDesc = {
         layout: "auto",
         primitive: {
@@ -889,12 +887,12 @@
   };
 
   // src/x-renderer/renderer/shaderPublic.js
-  Shader.Create = function(name, vertexShaderSrc, fragmentShaderSrc) {
+  Shader.Create = function(vertexShaderSrc, fragmentShaderSrc) {
     switch (RenderApi.CURRENT_TYPE) {
       case API.WEBGL:
-        return new GLShader(name, vertexShaderSrc, fragmentShaderSrc);
+        return new GLShader(vertexShaderSrc, fragmentShaderSrc);
       case API.WEBGPU:
-        return new GPUShader(name, vertexShaderSrc, fragmentShaderSrc);
+        return new GPUShader(vertexShaderSrc, fragmentShaderSrc);
     }
   };
   var ShaderLibrary = class {
@@ -904,7 +902,8 @@
     async load(name, path) {
       const text = await fetch(path).then((res) => res.text());
       const shaderSource = this.preProcess(text);
-      this.shaders.set(name, Shader.Create(name, shaderSource.vertex, shaderSource.fragment));
+      debugger;
+      this.shaders.set(name, Shader.Create(shaderSource.vertex, shaderSource.fragment));
     }
     preProcess(text) {
       const reg = new RegExp(/#type ([a-z]+)(?:\s+)/, "g");
@@ -962,7 +961,7 @@
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       this.vertexArray = vertexArray;
-      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.glsl");
+      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.wgsl");
     }
     onUpdate(timestep) {
       RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1 });
@@ -986,7 +985,7 @@
   };
   async function createApp() {
     const canvas = document.getElementById("canvas");
-    RenderApi.CURRENT_TYPE = API.WEBGL;
+    RenderApi.CURRENT_TYPE = API.WEBGPU;
     const app = new SandboxApp({ canvas });
     await app.init({});
     return app;

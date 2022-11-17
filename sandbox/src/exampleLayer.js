@@ -34,7 +34,8 @@ export class ExampleLayer extends Layer {
         const indexBuffer = IndexBuffer.Create(indices);
         vertexArray.setIndexBuffer(indexBuffer);
         this.vertexArray = vertexArray;
-        await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.glsl');
+        // await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.glsl');
+        await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.wgsl')
     }
 
     onUpdate(timestep) {
