@@ -5,7 +5,7 @@ import { RenderApi, API, MASKTYPE } from './x-renderer/renderer/renderApiPublic'
 import { Layer } from './x-renderer/core/layer';
 import { VertexBuffer, IndexBuffer, BufferLayout, ShaderDataType } from './x-renderer/renderer/bufferPublic';
 import { VertexArray } from './x-renderer/renderer/vertexArrayPublic';
-import { Shader } from './x-renderer/renderer/shaderPublic';
+import { Shader, ShaderLibrary } from './x-renderer/renderer/shaderPublic';
 import { Renderer } from './x-renderer/renderer';
 import { RenderCommand } from './x-renderer/renderer/renderCommand';
 
@@ -19,7 +19,7 @@ export {
     VertexBuffer, BufferLayout, ShaderDataType,
     IndexBuffer,
     VertexArray,
-    Shader,
+    Shader, ShaderLibrary,
     Renderer,
     RenderCommand,
 };

@@ -122,8 +122,10 @@
     switch (RenderApi.CURRENT_TYPE) {
       case API.WEBGL:
         Context.CURRENT = new GLContext(options).context;
+        break;
       case API.WEBGPU:
         Context.CURRENT = new GPUContext(options).context;
+        break;
     }
   };
 
@@ -895,14 +897,49 @@
         return new GPUShader(name, vertexShaderSrc, fragmentShaderSrc);
     }
   };
+  var ShaderLibrary = class {
+    constructor() {
+      this.shaders = /* @__PURE__ */ new Map();
+    }
+    async load(name, path) {
+      const text = await fetch(path).then((res) => res.text());
+      const shaderSource = this.preProcess(text);
+      this.shaders.set(name, Shader.Create(name, shaderSource.vertex, shaderSource.fragment));
+    }
+    preProcess(text) {
+      const reg = new RegExp(/#type ([a-z]+)(?:\s+)/, "g");
+      let e = reg.exec(text);
+      const ret = {};
+      let startIndex = 0;
+      let endIndex = 0;
+      let type = "";
+      while (e) {
+        endIndex = e.index;
+        if (endIndex > startIndex) {
+          ret[type] = text.substring(startIndex, endIndex);
+        }
+        type = e[1];
+        startIndex = endIndex + e[0].length;
+        e = reg.exec(text);
+      }
+      ret[type] = text.substring(startIndex);
+      return ret;
+    }
+    get(name) {
+      return this.shaders.get(name);
+    }
+  };
 
   // src/index.js
   var src_default = run;
 
-  // sandbox/exampleLayer.js
+  // sandbox/src/exampleLayer.js
   var ExampleLayer = class extends Layer {
     constructor() {
       super("example_layer");
+      this.shaderLibrary = new ShaderLibrary();
+    }
+    async initResource() {
       const vertexArray = VertexArray.Create();
       const vertices = [
         -0.5,
@@ -924,30 +961,8 @@
       const indices = [0, 1, 2];
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
-      const vertexShaderSource = `struct VertexOutput {
-                @builtin(position) Position : vec4<f32>,
-                @location(0) fragPosition : vec3<f32>,
-            }
-            @vertex
-            fn main(
-                @location(0) position : vec3<f32>
-            ) -> VertexOutput {
-                var output: VertexOutput;
-                output.Position = vec4(position, 1.0);
-                output.fragPosition = position;
-                return output;
-            }`;
-      const fragmentShaderSource = `
-            @fragment
-            fn main(
-                @location(0) fragPosition : vec3<f32>,
-            ) -> @location(0) vec4<f32> {
-                return vec4(fragPosition * 0.5 + 0.5, 1.0);
-            }
-        `;
-      const shader = Shader.Create("VertexPosColor", vertexShaderSource, fragmentShaderSource);
       this.vertexArray = vertexArray;
-      this.shader = shader;
+      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.glsl");
     }
     onUpdate(timestep) {
       RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1 });
@@ -956,25 +971,27 @@
         [MASKTYPE.DEPTH]: false,
         [MASKTYPE.STENCIL]: false
       });
-      Renderer.Submit(this.shader, this.vertexArray);
+      Renderer.Submit(this.shaderLibrary.get("triangle"), this.vertexArray);
     }
   };
 
-  // sandbox/sandboxApp.js
+  // sandbox/src/sandboxApp.js
   var SandboxApp = class extends Application {
     async init(options) {
       await super.init(options);
-      this.pushLayer(new ExampleLayer());
+      const exampleLayer = new ExampleLayer();
+      await exampleLayer.initResource();
+      this.pushLayer(exampleLayer);
     }
   };
   async function createApp() {
     const canvas = document.getElementById("canvas");
-    RenderApi.CURRENT_TYPE = API.WEBGPU;
+    RenderApi.CURRENT_TYPE = API.WEBGL;
     const app = new SandboxApp({ canvas });
     await app.init({});
     return app;
   }
 
-  // sandbox/index.js
+  // sandbox/src/index.js
   src_default(createApp, LogLevels.INFO);
 })();

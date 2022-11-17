@@ -6,8 +6,8 @@ import { GPUContext } from '../../backend/webgpu/context';
 Context.Create = function(options) {
     const api = RenderApi.CURRENT_TYPE;
     switch(RenderApi.CURRENT_TYPE) {
-        case API.WEBGL: Context.CURRENT = (new GLContext(options)).context;
-        case API.WEBGPU: Context.CURRENT = (new GPUContext(options)).context;
+        case API.WEBGL: Context.CURRENT = (new GLContext(options)).context; break;
+        case API.WEBGPU: Context.CURRENT = (new GPUContext(options)).context; break;
     }
 }
 

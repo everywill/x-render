@@ -1,4 +1,4 @@
-import { RenderApi, API } from '../renderer/renderApi';
+import { RenderApi, API } from './renderApi';
 import { Shader } from './shader';
 import { GLShader } from '../../backend/webgl/shader';
 import { GPUShader } from '../../backend/webgpu/shader';
@@ -10,6 +10,44 @@ Shader.Create = function(name, vertexShaderSrc, fragmentShaderSrc) {
     }
 }
 
+class ShaderLibrary {
+    constructor() {
+        this.shaders = new Map();
+    }
+
+    async load(name, path) {
+        const text = await fetch(path)
+            .then((res) => res.text());
+        const shaderSource = this.preProcess(text);
+        this.shaders.set(name, Shader.Create(name, shaderSource.vertex, shaderSource.fragment));
+    }
+
+    preProcess(text) {
+        const reg = new RegExp(/#type ([a-z]+)(?:\s+)/, 'g');
+        let e = reg.exec(text);
+        const ret = {};
+        let startIndex = 0;
+        let endIndex = 0;
+        let type = '';
+        while(e) {
+            endIndex = e.index;
+            if(endIndex > startIndex) {
+                ret[type] = text.substring(startIndex, endIndex);
+            }
+            type = e[1];
+            startIndex = endIndex + e[0].length;
+            e = reg.exec(text);
+        }
+        ret[type] = text.substring(startIndex);
+        return ret;
+    }
+
+    get(name) {
+        return this.shaders.get(name);
+    }
+}
+
 export {
     Shader,
+    ShaderLibrary
 };
