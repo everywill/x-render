@@ -228,6 +228,9 @@
       for (let layer of this.layerStack.layers) {
         layer.onUpdate(0);
       }
+      requestAnimationFrame(() => {
+        this.run();
+      });
     }
   };
 
@@ -902,8 +905,9 @@
     async load(name, path) {
       const text = await fetch(path).then((res) => res.text());
       const shaderSource = this.preProcess(text);
-      debugger;
-      this.shaders.set(name, Shader.Create(shaderSource.vertex, shaderSource.fragment));
+      const shader = Shader.Create(shaderSource.vertex, shaderSource.fragment);
+      this.shaders.set(name, shader);
+      return shader;
     }
     preProcess(text) {
       const reg = new RegExp(/#type ([a-z]+)(?:\s+)/, "g");
@@ -929,6 +933,84 @@
     }
   };
 
+  // src/x-renderer/renderer/texture.js
+  var Texture = class {
+    bind(slot) {
+    }
+    setData(data, width, height) {
+    }
+  };
+
+  // src/backend/webgl/texture.js
+  var GLTexture = class extends Texture {
+    get gl() {
+      return Context.CURRENT;
+    }
+    constructor(width, height) {
+      super(width, height);
+      this.internalFormat = this.gl.RGBA8;
+      this.dataFormat = this.gl.RGBA;
+      this.id = this.gl.createTexture();
+      this.width = width;
+      this.height = height;
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
+      this.gl.texStorage2D(this.gl.TEXTURE_2D, 1, this.internalFormat, width, height);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    }
+    setData(data) {
+      this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.width, this.height, this.dataFormat, this.gl.UNSIGNED_BYTE, data);
+    }
+    bind(slot) {
+      this.gl.activeTexture(this.gl[`TEXTURE${slot}`]);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
+    }
+  };
+
+  // src/x-renderer/renderer/texturePublic.js
+  Texture.Create = function(width, height) {
+    switch (RenderApi.CURRENT_TYPE) {
+      case API.WEBGL:
+        return new GLTexture(width, height);
+    }
+  };
+
+  // src/x-renderer/vendor/image.js
+  function decodeNetworkImage(url, type = "image/png") {
+    return new Promise((resolve, reject) => {
+      fetch(url).then((response) => {
+        const decoder = new ImageDecoder({
+          data: response.body,
+          type
+        });
+        decoder.decode().then(({ image, complete }) => {
+          const uint8 = new Uint8Array(image.allocationSize());
+          image.copyTo(uint8).then(() => {
+            const width = image.codedWidth;
+            const height = image.codedHeight;
+            const format = image.format;
+            image.close();
+            decoder.close();
+            if (format.indexOf("BGR") !== -1) {
+              for (let i = 0; i < uint8.length / 4; i++) {
+                const tmp = uint8[i * 4];
+                uint8[i * 4] = uint8[i * 4 + 2];
+                uint8[i * 4 + 2] = tmp;
+              }
+            }
+            resolve({
+              pixels: uint8,
+              width,
+              height
+            });
+          });
+        });
+      });
+    });
+  }
+
   // src/index.js
   var src_default = run;
 
@@ -944,24 +1026,42 @@
         -0.5,
         -0.5,
         0,
+        0,
+        0,
         0.5,
         -0.5,
         0,
+        1,
         0,
         0.5,
-        0
+        0.5,
+        0,
+        1,
+        1,
+        -0.5,
+        0.5,
+        0,
+        0,
+        1
       ];
       const vertexBuffer = VertexBuffer.Create(vertices);
       const layout = new BufferLayout([
-        { type: ShaderDataType.Float3, name: "a_Position" }
+        { type: ShaderDataType.Float3, name: "a_Position" },
+        { type: ShaderDataType.Float2, name: "a_TexCoord" }
       ]);
       vertexBuffer.setLayout(layout);
       vertexArray.addVertexBuffer(vertexBuffer);
-      const indices = [0, 1, 2];
+      const indices = [0, 1, 2, 2, 3, 0];
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       this.vertexArray = vertexArray;
-      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.wgsl");
+      const image = await decodeNetworkImage("assets/textures/four_part.png");
+      const texture = Texture.Create(image.width, image.height);
+      texture.setData(image.pixels);
+      const shader = await this.shaderLibrary.load("texture", "assets/shaders/texture.glsl");
+      const slot = 0;
+      texture.bind(slot);
+      shader.setInt("u_Texture", slot);
     }
     onUpdate(timestep) {
       RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1 });
@@ -970,7 +1070,7 @@
         [MASKTYPE.DEPTH]: false,
         [MASKTYPE.STENCIL]: false
       });
-      Renderer.Submit(this.shaderLibrary.get("triangle"), this.vertexArray);
+      Renderer.Submit(this.shaderLibrary.get("texture"), this.vertexArray);
     }
   };
 
@@ -985,7 +1085,7 @@
   };
   async function createApp() {
     const canvas = document.getElementById("canvas");
-    RenderApi.CURRENT_TYPE = API.WEBGPU;
+    RenderApi.CURRENT_TYPE = API.WEBGL;
     const app = new SandboxApp({ canvas });
     await app.init({});
     return app;

@@ -10,7 +10,7 @@ Shader.Create = function(vertexShaderSrc, fragmentShaderSrc) {
     }
 }
 
-class ShaderLibrary {
+export class ShaderLibrary {
     constructor() {
         this.shaders = new Map();
     }
@@ -19,7 +19,9 @@ class ShaderLibrary {
         const text = await fetch(path)
             .then((res) => res.text());
         const shaderSource = this.preProcess(text);
-        this.shaders.set(name, Shader.Create(shaderSource.vertex, shaderSource.fragment));
+        const shader = Shader.Create(shaderSource.vertex, shaderSource.fragment);
+        this.shaders.set(name, shader);
+        return shader;
     }
 
     preProcess(text) {
@@ -46,8 +48,3 @@ class ShaderLibrary {
         return this.shaders.get(name);
     }
 }
-
-export {
-    Shader,
-    ShaderLibrary
-};
