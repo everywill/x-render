@@ -23,7 +23,7 @@ export class OrthoCamera {
     }
 
     setProjection(left, right, bottom, top) {
-        mat4.ortho(this.projectionMatrix, left, right, bottom, top);
+        mat4.ortho(this.projectionMatrix, left, right, bottom, top, -1, 1);
         mat4.mul(this.viewProjectionMatrix, this.projectionMatrix, this.viewMatrix);
     }
 

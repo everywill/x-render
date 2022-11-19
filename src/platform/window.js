@@ -1,5 +1,6 @@
 import { Global } from '../x-renderer/core/global';
 import { KeyUpEvent, KeyDownEvent } from '../x-renderer/event/keyEvent';
+import { MouseWheelEvent } from '../x-renderer/event/mouseEvent';
 
 export class GloablWindow extends Global {
     constructor() {
@@ -14,6 +15,11 @@ export class GloablWindow extends Global {
         window.addEventListener('keydown', (ev) => {
             const keyDownEvent = new KeyDownEvent(ev.key);
             this.callbackHandle(keyDownEvent);
+        });
+
+        window.addEventListener('wheel', (ev) => {
+            const mouseWheelEvent = new MouseWheelEvent(ev.deltaX, ev.deltaY);
+            this.callbackHandle(mouseWheelEvent);
         })
     }
 

@@ -4,7 +4,7 @@ import {
     VertexArray,
     ShaderLibrary,
     Texture,
-    OrthoCamera,
+    OrthoCameraController,
     Renderer,
     RenderCommand,
     MASKTYPE,
@@ -27,7 +27,7 @@ export class ExampleLayer extends Layer {
             -0.5, 0.5, 0, 0, 1.0,
         ];
 
-        this.camera = new OrthoCamera(-2, 2, -1, 1);
+        this.cameraController = new OrthoCameraController(1.5, false);
 
         const vertexBuffer = VertexBuffer.Create(vertices);
         const layout = new BufferLayout([
@@ -57,7 +57,7 @@ export class ExampleLayer extends Layer {
     }
 
     onEvent(ev) {
-        // debugger;
+        this.cameraController.onEvent(ev);
     }
 
     onUpdate(timestep) {
@@ -68,7 +68,7 @@ export class ExampleLayer extends Layer {
             [MASKTYPE.STENCIL]: false,
         });
 
-        Renderer.BeginScene(this.camera);
+        Renderer.BeginScene(this.cameraController.camera);
         Renderer.Submit(this.shaderLibrary.get('texture'), this.vertexArray);
         Renderer.EndScene();
     }

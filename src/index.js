@@ -9,7 +9,7 @@ import { ShaderLibrary } from './x-renderer/renderer/shaderPublic';
 import { Texture } from './x-renderer/renderer/texturePublic';
 import { Renderer } from './x-renderer/renderer';
 import { RenderCommand } from './x-renderer/renderer/renderCommand';
-import { OrthoCamera } from './x-renderer/renderer/orthoCamera';
+import { OrthoCameraController } from './x-renderer/renderer/orthoCameraController';
 
 import { decodeNetworkImage } from './x-renderer/vendor/image';
 
@@ -27,6 +27,6 @@ export {
     Texture,
     Renderer,
     RenderCommand,
-    OrthoCamera,
+    OrthoCameraController,
     decodeNetworkImage,
 };

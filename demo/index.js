@@ -1891,6 +1891,17 @@
       return this.type;
     }
   };
+  var EventDispatcher = class {
+    constructor(ev, type) {
+      this.ev = ev;
+      this.type = type;
+    }
+    dispatch(handler) {
+      if (this.type === this.ev.getEventTypeName()) {
+        this.ev.handled |= handler(this.ev);
+      }
+    }
+  };
 
   // src/x-renderer/event/keyEvent.js
   EventCategory.KEY_EVENT = "KEY_EVENT";
@@ -1916,6 +1927,19 @@
     }
   };
 
+  // src/x-renderer/event/mouseEvent.js
+  EventCategory.MOUSE_EVENT = "MOUSE_EVENT";
+  EventType.MOUSE_WHEEL = "MOUSE_WHEEL";
+  var MouseWheelEvent = class extends Event {
+    constructor(xOffset, yOffset) {
+      super();
+      this.xOffset = xOffset;
+      this.yOffset = yOffset;
+      this.category = EventCategory.MOUSE_EVENT;
+      this.type = EventType.MOUSE_WHEEL;
+    }
+  };
+
   // src/platform/window.js
   var GloablWindow = class extends Global {
     constructor() {
@@ -1929,6 +1953,10 @@
       window.addEventListener("keydown", (ev) => {
         const keyDownEvent = new KeyDownEvent(ev.key);
         this.callbackHandle(keyDownEvent);
+      });
+      window.addEventListener("wheel", (ev) => {
+        const mouseWheelEvent = new MouseWheelEvent(ev.deltaX, ev.deltaY);
+        this.callbackHandle(mouseWheelEvent);
       });
     }
     setEventCallback(cb) {
@@ -2743,7 +2771,7 @@
       this.recalculateViewMatrix();
     }
     setProjection(left, right, bottom, top) {
-      mat4_exports.ortho(this.projectionMatrix, left, right, bottom, top);
+      mat4_exports.ortho(this.projectionMatrix, left, right, bottom, top, -1, 1);
       mat4_exports.mul(this.viewProjectionMatrix, this.projectionMatrix, this.viewMatrix);
     }
     recalculateViewMatrix() {
@@ -2753,6 +2781,26 @@
       mat4_exports.translate(translation, mat4_exports.create(), this.position);
       mat4_exports.mul(this.viewMatrix, translation, rotation);
       mat4_exports.mul(this.viewProjectionMatrix, this.projectionMatrix, this.viewMatrix);
+    }
+  };
+
+  // src/x-renderer/renderer/orthoCameraController.js
+  var OrthoCameraController = class {
+    constructor(aspectRatio, canRotate) {
+      this.zoomLevel = 1;
+      this.aspectRatio = aspectRatio;
+      this.canRotate = canRotate;
+      this.camera = new OrthoCamera(-this.aspectRatio * this.zoomLevel, this.aspectRatio * this.zoomLevel, -this.zoomLevel, this.zoomLevel);
+    }
+    onEvent(ev) {
+      const dispatcher = new EventDispatcher(ev, EventType.MOUSE_WHEEL);
+      dispatcher.dispatch(this.onMouseWheel.bind(this));
+    }
+    onMouseWheel(ev) {
+      let offset = 0.25 * (ev.yOffset > 0 ? 1 : -1);
+      this.zoomLevel += offset;
+      this.camera.setProjection(-this.aspectRatio * this.zoomLevel, this.aspectRatio * this.zoomLevel, -this.zoomLevel, this.zoomLevel);
+      return false;
     }
   };
 
@@ -2823,7 +2871,7 @@
         0,
         1
       ];
-      this.camera = new OrthoCamera(-2, 2, -1, 1);
+      this.cameraController = new OrthoCameraController(1.5, false);
       const vertexBuffer = VertexBuffer.Create(vertices);
       const layout = new BufferLayout([
         { type: ShaderDataType.Float3, name: "a_Position" },
@@ -2847,6 +2895,7 @@
       shader.setInt("u_Texture", slot);
     }
     onEvent(ev) {
+      this.cameraController.onEvent(ev);
     }
     onUpdate(timestep) {
       RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1 });
@@ -2855,7 +2904,7 @@
         [MASKTYPE.DEPTH]: false,
         [MASKTYPE.STENCIL]: false
       });
-      Renderer.BeginScene(this.camera);
+      Renderer.BeginScene(this.cameraController.camera);
       Renderer.Submit(this.shaderLibrary.get("texture"), this.vertexArray);
       Renderer.EndScene();
     }
