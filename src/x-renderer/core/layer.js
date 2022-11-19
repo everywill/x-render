@@ -5,7 +5,7 @@ export class Layer {
     onAttach() {}
     onDetach() {}
     onUpdate(timestep) {}
-    onEvent(event) {}
+    onEvent(ev) {}
 }
 
 export class LayerStack {

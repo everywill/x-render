@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "A universal renderer backended with WebGL/WebGPU",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "gl-matrix": "^3.4.3"
+  },
   "devDependencies": {
     "esbuild": "^0.15.13"
   },

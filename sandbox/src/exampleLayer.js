@@ -51,6 +51,10 @@ export class ExampleLayer extends Layer {
         shader.setInt('u_Texture', slot);
     }
 
+    onEvent(ev) {
+        // debugger;
+    }
+
     onUpdate(timestep) {
         RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1.0 });
         RenderCommand.Clear({

@@ -169,7 +169,7 @@
     }
     onUpdate(timestep) {
     }
-    onEvent(event) {
+    onEvent(ev) {
     }
   };
   var LayerStack = class {
@@ -203,10 +203,85 @@
     }
   };
 
+  // src/x-renderer/core/global.js
+  var Global = class {
+    setEventCallback(cb) {
+    }
+  };
+
+  // src/x-renderer/event/event.js
+  var EventCategory = {
+    NONE: "NONE"
+  };
+  var EventType = {
+    NONE: "NONE"
+  };
+  var Event = class {
+    constructor() {
+      this.handled = false;
+      this.type = EventType.NONE;
+      this.category = EventCategory.NONE;
+    }
+    getEventTypeName() {
+      return this.type;
+    }
+  };
+
+  // src/x-renderer/event/keyEvent.js
+  EventCategory.KEY_EVENT = "KEY_EVENT";
+  var KeyEvent = class extends Event {
+    constructor(key) {
+      super();
+      this.category = EventCategory.KEY_EVENT;
+      this.key = key;
+    }
+  };
+  EventType.KEY_UP = "KEY_UP";
+  var KeyUpEvent = class extends KeyEvent {
+    constructor(key) {
+      super(key);
+      this.type = EventType.KEY_UP;
+    }
+  };
+  EventType.KEY_DOWN = "KEY_DOWN";
+  var KeyDownEvent = class extends KeyEvent {
+    constructor(key) {
+      super(key);
+      this.type = EventType.KEY_DOWN;
+    }
+  };
+
+  // src/platform/window.js
+  var GloablWindow = class extends Global {
+    constructor() {
+      super();
+      this.callbackHandle = () => {
+      };
+      window.addEventListener("keyup", (ev) => {
+        const keyUpEvent = new KeyUpEvent(ev.key);
+        this.callbackHandle(keyUpEvent);
+      });
+      window.addEventListener("keydown", (ev) => {
+        const keyDownEvent = new KeyDownEvent(ev.key);
+        this.callbackHandle(keyDownEvent);
+      });
+    }
+    setEventCallback(cb) {
+      this.callbackHandle = cb;
+    }
+  };
+
+  // src/x-renderer/core/globalPublic.js
+  Global.Create = function() {
+    return new GloablWindow();
+  };
+
   // src/x-renderer/core/application.js
   var Application = class {
     constructor(options) {
       this.layerStack = new LayerStack();
+      this.global = Global.Create();
+      this.global.setEventCallback(this.onEvent.bind(this));
       Context.Create(options);
     }
     async init(options) {
@@ -223,6 +298,12 @@
     }
     popOverLayer(layer) {
       this.layerStack.popOverLayer(layer);
+    }
+    onEvent(ev) {
+      const length = this.layerStack.layers.length;
+      for (let i = length - 1; i >= 0; i--) {
+        this.layerStack.layers[i].onEvent(ev);
+      }
     }
     run() {
       for (let layer of this.layerStack.layers) {
@@ -1062,6 +1143,9 @@
       const slot = 0;
       texture.bind(slot);
       shader.setInt("u_Texture", slot);
+    }
+    onEvent(ev) {
+      debugger;
     }
     onUpdate(timestep) {
       RenderCommand.SetClearColor({ r: 0.1, g: 0.1, b: 0.1, a: 1 });
