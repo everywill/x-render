@@ -117,6 +117,6 @@ export class GLShader extends Shader {
     }
     uploadUniformMat4(name, value) {
         const loc = this.allocVar[name];
-        this.gl.uniformMatrix4fv(loc, value); // value is 16x element array
+        this.gl.uniformMatrix4fv(loc, false, value); // value is 16x element array
     }
 }

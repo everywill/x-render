@@ -4,6 +4,7 @@ import {
     VertexArray,
     ShaderLibrary,
     Texture,
+    OrthoCamera,
     Renderer,
     RenderCommand,
     MASKTYPE,
@@ -26,6 +27,8 @@ export class ExampleLayer extends Layer {
             -0.5, 0.5, 0, 0, 1.0,
         ];
 
+        this.camera = new OrthoCamera(-2, 2, -1, 1);
+
         const vertexBuffer = VertexBuffer.Create(vertices);
         const layout = new BufferLayout([
             { type: ShaderDataType.Float3, name: 'a_Position' },
@@ -45,9 +48,11 @@ export class ExampleLayer extends Layer {
         const texture = Texture.Create(image.width, image.height);
         texture.setData(image.pixels);
         const shader = await this.shaderLibrary.load('texture', 'assets/shaders/texture.glsl');
-
+        shader.bind();
         const slot = 0;
         texture.bind(slot);
+        shader.allocVar('u_Texture');
+        shader.allocVar('u_ViewProjection');
         shader.setInt('u_Texture', slot);
     }
 
@@ -63,6 +68,8 @@ export class ExampleLayer extends Layer {
             [MASKTYPE.STENCIL]: false,
         });
 
+        Renderer.BeginScene(this.camera);
         Renderer.Submit(this.shaderLibrary.get('texture'), this.vertexArray);
+        Renderer.EndScene();
     }
 }
