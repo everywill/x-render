@@ -27,7 +27,7 @@ export class ExampleLayer extends Layer {
             -0.5, 0.5, 0, 0, 1.0,
         ];
 
-        this.cameraController = new OrthoCameraController(1.5, false);
+        this.cameraController = new OrthoCameraController(2, false);
 
         const vertexBuffer = VertexBuffer.Create(vertices);
         const layout = new BufferLayout([
@@ -44,7 +44,10 @@ export class ExampleLayer extends Layer {
         
         // await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.glsl');
         // await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.wgsl');
-        const image = await decodeNetworkImage('assets/textures/four_part.png');
+        
+        // const image = await decodeNetworkImage('assets/textures/four_part.png');
+        const image = await decodeNetworkImage('assets/textures/xmas.png');
+
         const texture = Texture.Create(image.width, image.height);
         texture.setData(image.pixels);
         const shader = await this.shaderLibrary.load('texture', 'assets/shaders/texture.glsl');

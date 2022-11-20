@@ -1,7 +1,12 @@
 import { RenderApi, MASKTYPE } from '../../x-renderer/renderer/renderApi';
 
 export class GLRenderApi extends RenderApi {
-    init(options) {}
+    init(options) {
+        if(options.enableBlend) {
+            this.ctx.enable(this.ctx.BLEND);
+            this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
+        }
+    }
     setClearColor(color) {
         const {r, g, b, a} = color;
         this.ctx.clearColor(r, g, b, a);

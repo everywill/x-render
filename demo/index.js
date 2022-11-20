@@ -2011,6 +2011,10 @@
   // src/backend/webgl/renderApi.js
   var GLRenderApi = class extends RenderApi {
     init(options) {
+      if (options.enableBlend) {
+        this.ctx.enable(this.ctx.BLEND);
+        this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
+      }
     }
     setClearColor(color) {
       const { r, g, b, a } = color;
@@ -2797,7 +2801,7 @@
       dispatcher.dispatch(this.onMouseWheel.bind(this));
     }
     onMouseWheel(ev) {
-      let offset = 0.25 * (ev.yOffset > 0 ? 1 : -1);
+      let offset = 0.25 * (ev.yOffset < 0 ? 1 : -1);
       this.zoomLevel += offset;
       this.camera.setProjection(-this.aspectRatio * this.zoomLevel, this.aspectRatio * this.zoomLevel, -this.zoomLevel, this.zoomLevel);
       return false;
@@ -2871,7 +2875,7 @@
         0,
         1
       ];
-      this.cameraController = new OrthoCameraController(1.5, false);
+      this.cameraController = new OrthoCameraController(2, false);
       const vertexBuffer = VertexBuffer.Create(vertices);
       const layout = new BufferLayout([
         { type: ShaderDataType.Float3, name: "a_Position" },
@@ -2883,7 +2887,7 @@
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       this.vertexArray = vertexArray;
-      const image = await decodeNetworkImage("assets/textures/four_part.png");
+      const image = await decodeNetworkImage("assets/textures/xmas.png");
       const texture = Texture.Create(image.width, image.height);
       texture.setData(image.pixels);
       const shader = await this.shaderLibrary.load("texture", "assets/shaders/texture.glsl");
@@ -2923,7 +2927,9 @@
     const canvas = document.getElementById("canvas");
     RenderApi.CURRENT_TYPE = API.WEBGL;
     const app = new SandboxApp({ canvas });
-    await app.init({});
+    await app.init({
+      enableBlend: false
+    });
     return app;
   }
 

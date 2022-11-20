@@ -15,7 +15,7 @@ export class OrthoCameraController {
     }
 
     onMouseWheel(ev) {
-        let offset = 0.25 * (ev.yOffset > 0 ? 1 : -1);
+        let offset = 0.25 * (ev.yOffset < 0 ? 1 : -1);
         this.zoomLevel += offset;
         
         this.camera.setProjection(-this.aspectRatio * this.zoomLevel, this.aspectRatio * this.zoomLevel, -this.zoomLevel, this.zoomLevel);
