@@ -52,6 +52,10 @@ export class GLShader extends Shader {
         this.id = program;
     }
 
+    setVAO(vao) {
+        this.vao = vao;
+    }
+
     allocVar(name, loc) {
         loc = this.gl.getUniformLocation(this.id, name);
         this.allocVar[name] = loc;
@@ -59,6 +63,9 @@ export class GLShader extends Shader {
 
     bind() {
         this.gl.useProgram(this.id);
+        if(this.vao) {
+            this.vao.bind();
+        }
     }
     unbind() {
         this.gl.useProgram(0);

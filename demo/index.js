@@ -101,7 +101,7 @@
     }
     clear(mask) {
     }
-    drawIndexed(vao, indexCount) {
+    drawIndexed(shader, indexCount) {
     }
   };
   RenderApi.CURRENT_TYPE = void 0;
@@ -115,7 +115,7 @@
   };
 
   // src/backend/webgpu/context.js
-  var GPUContext = class extends Context {
+  var WGPUContext = class extends Context {
     constructor(options) {
       super(options);
       this.context = this.canvas.getContext("webgpu");
@@ -130,7 +130,7 @@
         Context.CURRENT = new GLContext(options).context;
         break;
       case API.WEBGPU:
-        Context.CURRENT = new GPUContext(options).context;
+        Context.CURRENT = new WGPUContext(options).context;
         break;
     }
   };
@@ -148,8 +148,8 @@
   RenderCommand.Clear = function(mask) {
     RenderCommand.Render_API.clear(mask);
   };
-  RenderCommand.DrawIndexed = function(vao, indexCount) {
-    RenderCommand.Render_API.drawIndexed(vao, indexCount);
+  RenderCommand.DrawIndexed = function(shader, indexCount) {
+    RenderCommand.Render_API.drawIndexed(shader, indexCount);
   };
 
   // node_modules/gl-matrix/esm/common.js
@@ -1817,10 +1817,10 @@
   Renderer.EndScene = function() {
   };
   Renderer.Submit = function(shader, vao) {
+    shader.setVAO(vao);
     shader.bind();
     shader.setMat4("u_ViewProjection", sceneData.viewProjectMatrix);
-    vao.bind();
-    RenderCommand.DrawIndexed(vao);
+    RenderCommand.DrawIndexed(shader);
   };
 
   // src/x-renderer/core/layer.js
@@ -2034,7 +2034,7 @@
   };
 
   // src/backend/webgpu/renderApi.js
-  var GPURenderApi = class extends RenderApi {
+  var WGPURenderApi = class extends RenderApi {
     async init(options) {
       const adapter = await navigator.gpu.requestAdapter();
       const device = await adapter.requestDevice();
@@ -2050,7 +2050,7 @@
     }
     clear(mask) {
     }
-    drawIndexed(vao, indexCount) {
+    drawIndexed(shader, indexCount) {
       const commandEncoder = Context.device.createCommandEncoder();
       const renderPassDescriptor = {
         colorAttachments: [{
@@ -2061,9 +2061,9 @@
         }]
       };
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-      passEncoder.setPipeline(Context.CURRENT_SHADER.pipeline);
-      vao.upload(passEncoder);
-      const count = indexCount ? indexCount : vao.indexBuffer.getCount();
+      passEncoder.setPipeline(shader.pipeline);
+      shader.upload(passEncoder);
+      const count = indexCount ? indexCount : shader.vao.indexBuffer.getCount();
       passEncoder.drawIndexed(count);
       passEncoder.end();
       Context.device.queue.submit([commandEncoder.finish()]);
@@ -2076,7 +2076,7 @@
       case API.WEBGL:
         return new GLRenderApi();
       case API.WEBGPU:
-        return new GPURenderApi();
+        return new WGPURenderApi();
     }
   };
 
@@ -2233,7 +2233,7 @@
   };
 
   // src/backend/webgpu/buffer.js
-  var GPUVertexBuffer = class extends VertexBuffer {
+  var WGPUVertexBuffer = class extends VertexBuffer {
     get device() {
       return Context.device;
     }
@@ -2265,7 +2265,7 @@
       this.layout = layout;
     }
   };
-  var GPUIndexBuffer = class extends IndexBuffer {
+  var WGPUIndexBuffer = class extends IndexBuffer {
     get device() {
       return Context.device;
     }
@@ -2300,7 +2300,7 @@
       case API.WEBGL:
         return new GLVertexBuffer(data, offset);
       case API.WEBGPU:
-        return new GPUVertexBuffer(data, offset);
+        return new WGPUVertexBuffer(data, offset);
     }
   };
   IndexBuffer.Create = function(data) {
@@ -2308,7 +2308,7 @@
       case API.WEBGL:
         return new GLIndexBuffer(data);
       case API.WEBGPU:
-        return new GPUIndexBuffer(data);
+        return new WGPUIndexBuffer(data);
     }
   };
 
@@ -2391,7 +2391,7 @@
   };
 
   // src/backend/webgpu/vertexArray.js
-  var GPUVertexArray = class extends VertexArray {
+  var WGPUVertexArray = class extends VertexArray {
     get device() {
       return Context.device;
     }
@@ -2405,10 +2405,8 @@
       this.indexBuffer = void 0;
     }
     bind() {
-      Context.CURRENT_VAO = this;
     }
     unbind() {
-      Context.CURRENT_VAO = void 0;
     }
     upload(passEncoder) {
       for (let i = 0; i < this.vertexBuffers.length; i++) {
@@ -2486,12 +2484,14 @@
       case API.WEBGL:
         return new GLVertexArray();
       case API.WEBGPU:
-        return new GPUVertexArray();
+        return new WGPUVertexArray();
     }
   };
 
   // src/x-renderer/renderer/shader.js
   var Shader = class {
+    setVAO(vao) {
+    }
     bind() {
     }
     unbind() {
@@ -2556,12 +2556,18 @@
       }
       this.id = program;
     }
+    setVAO(vao) {
+      this.vao = vao;
+    }
     allocVar(name, loc) {
       loc = this.gl.getUniformLocation(this.id, name);
       this.allocVar[name] = loc;
     }
     bind() {
       this.gl.useProgram(this.id);
+      if (this.vao) {
+        this.vao.bind();
+      }
     }
     unbind() {
       this.gl.useProgram(0);
@@ -2618,13 +2624,13 @@
   };
 
   // src/backend/webgpu/shader.js
-  var GPUShader = class extends Shader {
+  var WGPUShader = class extends Shader {
     get device() {
       return Context.device;
     }
     get pipeline() {
       if (!this._pipeline) {
-        this.pipelineDesc.vertex.buffers = Context.CURRENT_VAO.vertexBufferDesc;
+        this.pipelineDesc.vertex.buffers = this.vao.vertexBufferDesc;
         this._pipeline = this.device.createRenderPipeline(this.pipelineDesc);
       }
       return this._pipeline;
@@ -2642,7 +2648,6 @@
       this.createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry);
     }
     createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
-      this.device.pushErrorScope("validation");
       const vShaderModule = this.device.createShaderModule({ code: vertexSrc });
       const vertexDesc = {
         module: vShaderModule,
@@ -2659,11 +2664,15 @@
       };
       this.pipelineDesc.fragment = fragmentDesc;
     }
+    setVAO(vao) {
+      this.vao = vao;
+    }
+    upload(passEncoder) {
+      this.vao.upload(passEncoder);
+    }
     bind() {
-      Context.CURRENT_SHADER = this;
     }
     unbind() {
-      Context.CURRENT_SHADER = void 0;
     }
   };
 
@@ -2673,7 +2682,7 @@
       case API.WEBGL:
         return new GLShader(vertexShaderSrc, fragmentShaderSrc);
       case API.WEBGPU:
-        return new GPUShader(vertexShaderSrc, fragmentShaderSrc);
+        return new WGPUShader(vertexShaderSrc, fragmentShaderSrc);
     }
   };
   var ShaderLibrary = class {
@@ -2726,11 +2735,11 @@
     }
     constructor(width, height) {
       super(width, height);
+      this.width = width;
+      this.height = height;
       this.internalFormat = this.gl.RGBA8;
       this.dataFormat = this.gl.RGBA;
       this.id = this.gl.createTexture();
-      this.width = width;
-      this.height = height;
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
       this.gl.texStorage2D(this.gl.TEXTURE_2D, 1, this.internalFormat, width, height);
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
@@ -2741,8 +2750,8 @@
     setData(data) {
       this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.width, this.height, this.dataFormat, this.gl.UNSIGNED_BYTE, data);
     }
-    bind(slot) {
-      this.gl.activeTexture(this.gl[`TEXTURE${slot}`]);
+    bind(slots) {
+      this.gl.activeTexture(this.gl[`TEXTURE${slots.tex}`]);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
     }
   };
@@ -2808,40 +2817,6 @@
     }
   };
 
-  // src/x-renderer/vendor/image.js
-  function decodeNetworkImage(url, type = "image/png") {
-    return new Promise((resolve, reject) => {
-      fetch(url).then((response) => {
-        const decoder = new ImageDecoder({
-          data: response.body,
-          type
-        });
-        decoder.decode().then(({ image, complete }) => {
-          const uint8 = new Uint8Array(image.allocationSize());
-          image.copyTo(uint8).then(() => {
-            const width = image.codedWidth;
-            const height = image.codedHeight;
-            const format = image.format;
-            image.close();
-            decoder.close();
-            if (format.indexOf("BGR") !== -1) {
-              for (let i = 0; i < uint8.length / 4; i++) {
-                const tmp = uint8[i * 4];
-                uint8[i * 4] = uint8[i * 4 + 2];
-                uint8[i * 4 + 2] = tmp;
-              }
-            }
-            resolve({
-              pixels: uint8,
-              width,
-              height
-            });
-          });
-        });
-      });
-    });
-  }
-
   // src/index.js
   var src_default = run;
 
@@ -2887,16 +2862,7 @@
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       this.vertexArray = vertexArray;
-      const image = await decodeNetworkImage("assets/textures/xmas.png");
-      const texture = Texture.Create(image.width, image.height);
-      texture.setData(image.pixels);
-      const shader = await this.shaderLibrary.load("texture", "assets/shaders/texture.glsl");
-      shader.bind();
-      const slot = 0;
-      texture.bind(slot);
-      shader.allocVar("u_Texture");
-      shader.allocVar("u_ViewProjection");
-      shader.setInt("u_Texture", slot);
+      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.wgsl");
     }
     onEvent(ev) {
       this.cameraController.onEvent(ev);
@@ -2909,7 +2875,7 @@
         [MASKTYPE.STENCIL]: false
       });
       Renderer.BeginScene(this.cameraController.camera);
-      Renderer.Submit(this.shaderLibrary.get("texture"), this.vertexArray);
+      Renderer.Submit(this.shaderLibrary.get("triangle"), this.vertexArray);
       Renderer.EndScene();
     }
   };
@@ -2925,10 +2891,10 @@
   };
   async function createApp() {
     const canvas = document.getElementById("canvas");
-    RenderApi.CURRENT_TYPE = API.WEBGL;
+    RenderApi.CURRENT_TYPE = API.WEBGPU;
     const app = new SandboxApp({ canvas });
     await app.init({
-      enableBlend: false
+      enableBlend: true
     });
     return app;
   }

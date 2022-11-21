@@ -16,7 +16,7 @@ export class RenderApi {
     init(options) {}
     setClearColor(color) {}
     clear(mask) {}
-    drawIndexed(vao, indexCount) {}
+    drawIndexed(shader, indexCount) {}
 }
 
 RenderApi.CURRENT_TYPE = undefined;

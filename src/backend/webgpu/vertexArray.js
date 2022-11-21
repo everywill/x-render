@@ -2,7 +2,8 @@ import { VertexArray } from "../../x-renderer/renderer/vertexArray";
 import { Context } from "../../x-renderer/core/context";
 import { ShaderDataType } from "../../x-renderer/renderer/buffer";
 
-export class GPUVertexArray extends VertexArray {
+// VertexArray or BufferLayout
+export class WGPUVertexArray extends VertexArray { 
     get device() { return Context.device; }
 
     get vertexBufferDesc() {
@@ -16,12 +17,9 @@ export class GPUVertexArray extends VertexArray {
         this.indexBuffer = undefined;
     }
     
-    bind() {
-        Context.CURRENT_VAO = this;
-    }
-    unbind() {
-        Context.CURRENT_VAO = undefined;
-    }
+    bind() {}
+
+    unbind() {}
 
     upload(passEncoder) {
         for(let i=0; i<this.vertexBuffers.length; i++) {

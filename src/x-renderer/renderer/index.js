@@ -18,9 +18,9 @@ Renderer.BeginScene = function(camera) {
 Renderer.EndScene = function() {}
 
 Renderer.Submit = function(shader, vao) {
+    shader.setVAO(vao);
     shader.bind();
     shader.setMat4('u_ViewProjection', sceneData.viewProjectMatrix);
-    vao.bind();
     
-    RenderCommand.DrawIndexed(vao);
+    RenderCommand.DrawIndexed(shader);
 }

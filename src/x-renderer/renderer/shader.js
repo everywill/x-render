@@ -1,5 +1,6 @@
 // Abstraction of Program(vertex and fragment shader)
 export class Shader {
+    setVAO(vao) {}
     bind() {}
     unbind() {}
 

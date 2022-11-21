@@ -2,12 +2,12 @@ import { Shader } from "../../x-renderer/renderer/shader";
 import { Context } from "../../x-renderer/core/context";
 import logger from '../../x-renderer/core/log';
 
-export class GPUShader extends Shader {
+export class WGPUShader extends Shader {
     get device() { return Context.device }
 
     get pipeline() {
         if(!this._pipeline) {
-            this.pipelineDesc.vertex.buffers = Context.CURRENT_VAO.vertexBufferDesc;
+            this.pipelineDesc.vertex.buffers = this.vao.vertexBufferDesc;
             this._pipeline = this.device.createRenderPipeline(this.pipelineDesc);
         }
         return this._pipeline;
@@ -33,7 +33,7 @@ export class GPUShader extends Shader {
     }
 
     createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
-        this.device.pushErrorScope('validation');
+        // this.device.pushErrorScope('validation');
         const vShaderModule = this.device.createShaderModule({ code: vertexSrc });
         // let error = await this.device.popErrorScope();
         // if(error) {
@@ -80,15 +80,19 @@ export class GPUShader extends Shader {
         this.pipelineDesc.fragment = fragmentDesc;
     }
 
+    setVAO(vao) {
+        this.vao = vao;
+    }
+
+    upload(passEncoder) {
+        this.vao.upload(passEncoder);
+    }
+
     // todo: uniform upload
     // allocVar(name, loc) {
     //     this.varLocs[name] = loc;
     // }
 
-    bind() {
-        Context.CURRENT_SHADER = this;
-    }
-    unbind() {
-        Context.CURRENT_SHADER = undefined;
-    }
+    bind() {}
+    unbind() {}
 }

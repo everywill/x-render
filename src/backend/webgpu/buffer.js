@@ -1,7 +1,7 @@
 import { VertexBuffer, IndexBuffer } from "../../x-renderer/renderer/buffer";
 import { Context } from "../../x-renderer/core/context";
 
-export class GPUVertexBuffer extends VertexBuffer {
+export class WGPUVertexBuffer extends VertexBuffer {
     get device() { return Context.device; }
 
     constructor(data) {
@@ -40,7 +40,7 @@ export class GPUVertexBuffer extends VertexBuffer {
     } 
 }
 
-export class GPUIndexBuffer extends IndexBuffer {
+export class WGPUIndexBuffer extends IndexBuffer {
     get device() { return Context.device }
     
     constructor(data, count) {

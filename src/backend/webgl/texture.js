@@ -6,11 +6,11 @@ export class GLTexture extends Texture {
 
     constructor(width, height) {
         super(width, height);
+        this.width = width;
+        this.height = height;
         this.internalFormat = this.gl.RGBA8;
         this.dataFormat = this.gl.RGBA;
         this.id = this.gl.createTexture();
-        this.width = width;
-        this.height = height;
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
         this.gl.texStorage2D(this.gl.TEXTURE_2D, 1, this.internalFormat, width, height);  // support 1 level
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
@@ -23,8 +23,8 @@ export class GLTexture extends Texture {
         this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.width, this.height, this.dataFormat, this.gl.UNSIGNED_BYTE, data);
     }
 
-    bind(slot) {
-        this.gl.activeTexture(this.gl[`TEXTURE${slot}`]);
+    bind(slots) {
+        this.gl.activeTexture(this.gl[`TEXTURE${slots.tex}`]);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
     }
 }

@@ -1,12 +1,12 @@
 import { RenderApi, API } from './renderApi';
 import { Shader } from './shader';
 import { GLShader } from '../../backend/webgl/shader';
-import { GPUShader } from '../../backend/webgpu/shader';
+import { WGPUShader } from '../../backend/webgpu/shader';
 
 Shader.Create = function(vertexShaderSrc, fragmentShaderSrc) {
     switch(RenderApi.CURRENT_TYPE) {
         case API.WEBGL: return new GLShader(vertexShaderSrc, fragmentShaderSrc);
-        case API.WEBGPU: return new GPUShader(vertexShaderSrc, fragmentShaderSrc);
+        case API.WEBGPU: return new WGPUShader(vertexShaderSrc, fragmentShaderSrc);
     }
 }
 

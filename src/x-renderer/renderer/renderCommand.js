@@ -16,6 +16,6 @@ RenderCommand.Clear = function(mask) {
     RenderCommand.Render_API.clear(mask);
 }
 
-RenderCommand.DrawIndexed = function(vao, indexCount) {
-    RenderCommand.Render_API.drawIndexed(vao, indexCount);
+RenderCommand.DrawIndexed = function(shader, indexCount) {
+    RenderCommand.Render_API.drawIndexed(shader, indexCount);
 }

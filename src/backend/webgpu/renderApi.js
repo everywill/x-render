@@ -1,7 +1,7 @@
 import { RenderApi } from "../../x-renderer/renderer/renderApi";
 import { Context } from "../../x-renderer/core/context";
 
-export class GPURenderApi extends RenderApi {
+export class WGPURenderApi extends RenderApi {
     async init(options) {
         const adapter = await navigator.gpu.requestAdapter();
         const device = await adapter.requestDevice();
@@ -20,7 +20,7 @@ export class GPURenderApi extends RenderApi {
 
     clear(mask) {}
 
-    drawIndexed(vao, indexCount) {
+    drawIndexed(shader, indexCount) {
         const commandEncoder = Context.device.createCommandEncoder();
         const renderPassDescriptor = {
             colorAttachments: [{
@@ -32,11 +32,12 @@ export class GPURenderApi extends RenderApi {
         };
 
         const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-        passEncoder.setPipeline(Context.CURRENT_SHADER.pipeline);
+        passEncoder.setPipeline(shader.pipeline);
 
-        vao.upload(passEncoder);
+        // upload buffer data
+        shader.upload(passEncoder);
 
-        const count = indexCount ? indexCount : vao.indexBuffer.getCount();
+        const count = indexCount ? indexCount : shader.vao.indexBuffer.getCount();
         passEncoder.drawIndexed(count);
         passEncoder.end();
         Context.device.queue.submit([commandEncoder.finish()]);
