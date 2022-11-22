@@ -1,5 +1,6 @@
 import { Shader } from "../../x-renderer/renderer/shader";
 import { Context } from "../../x-renderer/core/context";
+import { ShaderDataType, ShaderDataTypeSize } from "../../x-renderer/renderer/buffer";
 import logger from '../../x-renderer/core/log';
 
 export class WGPUShader extends Shader {
@@ -11,6 +12,26 @@ export class WGPUShader extends Shader {
             this._pipeline = this.device.createRenderPipeline(this.pipelineDesc);
         }
         return this._pipeline;
+    }
+
+    get bindGroup() {
+        if(!this._bindGroup) {
+            const entries = [];
+            this.bindings.forEach((value, key) => {
+                if(value.type === ShaderDataType.Mat4) {
+                    entries[value.index] = {
+                        binding: value.index,
+                        resource: { buffer: value.buffer },
+                    };
+                }
+                
+            });
+            this._bindGroup = this.device.createBindGroup({
+                layout: this.pipeline.getBindGroupLayout(0),
+                entries,
+            });
+        }
+        return this._bindGroup;
     }
 
     constructor(vertexSrc, fragmentSrc, vertexEntry = 'main', fragmentEntry = 'main') {
@@ -30,6 +51,7 @@ export class WGPUShader extends Shader {
             // }
         };
         this.createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry);
+       this.bindings = new Map();
     }
 
     createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
@@ -80,12 +102,42 @@ export class WGPUShader extends Shader {
         this.pipelineDesc.fragment = fragmentDesc;
     }
 
+    setMat4(name, value) {
+        if(!this.bindings.get(name) || this.bindings.get(name).type !== ShaderDataType.Mat4) {
+            this.bindings.set(name, {
+                index: this.bindings.size,
+                type: ShaderDataType.Mat4,
+                buffer: this.device.createBuffer({
+                    size: ShaderDataTypeSize[ShaderDataType.Mat4],
+                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                }),
+            });
+        }
+        
+        if(!(value instanceof Float32Array)) {
+            value = new Float32Array(value);
+        }
+        const entry = this.bindings.get(name);
+        entry.data = value;
+    }
+
+    uploadUniformMat4(name, value) {
+        const { buffer, data } = this.bindings.get(name);
+        this.device.queue.writeBuffer(buffer, 0, data, 0, data.length);
+    }
+
     setVAO(vao) {
         this.vao = vao;
     }
 
     upload(passEncoder) {
         this.vao.upload(passEncoder);
+        for(const [key, value] of this.bindings.entries()) {
+            if(value.type === ShaderDataType.Mat4) {
+                this.uploadUniformMat4(key);
+            }
+        }
+        passEncoder.setBindGroup(0, this.bindGroup);
     }
 
     // todo: uniform upload

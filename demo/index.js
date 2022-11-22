@@ -2635,6 +2635,24 @@
       }
       return this._pipeline;
     }
+    get bindGroup() {
+      if (!this._bindGroup) {
+        const entries = [];
+        this.bindings.forEach((value, key) => {
+          if (value.type === ShaderDataType.Mat4) {
+            entries[value.index] = {
+              binding: value.index,
+              resource: { buffer: value.buffer }
+            };
+          }
+        });
+        this._bindGroup = this.device.createBindGroup({
+          layout: this.pipeline.getBindGroupLayout(0),
+          entries
+        });
+      }
+      return this._bindGroup;
+    }
     constructor(vertexSrc, fragmentSrc, vertexEntry = "main", fragmentEntry = "main") {
       super();
       this.pipelineDesc = {
@@ -2646,6 +2664,7 @@
         }
       };
       this.createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry);
+      this.bindings = /* @__PURE__ */ new Map();
     }
     createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
       const vShaderModule = this.device.createShaderModule({ code: vertexSrc });
@@ -2664,11 +2683,38 @@
       };
       this.pipelineDesc.fragment = fragmentDesc;
     }
+    setMat4(name, value) {
+      if (!this.bindings.get(name) || this.bindings.get(name).type !== ShaderDataType.Mat4) {
+        this.bindings.set(name, {
+          index: this.bindings.size,
+          type: ShaderDataType.Mat4,
+          buffer: this.device.createBuffer({
+            size: ShaderDataTypeSize[ShaderDataType.Mat4],
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+          })
+        });
+      }
+      if (!(value instanceof Float32Array)) {
+        value = new Float32Array(value);
+      }
+      const entry = this.bindings.get(name);
+      entry.data = value;
+    }
+    uploadUniformMat4(name, value) {
+      const { buffer, data } = this.bindings.get(name);
+      this.device.queue.writeBuffer(buffer, 0, data, 0, data.length);
+    }
     setVAO(vao) {
       this.vao = vao;
     }
     upload(passEncoder) {
       this.vao.upload(passEncoder);
+      for (const [key, value] of this.bindings.entries()) {
+        if (value.type === ShaderDataType.Mat4) {
+          this.uploadUniformMat4(key);
+        }
+      }
+      passEncoder.setBindGroup(0, this.bindGroup);
     }
     bind() {
     }
