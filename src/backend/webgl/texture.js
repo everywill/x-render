@@ -4,10 +4,11 @@ import { Context } from '../../x-renderer/core/context';
 export class GLTexture extends Texture {
     get gl() { return Context.CURRENT }
 
-    constructor(width, height) {
+    constructor(name, width, height) {
         super(width, height);
         this.width = width;
         this.height = height;
+        this.name = name;
         this.internalFormat = this.gl.RGBA8;
         this.dataFormat = this.gl.RGBA;
         this.id = this.gl.createTexture();
@@ -23,8 +24,8 @@ export class GLTexture extends Texture {
         this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.width, this.height, this.dataFormat, this.gl.UNSIGNED_BYTE, data);
     }
 
-    bind(slots) {
-        this.gl.activeTexture(this.gl[`TEXTURE${slots.tex}`]);
+    bind(slot) {
+        this.gl.activeTexture(this.gl[`TEXTURE${slot}`]);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
     }
 }

@@ -2559,10 +2559,6 @@
     setVAO(vao) {
       this.vao = vao;
     }
-    allocVar(name, loc) {
-      loc = this.gl.getUniformLocation(this.id, name);
-      this.allocVar[name] = loc;
-    }
     bind() {
       this.gl.useProgram(this.id);
       if (this.vao) {
@@ -2572,10 +2568,17 @@
     unbind() {
       this.gl.useProgram(0);
     }
+    setTexture(tex, loc = 0) {
+      tex.bind(loc);
+      this.setInt(tex.name, loc);
+    }
     setInt(name, value) {
       this.uploadUniformInt(name, value);
     }
     uploadUniformInt(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniform1i(loc, value);
     }
@@ -2583,13 +2586,19 @@
       this.uploadUniformIntArray(name, value);
     }
     uploadUniformIntArray(name, value) {
-      const loc = tthis.allocVar[name];
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
+      const loc = this.allocVar[name];
       this.gl.uniform1iv(loc, value);
     }
     setFloat(name, value) {
       this.uploadUniformFloat(name, value);
     }
     uploadUniformFloat(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniform1f(loc, value);
     }
@@ -2597,6 +2606,9 @@
       this.uploadUniformFloat2(name, value);
     }
     uploadUniformFloat2(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniform2fv(loc, value);
     }
@@ -2604,6 +2616,9 @@
       this.uploadUniformFloat3(name, value);
     }
     uploadUniformFloat3(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniform3fv(loc, value);
     }
@@ -2611,6 +2626,9 @@
       this.uploadUniformFloat4(name, value);
     }
     uploadUniformFloat4(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniform4fv(loc, value);
     }
@@ -2618,6 +2636,9 @@
       this.uploadUniformMat4(name, value);
     }
     uploadUniformMat4(name, value) {
+      if (!this.allocVar[name]) {
+        this.allocVar[name] = this.gl.getUniformLocation(this.id, name);
+      }
       const loc = this.allocVar[name];
       this.gl.uniformMatrix4fv(loc, false, value);
     }
@@ -2642,7 +2663,19 @@
           if (value.type === ShaderDataType.Mat4) {
             entries[value.index] = {
               binding: value.index,
-              resource: { buffer: value.buffer }
+              resource: { buffer: value.resource }
+            };
+          }
+          if (value.type === "texture") {
+            entries[value.index] = {
+              binding: value.index,
+              resource: value.resource.createView()
+            };
+          }
+          if (value.type === "sampler") {
+            entries[value.index] = {
+              binding: value.index,
+              resource: value.resource
             };
           }
         });
@@ -2683,12 +2716,30 @@
       };
       this.pipelineDesc.fragment = fragmentDesc;
     }
+    setTexture(tex) {
+      const texName = tex.name + "_texture";
+      if (!this.bindings.get(texName) || this.bindings.get(texName).type !== "texture") {
+        this.bindings.set(texName, {
+          index: this.bindings.size,
+          type: "texture",
+          resource: tex.tex
+        });
+      }
+      const samplerName = tex.name + "_sampler";
+      if (!this.bindings.get(samplerName) || this.bindings.get(samplerName).type !== "texture") {
+        this.bindings.set(samplerName, {
+          index: this.bindings.size,
+          type: "sampler",
+          resource: tex.sampler
+        });
+      }
+    }
     setMat4(name, value) {
       if (!this.bindings.get(name) || this.bindings.get(name).type !== ShaderDataType.Mat4) {
         this.bindings.set(name, {
           index: this.bindings.size,
           type: ShaderDataType.Mat4,
-          buffer: this.device.createBuffer({
+          resource: this.device.createBuffer({
             size: ShaderDataTypeSize[ShaderDataType.Mat4],
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
           })
@@ -2701,8 +2752,8 @@
       entry.data = value;
     }
     uploadUniformMat4(name, value) {
-      const { buffer, data } = this.bindings.get(name);
-      this.device.queue.writeBuffer(buffer, 0, data, 0, data.length);
+      const { resource, data } = this.bindings.get(name);
+      this.device.queue.writeBuffer(resource, 0, data, 0, data.length);
     }
     setVAO(vao) {
       this.vao = vao;
@@ -2779,10 +2830,11 @@
     get gl() {
       return Context.CURRENT;
     }
-    constructor(width, height) {
+    constructor(name, width, height) {
       super(width, height);
       this.width = width;
       this.height = height;
+      this.name = name;
       this.internalFormat = this.gl.RGBA8;
       this.dataFormat = this.gl.RGBA;
       this.id = this.gl.createTexture();
@@ -2796,17 +2848,53 @@
     setData(data) {
       this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.width, this.height, this.dataFormat, this.gl.UNSIGNED_BYTE, data);
     }
-    bind(slots) {
-      this.gl.activeTexture(this.gl[`TEXTURE${slots.tex}`]);
+    bind(slot) {
+      this.gl.activeTexture(this.gl[`TEXTURE${slot}`]);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
     }
   };
 
+  // src/backend/webgpu/texture.js
+  var WGPUTexture = class extends Texture {
+    get device() {
+      return Context.device;
+    }
+    constructor(name, width, height) {
+      super(width, height);
+      this.name = name;
+      this.width = width;
+      this.height = height;
+      this.tex = this.device.createTexture({
+        size: { width, height },
+        format: "rgba8unorm",
+        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+      });
+      this.sampler = this.device.createSampler({
+        addressModeU: "repeat",
+        addressModeV: "repeat",
+        magFilter: "linear",
+        minFilter: "linear"
+      });
+    }
+    setData(data) {
+      this.device.queue.writeTexture(
+        { texture: this.tex },
+        data,
+        { bytesPerRow: this.width * 4, rowsPerImage: this.height },
+        { width: this.width, height: this.height }
+      );
+    }
+    bind() {
+    }
+  };
+
   // src/x-renderer/renderer/texturePublic.js
-  Texture.Create = function(width, height) {
+  Texture.Create = function(name, width, height) {
     switch (RenderApi.CURRENT_TYPE) {
       case API.WEBGL:
-        return new GLTexture(width, height);
+        return new GLTexture(name, width, height);
+      case API.WEBGPU:
+        return new WGPUTexture(name, width, height);
     }
   };
 
@@ -2863,6 +2951,40 @@
     }
   };
 
+  // src/x-renderer/vendor/image.js
+  function decodeNetworkImage(url, type = "image/png") {
+    return new Promise((resolve, reject) => {
+      fetch(url).then((response) => {
+        const decoder = new ImageDecoder({
+          data: response.body,
+          type
+        });
+        decoder.decode().then(({ image, complete }) => {
+          const uint8 = new Uint8Array(image.allocationSize());
+          image.copyTo(uint8).then(() => {
+            const width = image.codedWidth;
+            const height = image.codedHeight;
+            const format = image.format;
+            image.close();
+            decoder.close();
+            if (format.indexOf("BGR") !== -1) {
+              for (let i = 0; i < uint8.length / 4; i++) {
+                const tmp = uint8[i * 4];
+                uint8[i * 4] = uint8[i * 4 + 2];
+                uint8[i * 4 + 2] = tmp;
+              }
+            }
+            resolve({
+              pixels: uint8,
+              width,
+              height
+            });
+          });
+        });
+      });
+    });
+  }
+
   // src/index.js
   var src_default = run;
 
@@ -2908,7 +3030,12 @@
       const indexBuffer = IndexBuffer.Create(indices);
       vertexArray.setIndexBuffer(indexBuffer);
       this.vertexArray = vertexArray;
-      await this.shaderLibrary.load("triangle", "assets/shaders/triangle.wgsl");
+      const shader = await this.shaderLibrary.load("texture", "assets/shaders/texture.wgsl");
+      const image = await decodeNetworkImage("assets/textures/four_part.png");
+      const texture = Texture.Create("u_Texture", image.width, image.height);
+      texture.setData(image.pixels);
+      shader.bind();
+      shader.setTexture(texture);
     }
     onEvent(ev) {
       this.cameraController.onEvent(ev);
@@ -2921,7 +3048,7 @@
         [MASKTYPE.STENCIL]: false
       });
       Renderer.BeginScene(this.cameraController.camera);
-      Renderer.Submit(this.shaderLibrary.get("triangle"), this.vertexArray);
+      Renderer.Submit(this.shaderLibrary.get("texture"), this.vertexArray);
       Renderer.EndScene();
     }
   };

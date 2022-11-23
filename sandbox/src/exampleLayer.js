@@ -43,20 +43,19 @@ export class ExampleLayer extends Layer {
         this.vertexArray = vertexArray;
         
         // await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.glsl');
-        await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.wgsl');
+        // await this.shaderLibrary.load('triangle', 'assets/shaders/triangle.wgsl');
+
+        // const shader = await this.shaderLibrary.load('texture', 'assets/shaders/texture.glsl');
+        const shader = await this.shaderLibrary.load('texture', 'assets/shaders/texture.wgsl');
         
-        // const image = await decodeNetworkImage('assets/textures/four_part.png');
+        const image = await decodeNetworkImage('assets/textures/four_part.png');
         // const image = await decodeNetworkImage('assets/textures/xmas.png');
 
-        // const texture = Texture.Create(image.width, image.height);
-        // texture.setData(image.pixels);
-        // const shader = await this.shaderLibrary.load('texture', 'assets/shaders/texture.glsl');
-        // shader.bind();
-        // const slot = 0;
-        // texture.bind({ tex: 0 });
-        // shader.allocVar('u_Texture');
-        // shader.allocVar('u_ViewProjection');
-        // shader.setInt('u_Texture', slot);
+        const texture = Texture.Create('u_Texture', image.width, image.height);
+        texture.setData(image.pixels);
+        
+        shader.bind();
+        shader.setTexture(texture);
     }
 
     onEvent(ev) {
@@ -72,8 +71,8 @@ export class ExampleLayer extends Layer {
         });
 
         Renderer.BeginScene(this.cameraController.camera);
-        Renderer.Submit(this.shaderLibrary.get('triangle'), this.vertexArray);
-        // Renderer.Submit(this.shaderLibrary.get('texture'), this.vertexArray);
+        // Renderer.Submit(this.shaderLibrary.get('triangle'), this.vertexArray);
+        Renderer.Submit(this.shaderLibrary.get('texture'), this.vertexArray);
         Renderer.EndScene();
     }
 }

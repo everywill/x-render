@@ -21,10 +21,21 @@ export class WGPUShader extends Shader {
                 if(value.type === ShaderDataType.Mat4) {
                     entries[value.index] = {
                         binding: value.index,
-                        resource: { buffer: value.buffer },
+                        resource: { buffer: value.resource },
                     };
                 }
-                
+                if(value.type === 'texture') {
+                    entries[value.index] = {
+                        binding: value.index,
+                        resource: value.resource.createView(),
+                    };
+                }
+                if(value.type === 'sampler') {
+                    entries[value.index] = {
+                        binding: value.index,
+                        resource: value.resource,
+                    };
+                }
             });
             this._bindGroup = this.device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(0),
@@ -36,8 +47,6 @@ export class WGPUShader extends Shader {
 
     constructor(vertexSrc, fragmentSrc, vertexEntry = 'main', fragmentEntry = 'main') {
         super();
-        // this.varLocs = {};  // item: {group, binding}
-        // this.bindGroups = [];
         this.pipelineDesc = { 
             //  vertex, fragment, 
             layout: 'auto',
@@ -51,7 +60,7 @@ export class WGPUShader extends Shader {
             // }
         };
         this.createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry);
-       this.bindings = new Map();
+        this.bindings = new Map();
     }
 
     createShaderDesc(vertexSrc, vertexEntry, fragmentSrc, fragmentEntry) {
@@ -102,12 +111,31 @@ export class WGPUShader extends Shader {
         this.pipelineDesc.fragment = fragmentDesc;
     }
 
+    setTexture(tex) {
+        const texName = tex.name + '_texture';
+        if(!this.bindings.get(texName) || this.bindings.get(texName).type !== 'texture') {
+            this.bindings.set(texName, {
+                index: this.bindings.size,
+                type: 'texture',
+                resource: tex.tex,
+            });
+        }
+        const samplerName = tex.name + '_sampler';
+        if(!this.bindings.get(samplerName) || this.bindings.get(samplerName).type !== 'texture') {
+            this.bindings.set(samplerName, {
+                index: this.bindings.size,
+                type: 'sampler',
+                resource: tex.sampler,
+            });
+        }
+    }
+
     setMat4(name, value) {
         if(!this.bindings.get(name) || this.bindings.get(name).type !== ShaderDataType.Mat4) {
             this.bindings.set(name, {
                 index: this.bindings.size,
                 type: ShaderDataType.Mat4,
-                buffer: this.device.createBuffer({
+                resource: this.device.createBuffer({
                     size: ShaderDataTypeSize[ShaderDataType.Mat4],
                     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
                 }),
@@ -122,8 +150,8 @@ export class WGPUShader extends Shader {
     }
 
     uploadUniformMat4(name, value) {
-        const { buffer, data } = this.bindings.get(name);
-        this.device.queue.writeBuffer(buffer, 0, data, 0, data.length);
+        const { resource, data } = this.bindings.get(name);
+        this.device.queue.writeBuffer(resource, 0, data, 0, data.length);
     }
 
     setVAO(vao) {
@@ -139,11 +167,6 @@ export class WGPUShader extends Shader {
         }
         passEncoder.setBindGroup(0, this.bindGroup);
     }
-
-    // todo: uniform upload
-    // allocVar(name, loc) {
-    //     this.varLocs[name] = loc;
-    // }
 
     bind() {}
     unbind() {}
