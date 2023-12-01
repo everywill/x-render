@@ -7,3 +7,6 @@ const BUFFER_MODE = {
     BUFFER_MODE_NUM_MODES: 4,
 };
 
+export {
+    BUFFER_MODE,
+}
