@@ -1,0 +1,5 @@
+const MAX_RENDER_TARGETS = 8;
+
+export {
+    MAX_RENDER_TARGETS,
+}

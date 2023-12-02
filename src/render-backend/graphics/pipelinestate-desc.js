@@ -1,3 +1,6 @@
+import { MAX_RENDER_TARGETS } from './constant';
+import { COMPARISON_FUNCTION } from './graphics-types'
+
 const FILL_MODE = {
     FILL_MODE_UNDEFINED: 0,
     FILL_MODE_WIREFRAME: 1,  // OpenGL counterpart: GL_LINE; but glPolygonMode not supported on WebGL
@@ -75,9 +78,92 @@ const COLOR_MASK = {  // glColorMask
     COLOR_MASK_ALL: 0xf,
 };
 
+// alternative to blend operation, limited to uint
+// const LOGIC_OPERATION = {}
+
+class RenderTargetBlendDesc {
+    constructor() {
+        this.blend_enable = false;
+        // this.logic_operation_enable = false;
+        this.scr_blend = BLEND_FACTOR.BLEND_FACTOR_ONE;
+        this.dest_blend = BLEND_FACTOR.BLEND_FACTOR_ZERO;
+        this.blend_op = BLEND_OPERATION.BLEND_OPERATION_ADD;
+        this.src_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ONE;
+        this.dest_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ZERO;
+        this.blend_op_alpha = BLEND_OPERATION.BLEND_OPERATION_ADD;
+        this.color_mask = COLOR_MASK.COLOR_MASK_ALL;
+    }
+}
+
+class BlendStateDesc {
+    constructor() {
+        this.alpha_to_coverage_enable = false;
+        // if set to false, only RenderTargets[0] will be used
+        this.independent_blend_enable = false;
+        this.RenderTargets = [];
+        for(let i=0; i<MAX_RENDER_TARGETS; i++) {
+            this.RenderTargets.push(new RenderTargetBlendDesc());
+        }
+    }
+}
+
+const STENCIL_OP = {
+    STENCIL_OP_UNDEFINED: 0,
+    // keep the existing stencil data
+    STENCIL_OP_KEEP: 1,  // OpenGL: GL_KEEP
+    // set the stencil data to 0
+    STENCIL_OP_ZERO: 2,  // OpenGL: GL_ZERO
+    // set to reference value
+    STENCIL_OP_REPLACE: 3,  // OpenGL: GL_REPLACE
+    // increment and clamp to maximum
+    STENCIL_OP_INCR_SAT: 4,  // OpenGL: GL_INCR
+    // decrement and clamp to 0
+    STENCIL_OP_DECR_SAT: 5,  // OpenGL: GL_DECR
+    // bitwise invert current stencil buffer
+    STENCIL_OP_INVERT : 6,  // OpenGL: GL_INVERT
+    // increment and wrap to 0
+    STENCIL_OP_INCR_WRAP: 7,  // OpenGL: GL_INCR_WRAP
+    // decrement and wrap to maximum
+    STENCIL_OP_DECR_WRAP: 8,  // OpenGL: GL_DECR_WRAP
+    STENCIL_OP_NUM_OPS: 9
+};
+
+class StencilOpDesc {
+    constructor() {
+        this.stencil_fail_op = STENCIL_OP.STENCIL_OP_KEEP;
+        this.stencil_depth_fail_op = STENCIL_OP.STENCIL_OP_KEEP;
+        this.stencil_pass_op = STENCIL_OP.STENCIL_OP_KEEP;
+        this.stencil_func = COMPARISON_FUNCTION.COMPARISON_FUNC_ALWAYS;
+    }
+    
+}
+
+class DepthStencilStateDesc {
+    constructor() {
+        this.depth_enable = true;
+        this.depth_write_enable = true;  // hint: depth' mask
+        this.depth_func = COMPARISON_FUNCTION.COMPARISON_FUNC_LESS;
+        this.stencil_enable = false;
+        this.stencil_read_mask = 0xff;
+        this.stencil_write_mask = 0xff;
+        this.front_face = new StencilOpDesc();
+        this.back_face = new StencilOpDesc();
+    }
+}
+
+// not supported in OpenGL
+// class SampleDesc {
+//     constructor() {
+//         this.count = 1;
+//         this.quality = 0;
+//     }
+// } 
+
 export {
     FILL_MODE, CULL_MODE, 
     RasterizerStateDesc,
-    BLEND_FACTOR, BLEND_OPERATION,
-    COLOR_MASK,
+    BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK,
+    // RenderTargetBlendDesc, 
+    BlendStateDesc,
+    DepthStencilStateDesc,
 }
