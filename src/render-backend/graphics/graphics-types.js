@@ -30,7 +30,31 @@ const PRIMITIVE_TOPOLOGY = {
     // PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST:   GL_PATCHES
 }; 
 
+const VALUE_TYPE = {
+    // Undefined type
+    VT_UNDEFINED: 0,
+    // Signed 8-bit integer
+    VT_INT8: 1,
+    // Signed 16-bit integer       
+    VT_INT16: 2,     
+    // Signed 32-bit integer    
+    VT_INT32: 3,
+    // Unsigned 8-bit integer
+    VT_UINT8: 4,     
+    // Unsigned 16-bit integer    
+    VT_UINT16: 5,
+    // Unsigned 32-bit integer      
+    VT_UINT32: 6,
+    // Half-precision 16-bit floating point
+    VT_FLOAT16: 7,
+    // Full-precision 32-bit floating point
+    VT_FLOAT32: 8,
+    // VT_FLOAT64: 9,       ///< Double-precision 64-bit floating point
+    VT_NUM_TYPES: 9     
+}
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
+    VALUE_TYPE,
 }

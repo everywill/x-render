@@ -85,7 +85,7 @@ class RenderTargetBlendDesc {
     constructor() {
         this.blend_enable = false;
         // this.logic_operation_enable = false;
-        this.scr_blend = BLEND_FACTOR.BLEND_FACTOR_ONE;
+        this.src_blend = BLEND_FACTOR.BLEND_FACTOR_ONE;
         this.dest_blend = BLEND_FACTOR.BLEND_FACTOR_ZERO;
         this.blend_op = BLEND_OPERATION.BLEND_OPERATION_ADD;
         this.src_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ONE;
@@ -141,7 +141,7 @@ class StencilOpDesc {
 class DepthStencilStateDesc {
     constructor() {
         this.depth_enable = true;
-        this.depth_write_enable = true;  // hint: depth' mask
+        this.depth_write_enable = true;  // depth' mask
         this.depth_func = COMPARISON_FUNCTION.COMPARISON_FUNC_LESS;
         this.stencil_enable = false;
         this.stencil_read_mask = 0xff;
@@ -152,12 +152,28 @@ class DepthStencilStateDesc {
 }
 
 // not supported in OpenGL
-// class SampleDesc {
-//     constructor() {
-//         this.count = 1;
-//         this.quality = 0;
-//     }
-// } 
+// multisampling parameters
+class SampleDesc {
+    constructor() {
+        this.count = 1;
+        this.quality = 0;
+    }
+} 
+
+class GraphicsPipelineDesc {
+    constructor() {
+        this.blend_state_desc = new BlendStateDesc();
+        // 32-bit sample mask that determines which samples get updated
+        // in all the active render targets. A sample mask is always applied;
+        // it is independent of whether multisampling is enabled, and does not
+        // depend on whether an application uses multisample render targets.
+        // GPU will cull pixels in the rasterizer stage.
+        this.sample_mask = 0xffffffff;   // not supported in OpenGL
+        this.rasterizer_state_desc = new RasterizerStateDesc();
+        this.depth_stencil_state_desc = new DepthStencilStateDesc();
+
+    }
+}
 
 export {
     FILL_MODE, CULL_MODE, 
