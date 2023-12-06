@@ -1,5 +1,6 @@
 import { MAX_RENDER_TARGETS } from './constant';
-import { COMPARISON_FUNCTION } from './graphics-types'
+import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY } from './graphics-types'
+import { InputLayoutDesc } from './input-layout';
 
 const FILL_MODE = {
     FILL_MODE_UNDEFINED: 0,
@@ -171,7 +172,11 @@ class GraphicsPipelineDesc {
         this.sample_mask = 0xffffffff;   // not supported in OpenGL
         this.rasterizer_state_desc = new RasterizerStateDesc();
         this.depth_stencil_state_desc = new DepthStencilStateDesc();
-
+        this.input_layout_desc = new InputLayoutDesc();
+        this.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        this.num_viewports = 1;  // multiple viewports not supported in OpenGL 
+        // Number of render targets in the RTV_formats member
+        this.num_render_targets = 0;
     }
 }
 

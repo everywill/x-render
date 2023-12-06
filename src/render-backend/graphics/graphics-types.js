@@ -53,6 +53,47 @@ const VALUE_TYPE = {
     VT_NUM_TYPES: 9     
 }
 
+const TEXTURE_FORMAT = {
+    TEX_FORMAT_UNKNOWN: 0,
+    // four-component 128-bit typeless format with 32-bit channels
+    // designate fotmat when creating SRV
+    TEX_FORMAT_RGBA32_TYPELESS: 1,  // OpenGL has no direct counterpart, use GL_RGBA32F
+    // four-component 128-bit floating-point format with 32-bit channels
+    TEX_FORMAT_RGBA32_FLOAT: 2,  // OpenGL: GL_RGBA32F
+    // four-component 128-bit unsigned-integer format with 32-bit channels.
+    TEX_FORMAT_RGBA32_UINT: 3,  // OpenGL: GL_RGBA32UI
+    // four-component 128-bit signed-integer format with 32-bit channels.
+    TEX_FORMAT_RGBA32_SINT: 4,  // OpenGL: GL_RGBA32I
+    // three-component 96-bit typeless format with 32-bit channels.
+    TEX_FORMAT_RGB32_TYPELESS: 5,  // OpenGL has no direct counterpart, use GL_RGB32F
+    // three-component 96-bit floating-point format with 32-bit channels.
+    TEX_FORMAT_RGB32_FLOAT: 6,  // OpenGL: GL_RGB32F
+    // three-component 96-bit floating-point format with 32-bit channels
+    TEX_FORMAT_RGB32_UINT: 7,  // OpenGL: GL_RGB32UI
+    // four-component 96-bit signed-integer format with 32-bit channels.
+    TEX_FORMAT_RGB32_SINT: 8,  // OpenGL: GL_RGB32I
+    // four-component 64-bit typeless format with 16-bit channels.
+    TEX_FORMAT_RGBA16_TYPELESS: 9, // OpenGL has no direct counterpart, use GL_RGBA16F
+    // four-component 64-bit floating-point format with 16-bit channels.
+    TEX_FORMAT_RGBA16_FLOAT: 10,  // OpenGL: GL_RGBA16F
+    // four-component 64-bit unsigned-normalized-integer format with 16-bit channels.
+    TEX_FORMAT_RGBA16_UNORM: 11,  // OpenGL: GL_RGBA16; GL_EXT_texture_norm16 is required
+    // four-component 64-bit unsigned-integer format with 16-bit channels
+    TEX_FORMAT_RGBA32_UINT: 12,  // OpenGL: GL_RGBA16UI
+    // four-component 64-bit signed-normalized-integer format with 16-bit channels.
+    TEX_FORMAT_RGB32_SNORM: 13,  // OpenGL: GL_RGBA16_SNORM; GL_EXT_texture_norm16 is required
+    // four-component 64-bit signed-integer format with 16-bit channels.
+    TEX_FORMAT_RGB32_SINT: 14,  // OpenGL: GL_RGBA16I
+    // two-component 64-bit typeless format with 32-bit channels.
+    TEX_FORMAT_RG32_TYPELESS: 15,  // OpenGL has no direct counterpart, use GL_RG32F
+    // two-component 64-bit floating-point format with 32-bit channels.
+    TEX_FORMAT_RG32_FLOAT: 16,  // OpenGL: GL_RG32F
+    // two-component 64-bit unsigned-integer format with 32-bit channels.
+    TEX_FORMAT_RG32_UINT: 17, // OpenGL: GL_RG32UI
+    // Two-component 64-bit signed-integer format with 32-bit channels.
+    TEX_FORMAT_RG32_SINT: 18,  // OpenGL: GL_RG32I
+};
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
