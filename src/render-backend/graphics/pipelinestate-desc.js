@@ -1,5 +1,6 @@
 import { MAX_RENDER_TARGETS } from './constant';
-import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY } from './graphics-types'
+import { GraphicsHandle } from './graphics-handle';
+import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT } from './graphics-types'
 import { InputLayoutDesc } from './input-layout';
 
 const FILL_MODE = {
@@ -163,6 +164,7 @@ class SampleDesc {
 
 class GraphicsPipelineDesc {
     constructor() {
+        this.program_handle = new GraphicsHandle();  // placeholder
         this.blend_state_desc = new BlendStateDesc();
         // 32-bit sample mask that determines which samples get updated
         // in all the active render targets. A sample mask is always applied;
@@ -176,7 +178,26 @@ class GraphicsPipelineDesc {
         this.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         this.num_viewports = 1;  // multiple viewports not supported in OpenGL 
         // Number of render targets in the RTV_formats member
-        this.num_render_targets = 0;
+        this.num_render_targets = 0;   
+        this.RTV_formats = [];  // MAX_RENDER_TARGETS
+        this.DSV_format = TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN;
+        // this.sample_desc = new SampleDesc(); not supported in OpenGL
+        this.nodeMask = 0;
+    }
+}
+
+class ComputePipelineDesc {
+    constructor() {
+        this.program_handle = new GraphicsHandle();  // placeholder
+    }
+}
+
+class PipelineStateDesc {
+    constructor() {
+        this.is_compute_pipeline = false;
+        this.graphics_pipeline_desc = new GraphicsPipelineDesc();
+        this.compute_pipeline_desc = new ComputePipelineDesc();
+        // this.SRB_allocation_granularity = 1;
     }
 }
 
@@ -187,4 +208,5 @@ export {
     // RenderTargetBlendDesc, 
     BlendStateDesc,
     DepthStencilStateDesc,
+    PipelineStateDesc,
 }

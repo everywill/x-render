@@ -278,8 +278,24 @@ const TEXTURE_FORMAT = {
     TEX_FORMAT_NUM_FORMATS: 85
 };
 
+class SwapChainDesc {
+    constructor() {
+        this.width = 0;
+        this.height = 0;
+        // back buffer format
+        this.color_buffer_format = TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM_SRGB;
+        this.depth_buffer_format = TEXTURE_FORMAT.TEX_FORMAT_D32_FLOAT;
+        // number of buffers in the swapchain
+        this.buffer_count = 2;
+        this.default_depth_value = 1.0; // float
+        this.default_stencil_value = 0 // uint8
+    }
+}
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
     VALUE_TYPE,
+    TEXTURE_FORMAT,
+    SwapChainDesc,
 }
