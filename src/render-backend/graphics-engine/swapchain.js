@@ -7,4 +7,7 @@ class SwapChain {
     GetDesc() {}
     // change swapchain's back buffer
     Resize(new_width, new_height) {}
+    // SetFullscreenMode() {}
+    // SetWindowedMode() {}
+    // SetMaximumFrameLatency(maxLatency) {}
 }

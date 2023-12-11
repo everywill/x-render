@@ -292,10 +292,24 @@ class SwapChainDesc {
     }
 }
 
+const RESOURCE_DIMENSION = {
+    RESOURCE_DIM_UNDEFINED: 0,  // undefined texture type
+    RESOURCE_DIM_BUFFER: 1,  // buffer
+    RESOURCE_DIM_TEX_1D: 2,  // one-dimensional texture
+    RESOURCE_DIM_TEX_1D_ARRAY: 3,  // one-dimensional texture array
+    RESOURCE_DIM_TEX_2D: 4,  // two-dimensional texture
+    RESOURCE_DIM_TEX_2D_ARRAY: 5,  // two-dimensional texture array
+    RESOURCE_DIM_TEX_3D: 6,  // three-dimensional texture
+    RESOURCE_DIM_TEX_CUBE: 7,  // cube-map texture
+    RESOURCE_DIM_TEX_CUBE_ARRAY: 8,  // cube-map array texture
+    RESOURCE_DIM_NUM_DIMENSIONS: 9, 
+}
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
     VALUE_TYPE,
     TEXTURE_FORMAT,
     SwapChainDesc,
+    RESOURCE_DIMENSION,
 }
