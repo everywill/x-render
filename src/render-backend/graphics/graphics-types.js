@@ -53,6 +53,7 @@ const VALUE_TYPE = {
     VT_NUM_TYPES: 9     
 }
 
+// describe available texture formats
 const TEXTURE_FORMAT = {
     TEX_FORMAT_UNKNOWN: 0,
     // four-component 128-bit typeless format with 32-bit channels
@@ -278,6 +279,41 @@ const TEXTURE_FORMAT = {
     TEX_FORMAT_NUM_FORMATS: 85
 };
 
+// describes which parts of the pipeline a resouce can be bound to
+// used by buffer and texture
+const BIND_FLAGS = {
+    BIND_NONE: 0,
+    // bind buffer as a vertex buffer
+    BIND_VERTEX_BUFFER: 1,
+    // bind buffer as an index buffer
+    BIND_INDEX_BUFFER: 2,
+    // bind buffer as a uniform buffer
+    // may not be combined with other flags
+    BIND_UNIFORM_BUFFER: 3,
+    // bind a buffer or a texture as a shader resource
+    BIND_SHADER_RESOURCE: 4,
+    // bind a buffer as a target for stream output stage
+    BIND_STREAM_OUTPUT: 5,
+    // bind a texture as a render target
+    BIND_RENDER_TARGET: 6,
+    // bind a texture as a depth-stencil target
+    BIND_DEPTH_STENCILL: 7,
+    // bind a buffer or a texture as an unordered access view
+    BIND_UNORDERED_ACCESS: 8,
+    // bind a buffer as source buffer for indirect draw commands
+    BIND_INDIRECT_DRAW_ARGS: 9,
+    // BIND_INPUT_ATTACHMENT, BIND_RAY_TRACING, BIND_SHADING_RATE,
+    BIND_FLAG_LAST: 10,
+};
+
+// describe usage of a buffer or a texture
+const USAGE = {
+    // a resource that can only be readd by the GPU. 
+    // it cannot be written by the GPU, and cannot be accessed at all by the CPU.
+    // this type of resource must be initialized when it is created, since it cannot be changed after creation
+    USAGE_STATIC: 0,  // OpenGL: GL_STATIC_DRAW
+};
+
 class SwapChainDesc {
     constructor() {
         this.width = 0;
@@ -312,4 +348,5 @@ export {
     TEXTURE_FORMAT,
     SwapChainDesc,
     RESOURCE_DIMENSION,
+    BIND_FLAGS,
 }
