@@ -13,14 +13,14 @@ const GRAPHICS_HANDLE_TYPE = {
     TEXTURE_VIEW: 11,
 };
 
-class GraphicsHandle {
-    constructor() {
-        this.type = GRAPHICS_HANDLE_TYPE.UNDEFINED;
-        this.value = nullptr;
-    }
-}
+// class GraphicsHandle {
+//     constructor() {
+//         this.type = GRAPHICS_HANDLE_TYPE.UNDEFINED;
+//         this.value = nullptr;
+//     }
+// }
 
 export {
     GRAPHICS_HANDLE_TYPE,
-    GraphicsHandle,
+    // GraphicsHandle,
 }

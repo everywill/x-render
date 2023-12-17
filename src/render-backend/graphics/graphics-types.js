@@ -80,11 +80,11 @@ const TEXTURE_FORMAT = {
     // four-component 64-bit unsigned-normalized-integer format with 16-bit channels.
     TEX_FORMAT_RGBA16_UNORM: 11,  // OpenGL: GL_RGBA16; extension [GL_EXT_texture_norm16] is required
     // four-component 64-bit unsigned-integer format with 16-bit channels
-    TEX_FORMAT_RGBA32_UINT: 12,  // OpenGL: GL_RGBA16UI
+    TEX_FORMAT_RGBA16_UINT: 12,  // OpenGL: GL_RGBA16UI
     // four-component 64-bit signed-normalized-integer format with 16-bit channels.
-    TEX_FORMAT_RGB32_SNORM: 13,  // OpenGL: GL_RGBA16_SNORM; extension [GL_EXT_texture_norm16] is required
+    TEX_FORMAT_RGBA16_SNORM: 13,  // OpenGL: GL_RGBA16_SNORM; extension [GL_EXT_texture_norm16] is required
     // four-component 64-bit signed-integer format with 16-bit channels.
-    TEX_FORMAT_RGB32_SINT: 14,  // OpenGL: GL_RGBA16I
+    TEX_FORMAT_RGBA16_SINT: 14,  // OpenGL: GL_RGBA16I
     // two-component 64-bit typeless format with 32-bit channels.
     TEX_FORMAT_RG32_TYPELESS: 15,  // OpenGL has no direct counterpart, use GL_RG32F
     // two-component 64-bit floating-point format with 32-bit channels.
@@ -279,6 +279,18 @@ const TEXTURE_FORMAT = {
     TEX_FORMAT_NUM_FORMATS: 85
 };
 
+const TEXTURE_VIEW_TYPE = {
+    TEXTURE_VIEW_UNDEFINED: 0,
+    // used as the source for the shader read operations
+    TEXTURE_VIEW_SHADER_RESOURCE: 1,
+    // used as the target for rendering operations
+    TEXTURE_VIEW_RENDER_TARGET: 2,
+    TEXTURE_VIEW_DEPTH_STENCIL: 3,
+    // unordered read/write operation from shaders
+    TEXTURE_VIEW_UNORDERED_ACCESS: 4,
+    TEXTURE_VIEW_NUM_VIEWS: 5,
+}
+
 // describes which parts of the pipeline a resouce can be bound to
 // used by buffer and texture
 const BIND_FLAGS = {
@@ -311,8 +323,33 @@ const USAGE = {
     // a resource that can only be readd by the GPU. 
     // it cannot be written by the GPU, and cannot be accessed at all by the CPU.
     // this type of resource must be initialized when it is created, since it cannot be changed after creation
+    // do not allow CPU access and must use CPU_ACCESS_NONE flag
     USAGE_STATIC: 0,  // OpenGL: GL_STATIC_DRAW
+    // a resource that requires read and write access by the GPU 
+    // and can also be occasionally written by the CPU.
+    // do not allow CPU access must and must use CPU_ACCESS_NONE flag
+    USAGE_DEFAULT: 1,  // OpenGL: GL_DYNAMIC_DRAW
+    // a resource that can be read by the GPU
+    // and written at least once per frame by the CPU
+    USAGE_DYNAMIC: 2,  // OpenGL: GL_STREAM_DRAW
+    // a resource that facilitates transferring data between GPU and CPU
+    USAGE_STAGING: 3,  // OpenGL: GL_STATIC_READ or GL_STATIC_COPY
 };
+
+// describe CPU access mode for a buffer or a texture
+const CPU_ACCESS_FLAGS = {
+    CPU_ACCESS_NONE: 0,
+    // a resource can be mapped for reading
+    CPU_ACCESS_READ: 1,
+    // a resource can be mapped for writing
+    CPU_ACCESS_WRITE: 2,
+}
+
+const MISC_TEXTURE_FLAGS = {
+    MISC_TEXTURE_FLAG_NONE: 0,
+    // allow automatic mipmap generation
+    MISC_TEXTURE_FLAG_GENERATE_MIPS: 1,
+}
 
 class SwapChainDesc {
     constructor() {
@@ -349,4 +386,8 @@ export {
     SwapChainDesc,
     RESOURCE_DIMENSION,
     BIND_FLAGS,
+    USAGE,
+    CPU_ACCESS_FLAGS,
+    MISC_TEXTURE_FLAGS,
+    TEXTURE_VIEW_TYPE,
 }

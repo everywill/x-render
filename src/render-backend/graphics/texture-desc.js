@@ -1,4 +1,4 @@
-import { RESOURCE_DIMENSION, TEXTURE_FORMAT } from "./graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, USAGE } from "./graphics-types";
 
 class TextureDesc {
     constructor() {
@@ -13,5 +13,13 @@ class TextureDesc {
         // Specify 0 to create full mipmap chain.
         this.mip_levels = 1;
         this.sample_count = 1;
+        this.bind_flags = BIND_FLAGS.BIND_NONE;
+        this.usage = USAGE.USAGE_DEFAULT;
+        this.cpu_access_flags = CPU_ACCESS_FLAGS.CPU_ACCESS_NONE;
+        this.misc_flag = MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_NONE;
     }
+}
+
+export {
+    TextureDesc,
 }
