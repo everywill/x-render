@@ -279,6 +279,28 @@ const TEXTURE_FORMAT = {
     TEX_FORMAT_NUM_FORMATS: 85
 };
 
+const COMPONENT_TYPE = {
+    COMPONENT_TYPE_UNDEFINED: 0,
+    // float point
+    COMPONENT_TYPE_FLOAT: 1,
+    // Signed-normalized-integer component type
+    COMPONENT_TYPE_SNORM: 2,
+    // Unsigned-normalized-integer component type
+    COMPONENT_TYPE_UNORM: 3,
+    // Unsigned-normalized-integer sRGB component type
+    COMPONENT_TYPE_UNORM_SRGB: 4,
+    // Signed-integer component type
+    COMPONENT_TYPE_SINT: 5,
+    COMPONENT_TYPE_UINT: 6,
+    // Depth component type
+    COMPONENT_TYPE_DEPTH: 7,
+    // Depth-stencil component type
+    COMPONENT_TYPE_DEPTH_STENCIL: 8, 
+    // Compound component type, for example: TEX_FORMAT_R11G11B10_FLOAT or TEX_FORMAT_RGB9E5_SHAREDEXP
+    COMPONENT_TYPE_COMPOUND: 9,
+    COMPONENT_TYPE_COMPRESSED: 10,
+}
+
 const TEXTURE_VIEW_TYPE = {
     TEXTURE_VIEW_UNDEFINED: 0,
     // used as the source for the shader read operations
@@ -289,6 +311,25 @@ const TEXTURE_VIEW_TYPE = {
     // unordered read/write operation from shaders
     TEXTURE_VIEW_UNORDERED_ACCESS: 4,
     TEXTURE_VIEW_NUM_VIEWS: 5,
+};
+
+class TextureFormatAttribs {
+    constructor(format_key = 'TEX_FORMAT_UNKNOWN', 
+                comp_size = 0, 
+                num_comps = 0, 
+                comp_type = COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED,
+                is_typeless = false,
+                block_width = 0,
+                block_height = 0) {
+        this.name = format_key;
+        this.format = TEXTURE_FORMAT[format_key];
+        this.component_size = comp_size;
+        this.num_components = num_comps;
+        this.component_type = comp_type;
+        this.is_typeless = is_typeless;
+        this.block_width = block_width;
+        this.block_height = block_height;
+    }
 }
 
 // describes which parts of the pipeline a resouce can be bound to
@@ -390,4 +431,6 @@ export {
     CPU_ACCESS_FLAGS,
     MISC_TEXTURE_FLAGS,
     TEXTURE_VIEW_TYPE,
+    COMPONENT_TYPE,
+    TextureFormatAttribs,
 }

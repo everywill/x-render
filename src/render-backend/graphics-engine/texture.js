@@ -1,5 +1,6 @@
-import { BIND_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT } from "../graphics/graphics-types";
-import { ComputeMipLevelsCount } from "../graphics-accessories/graphics-accessories";
+import { BIND_FLAGS, COMPONENT_TYPE, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE } from "../graphics/graphics-types";
+import { ComputeMipLevelsCount, GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
+import { TextureViewDesc } from "../graphics/textureview-desc";
 
 class Texture {
     constructor(renderDevice, textureDesc) {
@@ -24,6 +25,10 @@ class Texture {
 
         this.ValidateTextureDesc(this.desc);
         this.created_texture_views = new Map();
+        this.default_SRV = null;
+        this.default_RTV = null;
+        this.default_DSV = null;
+        this.default_UAV = null;
     }
 
     CreateViewInternal() {
@@ -41,7 +46,16 @@ class Texture {
     }
 
     CreateDefaultViews() {
-        
+        const texFmtAttribs = GetTextureFormatAttribs(this.desc.format);
+        if(texFmtAttribs.component_type == COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED) {
+            return;
+        }
+        if(this.desc.bind_flags == BIND_FLAGS.BIND_SHADER_RESOURCE) {
+            const viewDesc = new TextureViewDesc();
+            viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE;
+            const srv = this.CreateViewInternal(viewDesc);
+            this.created_texture_views.set(viewDesc, srv);
+        }
     }
 
     ValidateTextureDesc(desc) {
