@@ -316,6 +316,15 @@ const TEXTURE_VIEW_TYPE = {
     TEXTURE_VIEW_NUM_VIEWS: 5,
 };
 
+const BUFFER_VIEW_TYPE = {
+    BUFFER_VIEW_UNDEFINED: 0,
+    // shader resource view that will be used as the source for the shader read operations 
+    BUFFER_VIEW_SHADER_RESOURCE: 1,
+    // unordered access view that will be used for unordered read/write operations from the shaders
+    BUFFER_VIEW_UNORDERED_ACCESS: 2,
+    BUFFER_VIEW_NUM_VIEWS: 3
+}
+
 class TextureFormatAttribs {
     constructor(format_key = 'TEX_FORMAT_UNKNOWN', 
                 comp_size = 0, 
@@ -345,19 +354,19 @@ const BIND_FLAGS = {
     BIND_INDEX_BUFFER: 2,
     // bind buffer as a uniform buffer
     // may not be combined with other flags
-    BIND_UNIFORM_BUFFER: 3,
+    BIND_UNIFORM_BUFFER: 4,
     // bind a buffer or a texture as a shader resource
-    BIND_SHADER_RESOURCE: 4,
+    BIND_SHADER_RESOURCE: 8,
     // bind a buffer as a target for stream output stage
-    BIND_STREAM_OUTPUT: 5,
+    BIND_STREAM_OUTPUT: 16,
     // bind a texture as a render target
-    BIND_RENDER_TARGET: 6,
+    BIND_RENDER_TARGET: 32,
     // bind a texture as a depth-stencil target
-    BIND_DEPTH_STENCILL: 7,
+    BIND_DEPTH_STENCILL: 64,
     // bind a buffer or a texture as an unordered access view
-    BIND_UNORDERED_ACCESS: 8,
+    BIND_UNORDERED_ACCESS: 128,
     // bind a buffer as source buffer for indirect draw commands
-    BIND_INDIRECT_DRAW_ARGS: 9,
+    BIND_INDIRECT_DRAW_ARGS: 256,
     // BIND_INPUT_ATTACHMENT, BIND_RAY_TRACING, BIND_SHADING_RATE,
     BIND_FLAG_LAST: 10,
 };
@@ -466,6 +475,7 @@ export {
     TEXTURE_FORMAT,
     MISC_TEXTURE_FLAGS,
     TEXTURE_VIEW_TYPE,
+    BUFFER_VIEW_TYPE,
     COMPONENT_TYPE,
     TextureFormatAttribs,
     SwapChainDesc,

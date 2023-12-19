@@ -43,7 +43,7 @@ class Texture {
     CreateView(viewDesc) {
         let view = this.created_texture_views.get(viewDesc)
         if(!view) {
-            view = this.CreateViewInternal(ViewDesc);
+            view = this.CreateViewInternal(viewDesc);
             this.created_texture_views.set(viewDesc, view);
         }
         return view;
@@ -54,25 +54,25 @@ class Texture {
         if(texFmtAttribs.component_type == COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED) {
             return;
         }
-        if(this.desc.bind_flags == BIND_FLAGS.BIND_SHADER_RESOURCE) {
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_SHADER_RESOURCE) {
             const viewDesc = new TextureViewDesc();
             viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE;
             this.default_SRV = this.CreateViewInternal(viewDesc);
             this.created_texture_views.set(viewDesc, this.default_SRV);
         }
-        if(this.desc.bind_flags == BIND_FLAGS.BIND_RENDER_TARGET) {
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_RENDER_TARGET) {
             const viewDesc = new TextureViewDesc();
             viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET;
             this.default_RTV = this.CreateViewInternal(viewDesc);
             this.created_texture_views.set(viewDesc, this.default_RTV);
         }
-        if(this.desc.bind_flags == BIND_FLAGS.BIND_DEPTH_STENCILL) {
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_DEPTH_STENCILL) {
             const viewDesc = new TextureViewDesc();
             viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL;
             this.default_DSV = this.CreateViewInternal(viewDesc);
             this.created_texture_views.set(viewDesc, this.default_DSV);
         }
-        if(this.desc.bind_flags == BIND_FLAGS.BIND_UNORDERED_ACCESS) {
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_UNORDERED_ACCESS) {
             const viewDesc = new TextureViewDesc();
             viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS;
             this.default_UAV = this.CreateViewInternal(viewDesc);
