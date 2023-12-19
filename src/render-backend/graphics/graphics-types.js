@@ -419,6 +419,17 @@ const RESOURCE_DIMENSION = {
     RESOURCE_DIM_NUM_DIMENSIONS: 9, 
 }
 
+class Box {
+    constructor(minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 1) {
+        this.min_x = minX;
+        this.max_x = maxX;
+        this.min_y = minY;
+        this.max_y = maxY;
+        this.min_z = minZ;
+        this.max_z = maxZ;
+    }
+}
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
@@ -433,4 +444,5 @@ export {
     TEXTURE_VIEW_TYPE,
     COMPONENT_TYPE,
     TextureFormatAttribs,
+    Box,
 }
