@@ -32,7 +32,7 @@ class Texture {
     }
 
     CreateViewInternal() {
-        throw 'implemenation needed';
+        throw 'implementation needed';
     }
 
     // calls CreateViewInternal() that creates texture view for the specific engine implementation
@@ -53,9 +53,52 @@ class Texture {
         if(this.desc.bind_flags == BIND_FLAGS.BIND_SHADER_RESOURCE) {
             const viewDesc = new TextureViewDesc();
             viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE;
-            const srv = this.CreateViewInternal(viewDesc);
-            this.created_texture_views.set(viewDesc, srv);
+            this.default_SRV = this.CreateViewInternal(viewDesc);
+            this.created_texture_views.set(viewDesc, this.default_SRV);
         }
+        if(this.desc.bind_flags == BIND_FLAGS.BIND_RENDER_TARGET) {
+            const viewDesc = new TextureViewDesc();
+            viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET;
+            this.default_RTV = this.CreateViewInternal(viewDesc);
+            this.created_texture_views.set(viewDesc, this.default_RTV);
+        }
+        if(this.desc.bind_flags == BIND_FLAGS.BIND_DEPTH_STENCILL) {
+            const viewDesc = new TextureViewDesc();
+            viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL;
+            this.default_DSV = this.CreateViewInternal(viewDesc);
+            this.created_texture_views.set(viewDesc, this.default_DSV);
+        }
+        if(this.desc.bind_flags == BIND_FLAGS.BIND_UNORDERED_ACCESS) {
+            const viewDesc = new TextureViewDesc();
+            viewDesc.view_type = TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS;
+            this.default_UAV = this.CreateViewInternal(viewDesc);
+            this.created_texture_views.set(viewDesc, this.default_UAV);
+        }
+    }
+
+    GetDefaultView(view_type) {
+        switch(view_type) {
+            case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE:
+                return this.default_SRV;
+            case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET:
+                return this.default_RTV;
+            case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL:
+                return this.default_DSV;
+            case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS:
+                return this.default_UAV;
+            default:
+                throw "Unknown view type";
+        }
+    }
+
+    UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
+        throw 'implementation needed';
+    }
+
+    CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
+                dstMipLevel, dstSlice, dstX, dstY, dstZ) 
+    {
+        throw 'implementation needed';
     }
 
     ValidateTextureDesc(desc) {
