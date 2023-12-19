@@ -1,3 +1,6 @@
+// used by SamplerDesc to define a comparisonn function if one of the comparison mode filters is used
+// used by StencilOpDDesc to define a stencil function
+// used by DepthStencilStateDesc to define a depth function
 const COMPARISON_FUNCTION = {
     COMPARISON_FUNC_UNKNOWN: 0,
     // never pass
@@ -430,19 +433,47 @@ class Box {
     }
 }
 
+// used by SamplerDesc to define min, mag and mip filters
+const FILTER_TYPE = {
+    FILTER_TYPE_UNKNOWN: 0,
+    FILTER_TYPE_POINT: 1,
+    FILTER_TYPE_LINEAR: 2,
+    FILTER_TYPE_ANISOTROPIC: 3,
+    FILTER_TYPE_COMPARISON_POINT: 4,
+    FILTER_TYPE_COMPARISON_LINEAR: 5,
+    FILTER_TYPE_COMPARISON_ANISOTROPIC: 6
+};
+
+// define how to resolve texture coordinates that are outside of the boundaries of a texture
+const TEXTURE_ADDRESS_MODE = {
+    TEXTURE_ADDRESS_UNKNOWN: 0,
+    TEXTURE_ADDRESS_WRAP: 1,  // OpenGL: GL_REPEAT
+    TEXTURE_ADDRESS_MIRROR: 2,  // OpenGL: GL_MIRRORED_REPEAT
+    // Texture coordinates outside the range [0.0, 1.0] are set to the
+    // texture color at 0.0 or 1.0, respectively
+    TEXTURE_ADDRESS_CLAMP: 3,  // OpenGL: GL_CLAMP_TO_EDGE
+    // Texture coordinates outside the range [0.0, 1.0] are set to the border color
+    TEXTURE_ADDRESS_BORDER: 4,  // OpenGL: GL_CLAMP_TO_BORDER
+    // Takes the absolute value of the texture coordinate (thus, mirroring around 0), and then clamps to the maximum value
+    // TEXTURE_ADDRESS_MIRROR_ONCE: 5,  not supported in WebGL
+    TEXTURE_ADDRESS_NUM_MODES: 5,
+};
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
     VALUE_TYPE,
     TEXTURE_FORMAT,
+    MISC_TEXTURE_FLAGS,
+    TEXTURE_VIEW_TYPE,
+    COMPONENT_TYPE,
+    TextureFormatAttribs,
     SwapChainDesc,
     RESOURCE_DIMENSION,
     BIND_FLAGS,
     USAGE,
     CPU_ACCESS_FLAGS,
-    MISC_TEXTURE_FLAGS,
-    TEXTURE_VIEW_TYPE,
-    COMPONENT_TYPE,
-    TextureFormatAttribs,
     Box,
+    FILTER_TYPE,
+    TEXTURE_ADDRESS_MODE
 }

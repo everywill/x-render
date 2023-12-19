@@ -13,7 +13,6 @@ class TextureView {
     SetSampler(sampler) {
         this.sampler = sampler;
     }
-    
 }
 
 export {
