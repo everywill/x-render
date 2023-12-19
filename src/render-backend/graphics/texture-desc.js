@@ -20,6 +20,18 @@ class TextureDesc {
     }
 }
 
+class TextureSubResData {
+    constructor(data = null, srcBuffer = null, stride = 0, depthStride = 0) {
+        // not null if provided with CPU memory
+        this.data = data;
+        // not null if provided with GPU buffer
+        this.srcBuffer = srcBuffer;
+        this.stride = stride;
+        this.depthStride = depthStride;
+    }
+}
+
 export {
     TextureDesc,
+    TextureSubResData,
 }
