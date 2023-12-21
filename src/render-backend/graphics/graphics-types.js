@@ -325,6 +325,20 @@ const BUFFER_VIEW_TYPE = {
     BUFFER_VIEW_NUM_VIEWS: 3
 }
 
+// describe how a mapped resource will be accessed
+const MAP_TYPE = {
+    MAP_READ: 1,  // OpenGL: GL_MAP_READ_BIT
+    MAP_WRITE: 2,  // OpenGL: GL_MAP_WRITE_BIT
+    MAP_READ_WRITE: 3, // OpenGL: GL_MAP_WRITE_BIT | GL_MAP_READ_BIT
+}
+
+// used to describe buffer mapping
+const MAP_FLAGS = {
+    MAP_FLAG_NONE: 0,
+    MAP_FLAG_DO_NOT_WAIT: 1,
+    MAP_FLAG_DISCARD: 2,
+}
+
 class TextureFormatAttribs {
     constructor(format_key = 'TEX_FORMAT_UNKNOWN', 
                 comp_size = 0, 
@@ -485,5 +499,6 @@ export {
     CPU_ACCESS_FLAGS,
     Box,
     FILTER_TYPE,
-    TEXTURE_ADDRESS_MODE
+    TEXTURE_ADDRESS_MODE,
+    MAP_TYPE
 }
