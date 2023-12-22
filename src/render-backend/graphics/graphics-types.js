@@ -335,8 +335,15 @@ const MAP_TYPE = {
 // used to describe buffer mapping
 const MAP_FLAGS = {
     MAP_FLAG_NONE: 0,
-    MAP_FLAG_DO_NOT_WAIT: 1,
-    MAP_FLAG_DISCARD: 2,
+    // map operation should not wait until previous command that using the same resource completes
+    // map returns null pointer if the resource is still in use 
+    // MAP_FLAG_DO_NOT_WAIT;  OpenGL not support, will always be mapped
+
+    // previous contents of the resource will be undefined, only be compatible with MAP_WRITE
+    MAP_FLAG_DISCARD: 1,  // OpenGL simulate it by orphaninng a buffer
+    // system will not synchronize pending operations before mapping the buffer.
+    // it's responsibility of the app to make sure the buffer content not overwritten when used by GPU
+    MAP_FLAG_NO_OVERWRITE: 2  // OpenGL: GL_MAP_UNSYNCHRONIZED_BIT
 }
 
 class TextureFormatAttribs {
@@ -500,5 +507,5 @@ export {
     Box,
     FILTER_TYPE,
     TEXTURE_ADDRESS_MODE,
-    MAP_TYPE
+    MAP_TYPE, MAP_FLAGS
 }

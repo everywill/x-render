@@ -1,4 +1,4 @@
-import { BIND_FLAGS, BUFFER_VIEW_TYPE } from "../graphics/graphics-types";
+import { BIND_FLAGS, BUFFER_VIEW_TYPE, CPU_ACCESS_FLAGS, MAP_FLAGS, MAP_TYPE, USAGE } from "../graphics/graphics-types";
 import { BufferViewDesc } from '../graphics/bufferview-desc';
 import { BUFFER_MODE } from "../graphics/buffer-desc";
 
@@ -45,17 +45,81 @@ class Buffer {
         this.created_buffer_views = new Map();
     }
 
-    UpdateData(deviceContext, offset, size, data) {
+    GetDesc() {
+        return this.desc;
+    }
 
+    UpdateData(deviceContext, offset, size, data) {
+        if(this.desc.usage != USAGE.USAGE_DEFAULT) {
+            throw 'only default usage buffers can be updated with UpdateBuffer';
+        }
+        if(offset >= this.desc.size) {
+            throw 'offset exceeds the buffer size';
+        }
+        if(offset+size > this.desc.size) {
+            throw 'update range is not valid';
+        }
     }
 
     CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size) {
-
+        if(dstOffset+size > this.desc.size) {
+            throw 'destination range is not valid';
+        }
+        if(srcOffset+size > srcBuffer.GetDesc().size) {
+            throw 'source range is nnont valid';
+        }
     }
 
-    Map() {}
+    Map(deviceContext, mapType, mapFlags) {
+        switch(mapType) {
+            case MAP_TYPE.MAP_READ:
+                if(this.desc.cpu_access_flags != CPU_ACCESS_FLAGS.CPU_ACCESS_READ) {
+                    throw "buffer being mapped for reading not created with CPU_ACCESS_READ flag";
+                }
+                if(mapFlags & MAP_FLAGS.MAP_FLAG_DISCARD) {
+                    console.warn('MAP_FLAG_DISCARD is not valid when mapping buffer for reading')
+                }
+                break;
+            case MAP_TYPE.MAP_WRITE:
+                if(this.desc.usage != USAGE.USAGE_DYNAMIC) {
+                    throw "only buffer with usage USAGE_DYNAMIC can be mapped for writing";
+                }
+                if(this.desc.cpu_access_flags != CPU_ACCESS_FLAGS.CPU_ACCESS_WRITE) {
+                    throw 'buffer being mapped for writing was not created with CPU_ACCESS_WRITE flag'
+                }
+                break;
+            case MAP_TYPE.MAP_READ_WRITE:
+                if(this.desc.cpu_access_flags != CPU_ACCESS_FLAGS.CPU_ACCESS_READ) {
+                    throw "buffer being mapped for reading not created with CPU_ACCESS_READ flag";
+                }
+                if(this.desc.cpu_access_flags != CPU_ACCESS_FLAGS.CPU_ACCESS_WRITE) {
+                    throw 'buffer being mapped for writing was not created with CPU_ACCESS_WRITE flag'
+                }
+                break;
+            default:
+                throw "unknown map type";
+        }
 
-    UnMap() {}
+        if(this.desc.usage == USAGE.USAGE_DYNAMIC) {
+            if(!(mapFlags & MAP_FLAGS.MAP_FLAG_DISCARD) || mapType != MAP_TYPE.MAP_WRITE) {
+                throw "dynamic buffers can only be mapped for writing with discard flag";
+            }
+        }
+
+        if ((mapFlags & MAP_FLAGS.MAP_FLAG_DISCARD) != 0)
+        {
+            if(this.desc.usage != USAGE.USAGE_DYNAMIC) {
+                console.warn('only dynamic and staging buffers can be mapped with discard flag');
+            }
+            if(mapType != MAP_TYPE.MAP_WRITE) {
+                console.warn('MAP_FLAG_DISCARD is only valid when mapping buffer for writing');
+            }
+        }
+    }
+
+    Unmap(deviceContext, mapType, mapFlags) {
+        throw 'implementation needed';
+    }
 
     CreateViewInternal() {
         throw 'implementation needed';
