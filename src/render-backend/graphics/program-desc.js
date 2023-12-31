@@ -11,7 +11,8 @@ class CBufferReflection {
     constructor() {
         this.CBuffer_name = '';
         this.CBuffer_size = 0;
-        this.elements = [];
+        //  array of ElementReflection
+        this.elements = []; 
     }
     GetCBufferSize() { return this.CBuffer_size; }
     GetCBufferName() { return this.CBuffer_name; }
@@ -21,7 +22,9 @@ class CBufferReflection {
 
 class ShaderReflection {
     constructor() {
+        // array of texture2D reflection
         this.texture2D_ref = [];
+        // array of CBuffer reflection
         this.CBuffer_ref = [];
     }
     GetTexture2DNum() { return this.texture2D_ref.length; }

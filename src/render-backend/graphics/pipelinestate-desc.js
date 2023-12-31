@@ -1,3 +1,4 @@
+import { Program } from '../graphics-engine/program';
 import { MAX_RENDER_TARGETS } from './constant';
 import { GraphicsHandle } from './graphics-handle';
 import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT } from './graphics-types'
@@ -164,7 +165,7 @@ class SampleDesc {
 
 class GraphicsPipelineDesc {
     constructor() {
-        this.program_handle = new GraphicsHandle();  // placeholder
+        this.program = new Program();  // placeholder
         this.blend_state_desc = new BlendStateDesc();
         // 32-bit sample mask that determines which samples get updated
         // in all the active render targets. A sample mask is always applied;
@@ -188,7 +189,7 @@ class GraphicsPipelineDesc {
 
 class ComputePipelineDesc {
     constructor() {
-        this.program_handle = new GraphicsHandle();  // placeholder
+        this.program = new Program();  // placeholder
     }
 }
 

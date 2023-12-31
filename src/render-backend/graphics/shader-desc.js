@@ -32,8 +32,17 @@ class ShaderDesc {
     constructor() {
         this.shader_type = SHADER_TYPE.SHADER_TYPE_UNKNOWN;
         this.default_variable_type = SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;
+        // array of ShaderVariableDesc
         this.variable_desc = [];
+        // array of StaticSamplerDesc
         this.static_sampler_desc = [];
+    }
+}
+
+class ShaderCreationAttribs {
+    constructor() {
+        this.source = '';
+        this.shader_desc = new ShaderDesc();
     }
 }
 
@@ -41,4 +50,5 @@ export {
     ShaderDesc,
     ShaderVariableDesc,
     StaticSamplerDesc,
+    ShaderCreationAttribs,
 }

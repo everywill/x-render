@@ -40,8 +40,8 @@ class LayoutElement {
 
 class InputLayoutDesc {
     constructor() {
-        //  array of layout elements
-        this.layout_elements = null;
+        //  array of LayoutElement
+        this.layout_elements = [];
         // number of elements
         this.num_elements = 0;
     }

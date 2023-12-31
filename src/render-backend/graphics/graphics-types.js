@@ -347,21 +347,38 @@ const MAP_FLAGS = {
 }
 
 class TextureFormatAttribs {
-    constructor(format_key = 'TEX_FORMAT_UNKNOWN', 
-                comp_size = 0, 
-                num_comps = 0, 
-                comp_type = COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED,
-                is_typeless = false,
-                block_width = 0,
-                block_height = 0) {
-        this.name = format_key;
-        this.format = TEXTURE_FORMAT[format_key];
-        this.component_size = comp_size;
-        this.num_components = num_comps;
-        this.component_type = comp_type;
-        this.is_typeless = is_typeless;
-        this.block_width = block_width;
-        this.block_height = block_height;
+    constructor(base = {}) {
+        this.name = base.name || 'TEX_FORMAT_UNKNOWN';
+        this.format = base.format || TEXTURE_FORMAT[this.name];
+        this.component_size = base.component_size || 0;
+        this.num_components = base.num_components || 0;
+        this.component_type = base.component_type || COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED;
+        this.is_typeless = base.is_typeless || false;
+        this.block_width = base.block_width || 0;
+        this.block_height = base.block_height || 0;
+    }
+}
+
+class TextureFormatInfo extends TextureFormatAttribs {
+    constructor(base) {
+        super(base);
+        // if this format is supported by the device
+        this.supported = false;
+        // if this format can be filtered
+        this.filterable = false;
+        // if this format can be used as a render target
+        this.color_renderable = false;
+        // if this format can be used as a depth format
+        this.depth_renderable = false;
+        // if this format can be used to create 1D texture
+        this.texture1D_format = false;
+        // if this format can be used to create 2D texture
+        this.texture2D_format = false;
+        // if this format can be used to create 3D texture
+        this.texture3D_format = false;
+        // if this format can be used to create cube texture
+        this.texture_cube_format = false;
+        this.support_multisample = false;
     }
 }
 
@@ -518,5 +535,6 @@ export {
     FILTER_TYPE,
     TEXTURE_ADDRESS_MODE,
     MAP_TYPE, MAP_FLAGS,
-    SHADER_TYPE
+    SHADER_TYPE,
+    TextureFormatInfo
 }
