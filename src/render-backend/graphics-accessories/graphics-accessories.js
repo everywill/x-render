@@ -1,4 +1,4 @@
-import { TEXTURE_FORMAT, COMPONENT_TYPE, TextureFormatAttribs } from '../graphics/graphics-types'
+import { TEXTURE_FORMAT, COMPONENT_TYPE, TextureFormatAttribs, VALUE_TYPE } from '../graphics/graphics-types'
 
 function ComputeMipLevelsCount(width, height = 0, depth = 0) {
     width = Math.max(width, height, depth);
@@ -214,7 +214,29 @@ function GetTextureFormatAttribs(format) {
     }
 }
 
+function GetValueSize(inputElementType) {
+    switch(inputElementType) {
+        case VALUE_TYPE.VT_UINT8:
+            return 1;
+        case VALUE_TYPE.VT_INT8:
+            return 1;
+        case VALUE_TYPE.VT_UINT16:
+            return 2;
+        case VALUE_TYPE.VT_INT16:
+            return 2;
+        case VALUE_TYPE.VT_UINT32:
+            return 4;
+        case VALUE_TYPE.VT_INT32:
+            return 4;
+        case VALUE_TYPE.VT_FLOAT16:
+            return 2;
+        case VALUE_TYPE.VT_FLOAT32:
+            return 4;
+    }
+}
+
 export {
     ComputeMipLevelsCount,
     GetTextureFormatAttribs,
+    GetValueSize,
 }
