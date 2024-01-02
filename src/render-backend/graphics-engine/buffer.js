@@ -45,9 +45,7 @@ class Buffer {
         this.created_buffer_views = new Map();
     }
 
-    GetDesc() {
-        return this.desc;
-    }
+    GetDesc() { return this.desc; }
 
     UpdateData(deviceContext, offset, size, data) {
         if(this.desc.usage != USAGE.USAGE_DEFAULT) {
