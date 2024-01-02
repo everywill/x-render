@@ -29,15 +29,15 @@ class Texture {
         this.default_RTV = null;
         this.default_DSV = null;
         this.default_UAV = null;
+        this.resolved = false;
     }
 
-    GetDesc() {
-        return this.desc;
-    }
+    GetDesc() { return this.desc; }
 
-    CreateViewInternal() {
-        throw 'implementation needed';
-    }
+    GetResolveFlag() { return this.resolved; }
+    SetResolveFlag(resolved) { this.resolved = resolved; }
+
+    CreateViewInternal() { throw 'implementation needed'; }
 
     // calls CreateViewInternal() that creates texture view for the specific engine implementation
     CreateView(viewDesc) {
@@ -105,9 +105,7 @@ class Texture {
         this.ValidateCopyDataParams(srcTexture.GetDesc(), srcMipLevel, srcSlice, srcBox, this.desc, dstMipLevel, dstSlice, dstBox);
     }
 
-    ReadPixels(deviceContext) {
-        throw 'need implement';
-    }
+    ReadPixels(deviceContext) { throw 'need implement'; }
 
     ValidateTextureDesc(desc) {
         if(desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_UNDEFINED) {

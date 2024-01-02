@@ -439,7 +439,13 @@ const CPU_ACCESS_FLAGS = {
 const MISC_TEXTURE_FLAGS = {
     MISC_TEXTURE_FLAG_NONE: 0,
     // allow automatic mipmap generation
+    // texture must be created with BIND_RENDER_TARGET flag
     MISC_TEXTURE_FLAG_GENERATE_MIPS: 1,
+    // read pixel in asynchronized way
+    // almost always read last drawcall result
+    MISC_TEXTURE_FLAG_ASYNC_READ: 2,
+    // for multisample render target
+    MISC_TEXTURE_FLAG_RESOLVE: 4,
 }
 
 class SwapChainDesc {
@@ -516,6 +522,32 @@ const SHADER_TYPE = {
     SHADER_TYPE_COMPUTE: 0x20,
 }
 
+const TARGET_BUFFER_FLAGS = {
+    // no buffer selected
+    NONE: 0,
+
+    COLOR0: 0x1,
+    COLOR1: 0x2,
+    COLOR2: 0x4,
+    COLOR3: 0x8,
+    COLOR4: 0x10,
+    COLOR5: 0x20,
+    COLOR6: 0x40,
+    COLOR7: 0x80,
+
+    COLOR: 0x1,
+    COLOR_ALL: 0x1|0x2|0x4|0x8|0x10|0x20|0x40|0x80,
+    // depth buffer selected
+    DEPTH: 0x100,
+    // stencil buffer selected
+    STENCIL: 0x200,
+    COLOR_AND_DEPTH: 0x1|0x100,
+    COLOR_AND_STENCIL: 0x1|0x200,
+    DEPTH_AND_STENCIL: 0x100|0x200,
+    COLOR0_DEPTH_AND_STENCIL: 0x1|0x100|0x200,
+    ALL: 0x1|0x2|0x4|0x8|0x10|0x20|0x40|0x80|0x100|0x200,
+}
+
 export {
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
@@ -536,5 +568,6 @@ export {
     TEXTURE_ADDRESS_MODE,
     MAP_TYPE, MAP_FLAGS,
     SHADER_TYPE,
-    TextureFormatInfo
+    TextureFormatInfo,
+    TARGET_BUFFER_FLAGS
 }

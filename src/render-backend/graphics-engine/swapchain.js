@@ -7,12 +7,10 @@ class SwapChain {
     }
 
     // Present a renderer image to the user
-    Present(sync_interval) {}
+    Present(sync_interval) { throw 'implementation needed'; }
 
     // return the swapchain description
-    GetDesc() {
-        return this.swap_chain_desc;
-    }
+    GetDesc() { return this.swap_chain_desc; }
 
     // change size of swapchain's back buffer
     Resize(new_width, new_height) {
@@ -33,9 +31,9 @@ class SwapChain {
 
     // returns render target view of the current back buffer in the swapchain; 
     // OpenGL backends return null
-    GetCurrentBackBufferRTV() {}
+    GetCurrentBackBufferRTV() { throw 'implementation needed'; }
     // returns depth-stencil view of the depth buffer
-    GetDepthBufferDSV() {}
+    GetDepthBufferDSV() { throw 'implementation needed'; }
 }
 
 export {

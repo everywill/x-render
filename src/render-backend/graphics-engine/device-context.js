@@ -1,6 +1,6 @@
 import { MAX_BUFFER_SLOTS, MAX_VIEWPORTS } from "../graphics/device-caps";
 import { Rect, SET_VERTEX_BUFFERS_FLAGS, Viewport } from "../graphics/device-context-desc";
-import { BIND_FLAGS } from "../graphics/graphics-types";
+import { BIND_FLAGS, MISC_TEXTURE_FLAGS, TEXTURE_VIEW_TYPE, VALUE_TYPE } from "../graphics/graphics-types";
 
 class VertexStreamInfo {
     constructor() {
@@ -28,6 +28,20 @@ class DeviceContext {
         this.index_data_start_offset = 0;
         this.framebuffer_width = 0;
         this.framebuffer_height = 0;
+        // number of array slices in the currently bound framebuffer
+        this.framebuffer_slices = 0;
+        this.is_default_framebuffer_bound = false;
+        this.swapchain = null;
+        // targets need to be resolved next
+        this.num_targets_to_resolve = 0;
+        // array of render targets' texture to resolve
+        this.pre_render_targets_to_resolve = [];
+        // previous number of render targets bound
+        this.num_bind_render_targets = 0;
+        // array of render targets bound;
+        this.bound_render_targets = [];
+        this.bound_depth_stencil = null;
+        // this.bound_RT_textures = [];
         this.num_viewports = 0;
         this.viewports = [];
         for(let i=0; i<MAX_VIEWPORTS; i++) {
@@ -38,6 +52,7 @@ class DeviceContext {
         for(let i=0; i<MAX_VIEWPORTS; i++) {
             this.scissor_rects[i] = new Rect();
         }
+        this.render_pass_attribs = null;
         this.active_render_pass = false;
     }
 
@@ -157,11 +172,118 @@ class DeviceContext {
         }
     }
 
-    BeginRenderPass() {
+    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(this.active_render_pass) {
             throw 'already in render pass'
         }
         this.active_render_pass = true;
+        // if render target bind operation actually done
+        let bindRenderTargets = false;
+        // texture view for default render target
+        let defaultRTV = null;
+        const isDefaultFramebuffer = (numRenderTargets==0 || !renderTargets || 
+                                    (numRenderTargets==1 && !renderTargets[0])) && !depthStencil;
+        bindRenderTargets = (this.is_default_framebuffer_bound != isDefaultFramebuffer);
+        this.is_default_framebuffer_bound = isDefaultFramebuffer;
+        if(this.is_default_framebuffer_bound) {
+            if(!this.swapchain) {
+                throw 'swapchain is not initialized in this device context';
+            }
+            numRenderTargets = 1;
+            defaultRTV = this.swapchain.GetCurrentBackBufferRTV();
+            renderTargets = [defaultRTV];
+            depthStencil = this.swapchain.GetDepthBufferDSV();
+
+            const swapchainDesc = this.swapchain.GetDesc();
+            this.framebuffer_width = swapchainDesc.width;
+            this.framebuffer_height = swapchainDesc.height;
+            this.framebuffer_slices = 1;
+        }
+        this.num_targets_to_resolve = 0;
+        // multisample texture will implicitly resolve
+        if(!this.render_device.GetDeviceCaps().multisample_rendertexture_supported) {
+            for(let i=0; i<this.num_bind_render_targets; i++) {
+                // const texture = this.bound_RT_textures[i];
+                const texture = this.bound_render_targets[i].GetTexture();
+                if(texture && texture.GetDesc().misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE && !texture.GetResolveFlag()) {
+                    this.pre_render_targets_to_resolve[this.num_targets_to_resolve++] = texture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
+                }
+            }
+        }
+
+        if(numRenderTargets != this.num_bind_render_targets) {
+            bindRenderTargets = true;
+            for(let i=numRenderTargets; i<this.numRenderTargets; i++) {
+                this.bound_render_targets[i] = null;
+            }
+            this.num_bind_render_targets = numRenderTargets;
+        }
+        
+        for(let i=0; i<numRenderTargets; i++) {
+            const RTView = renderTargets[i];
+            if(RTView) {
+                const RTViewDesc = RTView.GetDesc();
+                if(RTViewDesc.view_type != TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET) {
+                    throw 'incorrect view type, TEXTURE_VIEW_RENDER_TARGET is required';
+                }
+                const texture = RTView.GetTexture();
+                if(texture && texture.GetDesc().misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE) {
+                    texture.SetResolveFlag(false);
+                }
+
+                // use RTV's size to set render target size
+                if(this.framebuffer_width==0) {
+                    let desc;
+                    if(!texture) {
+                        desc = this.swapchain.GetDesc();
+                        
+                    } else {
+                        desc = texture.GetDesc();
+                    }
+                    this.framebuffer_width = Math.max(desc.width >> desc.most_detailed_mip, 1);
+                    this.framebuffer_height = Math.max(desc.height >> desc.most_detailed_mip, 1);
+                    this.framebuffer_slices = RTViewDesc.num_array_or_depth_slice;
+                }
+            }
+
+            if(this.bound_render_targets[i] != RTView) {
+                this.bound_render_targets[i] = RTView;
+                bindRenderTargets = true;
+            }
+        }
+
+        if(depthStencil) {
+            const DSViewDesc = depthStencil.GetDesc();
+            if(DSViewDesc.view_type != TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL) {
+                throw 'incorrect view type, TEXTURE_VIEW_DEPTH_STENCIL is required';
+            }
+            const texture = depthStencil.GetTexture();
+            if(texture) {
+                if(numRenderTargets==0 && texture.ample_count>1) {
+                    console.error('depth only render target with msaa may be invalid on some andorid platform')
+                }
+            }
+
+            if(this.framebuffer_width == 0) {
+                const desc = texture.GetDesc();
+                this.framebuffer_width = Math.max(desc.width >> desc.most_detailed_mip, 1);
+                this.framebuffer_height = Math.max(desc.height >> desc.most_detailed_mip, 1);
+                this.framebuffer_slices = DSViewDesc.num_array_or_depth_slice;
+            }
+        }
+
+        if(this.bound_depth_stencil != depthStencil) {
+            this.bound_depth_stencil = depthStencil;
+            bindRenderTargets = true;
+        }
+
+        this.render_pass_attribs = renderPassAttribs;
+
+        if(this.framebuffer_width<=0 || this.framebuffer_height<=0 || this.framebuffer_slices<=0) {
+            throw 'framebuffer width/height/slices not valid';
+        }
+
+        return bindRenderTargets;
     }
 
     EndRenderPass() {
@@ -169,6 +291,25 @@ class DeviceContext {
             throw 'not in a render pass';
         }
         this.active_render_pass = false;
+    }
+
+    Draw(drawAttribs) {
+        if(drawAttribs.is_indexed) {
+            switch(drawAttribs.index_type) {
+                case VALUE_TYPE.VT_UINT8:
+                case VALUE_TYPE.VT_UINT16:
+                case VALUE_TYPE.VT_UINT32:
+                    break;
+                default:
+                    throw 'draw index buffer type must be UNSIGN INT 8/16/32';
+            }
+        }
+        if(!this.pipelinestate) {
+            throw 'no pipelinestate is bound';
+        }
+        if(!this.pipelinestate.GetDesc().is_compute_pipeline) {
+            throw 'no graphics pipelinestate is bound';
+        }
     }
 }
  
