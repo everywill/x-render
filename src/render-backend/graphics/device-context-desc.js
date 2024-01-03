@@ -54,9 +54,24 @@ class DrawAttribs {
         this.is_indexed = false;
         // the number of vertics(for non-indexed draw call) or indices(for indexed draw call)
         this.num_vertices_or_indices = 0;
+        // location(or index) of the first vertex or index buffer to start reading from
+        this.start_vertex_or_index_location = 0;
         // type of element in the index buffer(for indexed draw call)
         // allowed type: UINT8 UINT16 UINT32
         this.index_type = VALUE_TYPE.VT_UNDEFINED;
+        // for indexed rendering, a constant which is added to each index before accessing the vertex buffer
+        this.base_vertex = 0;
+        // when more than 1, instance drawing will be performed
+        this.num_instances = 1;
+        // location(or index) of the first vertex buffer to start reading from
+        this.start_instance_locatino = 0;
+        // if indirect drawing will be performing
+        // when true, indirect_draw_attribs must be valid
+        this.is_indirect = false;
+        // for indirect rendering, offset from the beginning of the buffer to the location of draw command attributes.
+        this.indirect_drawargs_offset = 0;
+        // indirect draw buffer
+        this.indirect_draw_attribs = null;
     }
 }
 
@@ -65,4 +80,5 @@ export {
     Viewport,
     Rect,
     RennderPassAttribs,
+    DrawAttribs,
 }

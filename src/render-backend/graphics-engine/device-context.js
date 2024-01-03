@@ -311,6 +311,10 @@ class DeviceContext {
             throw 'no graphics pipelinestate is bound';
         }
     }
+
+    ClearStateCache() {}
+
+    ResetRenderTargets() {}
 }
  
 export {
