@@ -86,7 +86,7 @@ class PipelineState {
 
     GetProgram() { return this.program; }
 
-    CreateShaderResourceBindin() { throw 'implementation needed'; }
+    CreateShaderResourceBinding() { throw 'implementation needed'; }
 
     GetNumBufferSlotUsed() { return this.buffer_slots_used; }
 }

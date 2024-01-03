@@ -56,6 +56,8 @@ class DeviceContext {
         this.active_render_pass = false;
     }
 
+    ResolveResource(msaaTexture, resolvedTexture) { throw 'implementation needed'; }
+
     SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
         if(startSlot >= MAX_BUFFER_SLOTS) {
             throw `start vertex buffer slot ${startSlot} is out of range [0, ${MAX_BUFFER_SLOTS-1}]`

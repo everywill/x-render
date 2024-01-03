@@ -83,5 +83,6 @@ export {
     MAX_RENDER_TARGETS,
     MAX_VIEWPORTS,
     MAX_SHADERS_IN_PIPELINE,
+    DEVICE_TYPE,
     DeviceCaps
 }
