@@ -4,15 +4,9 @@ class TextureView {
         this.texture = texture;
         this.sampler = null;
     }
-    GetSampler() { 
-        return this.sampler 
-    }
-    GetTexture() {
-        return this.texture;
-    }
-    SetSampler(sampler) {
-        this.sampler = sampler;
-    }
+    GetSampler() { return this.sampler; }
+    GetTexture() { return this.texture; }
+    SetSampler(sampler) { this.sampler = sampler; }
 }
 
 export {

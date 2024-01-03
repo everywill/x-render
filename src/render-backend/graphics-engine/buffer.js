@@ -115,15 +115,11 @@ class Buffer {
         }
     }
 
-    Unmap(deviceContext, mapType, mapFlags) {
-        throw 'implementation needed';
-    }
+    Unmap(deviceContext, mapType, mapFlags) { throw 'implementation needed'; }
 
-    CreateViewInternal() {
-        throw 'implementation needed';
-    }
+    CreateViewInternal() { throw 'implementation needed'; }
 
-    createView(viewDesc) {
+    CreateView(viewDesc) {
         let view = this.created_buffer_views.get(viewDesc)
         if(!view) {
             view = this.CreateViewInternal(viewDesc);

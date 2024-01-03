@@ -75,9 +75,7 @@ class RenderDevice {
         return textureFormatInfo;
     }
 
-    TestTextureFormat(textureFormat) {
-        throw 'implementation needed';
-    }
+    TestTextureFormat(textureFormat) { throw 'implementation needed'; }
 
     SetImmediateContext(context) {
         if(this.immediate_context) {
@@ -88,37 +86,23 @@ class RenderDevice {
 
     GetImmediateContext() { return this.immediate_context; }
 
-    InitDeviceLimits() {
-        throw 'implementation needed';
-    }
+    InitDeviceLimits() { throw 'implementation needed'; }
 
     // to allocate space only, provide null bufferData 
     // static buffers (USAGE_STATIC) must be initialized at creation time.                  
-    CreateBuffer(bufferDesc, bufferData) {
-        throw 'implementation needed';
-    }
+    CreateBuffer(bufferDesc, bufferData) { throw 'implementation needed'; }
 
-    CreateShader(creationAttribs) {
-        throw 'implementation needed';
-    }
+    CreateShader(creationAttribs) { throw 'implementation needed'; }
 
-    CreateProgram(programDesc) {
-        throw 'implementation needed';
-    }
+    CreateProgram(programDesc) { throw 'implementation needed'; }
 
     // to allocate space only, provide null data
     // static textures(USAGE_STATIC) must be initialized at creation time
-    CreateTexture(textureDesc, textureData) {
-        throw 'implementation needed';
-    }
+    CreateTexture(textureDesc, textureData) { throw 'implementation needed'; }
 
-    CreateSampler(samplerDesc) {
-        throw 'implementation needed';
-    }
+    CreateSampler(samplerDesc) { throw 'implementation needed'; }
 
-    CreatePipelineState(pipelineStateDesc) {
-        throw 'implementation needed';
-    }
+    CreatePipelineState(pipelineStateDesc) { throw 'implementation needed'; }
 }
 
 export  {

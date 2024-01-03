@@ -15,15 +15,15 @@ class DeviceContext {
     constructor(renderDevice, isDeferred) {
         this.render_device = renderDevice;
         this.is_deferred = isDeferred;
-        this.pipelinestate = null;
+        this.pipelinestate = null;  // need clear
         this.stencil_ref = 0;
         this.blend_factors = [-1, -1, -1, -1];
-        this.vertex_streams = [];
+        this.vertex_streams = [];  // need clear
         for(let i=0; i<MAX_BUFFER_SLOTS; i++) {
             this.vertex_streams[i] = new VertexStreamInfo();
         }
         this.num_vertex_streams = 0;
-        this.index_buffer = null;
+        this.index_buffer = null;  // need clear
         // offset from the beginning of the index buffer to the start of data in bytes
         this.index_data_start_offset = 0;
         this.framebuffer_width = 0;
@@ -43,12 +43,12 @@ class DeviceContext {
         this.bound_depth_stencil = null;
         // this.bound_RT_textures = [];
         this.num_viewports = 0;
-        this.viewports = [];
+        this.viewports = [];  // need clear
         for(let i=0; i<MAX_VIEWPORTS; i++) {
             this.viewports[i] = new Viewport();
         }
         this.num_scissor_rects = 0;
-        this.scissor_rects = [];
+        this.scissor_rects = [];  // need clear
         for(let i=0; i<MAX_VIEWPORTS; i++) {
             this.scissor_rects[i] = new Rect();
         }
@@ -312,9 +312,46 @@ class DeviceContext {
         }
     }
 
-    ClearStateCache() {}
+    ClearStateCache() {
+        for(let i=0; i<this.num_vertex_streams; i++) {
+            this.vertex_streams[i] = new VertexStreamInfo();
+        }
+        this.num_vertex_streams = 0;
+        
+        this.pipelinestate = null;
 
-    ResetRenderTargets() {}
+        this.index_buffer = null;
+        this.index_data_start_offset = 0;
+
+        this.stencil_ref = 0;
+
+        this.blend_factors = [-1, -1, -1, -1];
+
+        for(let i=0; i<this.num_viewports; i++) {
+            this.viewports[i] = new Viewport();
+        }
+        this.num_viewports = 0;
+
+        for(let i=0; i<this.num_scissor_rects; i++) {
+            this.scissor_rects = new Rect();
+        }
+        this.num_scissor_rects = 0;
+
+        this.ResetRenderTargets();
+    }
+
+    ResetRenderTargets() {
+        for(let i=0; i<this.num_bind_render_targets; i++) {
+            this.bound_render_targets = null;
+        }
+        this.num_bind_render_targets = 0;
+        this.framebuffer_width = 0;
+        this.framebuffer_height = 0;
+        this.framebuffer_slices = 0;
+
+        this.is_default_framebuffer_bound = false;
+        this.bound_depth_stencil = null;
+    }
 }
  
 export {
