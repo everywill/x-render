@@ -76,6 +76,9 @@ class GraphicsDriver {
     SetPipelineState(pipelineState) {
         this.device_context.SetPipelineState(pipelineState);
     }
+    TransitionShaderResources(pipelineState, shaderResourceBinding) {
+        this.device_context.TransitionShaderResources(pipelineState, shaderResourceBinding);
+    }
 }
 
 export {

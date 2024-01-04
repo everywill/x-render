@@ -174,7 +174,12 @@ class DeviceContext {
         }
     }
 
+    // explicitly transition all resources to the correct state
     TransitionShaderResources(pipelineState, shaderResourceBinding) { throw 'implementation needed'; }
+
+    // pipelinestate object that was used to create the shader resource binding must be bound
+    // if no pipeline state object is bound or the pipeline state object does not match shader resource binding, the method will fail
+    CommitShaderResources(shaderResourceBindin) { throw 'implementation needed'; }
 
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(this.active_render_pass) {
