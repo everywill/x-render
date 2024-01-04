@@ -174,6 +174,8 @@ class DeviceContext {
         }
     }
 
+    TransitionShaderResources(pipelineState, shaderResourceBinding) { throw 'implementation needed'; }
+
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(this.active_render_pass) {
             throw 'already in render pass'
