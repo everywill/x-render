@@ -75,6 +75,14 @@ class DrawAttribs {
     }
 }
 
+// class DispatchComputeAttribs {
+//     constructor() {
+//         this.thread_group_count_x = 1;
+//         this.thread_group_count_y = 1;
+//         this.thread_group_count_z = 1;
+//     }
+// }
+
 export {
     SET_VERTEX_BUFFERS_FLAGS,
     Viewport,

@@ -3,9 +3,8 @@ class BufferView {
         this.desc = viewDesc;
         this.buffer = buffer;
     }
-    GetBuffer() {
-        return this.buffer;
-    }
+    GetDesc() { return this.desc; }
+    GetBuffer() { return this.buffer; }
 }
 
 export {

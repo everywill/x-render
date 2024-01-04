@@ -68,7 +68,7 @@ class Buffer {
         }
     }
 
-    Map(deviceContext, mapType, mapFlags) {
+    Map(deviceContext, mapType, mapFlags, mappedData) {
         switch(mapType) {
             case MAP_TYPE.MAP_READ:
                 if(this.desc.cpu_access_flags != CPU_ACCESS_FLAGS.CPU_ACCESS_READ) {

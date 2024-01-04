@@ -58,6 +58,8 @@ class DeviceContext {
 
     ResolveResource(msaaTexture, resolvedTexture) { throw 'implementation needed'; }
 
+    SetSwapChain(swapchain) { this.swapchain = swapchain; }
+
     SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
         if(startSlot >= MAX_BUFFER_SLOTS) {
             throw `start vertex buffer slot ${startSlot} is out of range [0, ${MAX_BUFFER_SLOTS-1}]`
@@ -153,8 +155,6 @@ class DeviceContext {
                 throw 'incorrect viewport depth range';
             }
         }
-
-        return { width: RTWidth, height: RTHeight };
     }
 
     SetScissorRects(numRect, rects) {
@@ -180,6 +180,12 @@ class DeviceContext {
     // pipelinestate object that was used to create the shader resource binding must be bound
     // if no pipeline state object is bound or the pipeline state object does not match shader resource binding, the method will fail
     CommitShaderResources(shaderResourceBindin) { throw 'implementation needed'; }
+
+    FinishCommandList(commandList) { throw 'implementation needed'; }
+
+    ExecuteCommandList(commandList) { throw 'implementation needed'; }
+
+    Flush() { throw 'implementation needed'; }
 
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(this.active_render_pass) {
@@ -319,6 +325,11 @@ class DeviceContext {
         if(!this.pipelinestate.GetDesc().is_compute_pipeline) {
             throw 'no graphics pipelinestate is bound';
         }
+    }
+
+    InvalidateState() {
+        this.ClearStateCache();
+        this.is_default_framebuffer_bound = false;
     }
 
     ClearStateCache() {

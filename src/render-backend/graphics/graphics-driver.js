@@ -79,6 +79,76 @@ class GraphicsDriver {
     TransitionShaderResources(pipelineState, shaderResourceBinding) {
         this.device_context.TransitionShaderResources(pipelineState, shaderResourceBinding);
     }
+    SetStencilRef(stencilRef) {
+        this.device_context.SetStencilRef(stencilRef);
+    }
+    SetBlendFactors(blendFactors) {
+        this.device_context.SetBlendFactors(blendFactors);
+    }
+    SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
+        this.device_context.SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags);
+    }
+    SetIndexBuffer(indexBuffer, byteOffset) {
+        this.device_context.SetIndexBuffer(indexBuffer, byteOffset);
+    }
+    SetViewports(numViewports, viewports, RTWidth, RTHeight) {
+        this.device_context.SetViewports(numViewports, viewports, RTWidth, RTHeight);
+    }
+    SetScissorRects(numRect, rects) {
+        this.device_context.SetScissorRects(numRect, rects);
+    }
+    InvalidateState() {
+        this.device_context.InvalidateState();
+    }
+    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
+        this.device_context.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
+    }
+    EndRenderPass() {
+        this.device_context.EndRenderPass();
+    }
+    Draw(drawAttribs) {
+        this.device_context.Draw(drawAttribs);
+    }
+    FinishCommandList(commandList) {
+        this.device_context.FinishCommandList(commandList);
+    }
+    ExecuteCommandList(commandList) {
+        this.device_context.ExecuteCommandList(commandList);
+    }
+    Flush() {
+        this.device_context.Flush();
+    }
+    SetSwapChain(swapchain) {
+        this.device_context.SetSwapChain(swapchain);
+    }
+
+    // buffer method
+    GetDesc(buffer) {
+        return buffer.GetDesc();
+    }
+    UpdateData(buffer, offset, size, data) {
+        return buffer.UpdateData(this.device_context, offset, size, data);
+    }
+    CopyData(dstBuffer, srcBuffer, srcOffset, dstOffset, size) {
+        dstBuffer.CopyData(this.device_context, srcBuffer, srcOffset, dstOffset, size);
+    }
+    Map(buffer, mapType, mapFlags, mappedData) {
+        buffer.Map(this.device_context, mapType, mapFlags, mappedData);
+    }
+    Unmap(buffer, mapType, mapFlags) {
+        buffer.Unmap(this.device_context, mapType, mapFlags);
+    }
+    GetDefaultView(buffer, view_type) {
+        return buffer.GetDefaultView(view_type);
+    }
+
+    // bufferview method
+    GetDesc(bufferView) {
+        return bufferView.GetDesc();
+    }
+    GetBuffer(bufferView) {
+        return bufferView.GetBuffer();
+    }
 }
 
 export {
