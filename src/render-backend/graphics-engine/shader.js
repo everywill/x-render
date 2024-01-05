@@ -5,10 +5,12 @@ class ShaderVariable {
     constructor() {}
 
     Set(object) { throw 'implementation needed'; }
-    SetArray(deviceArray, firstElement, numElements) { throw 'implementation needed'; }
-    SetFloatArray()
-    SetIntArray()
-    SetUintArray()
+    SetArray(objectArray, firstElement, numElements) { throw 'implementation needed'; }
+    // used in OpenGLES 2.0
+    // others should use uniform buffer object 
+    // SetFloatArray(array, count) {}
+    // SetIntArray(array, count) {}
+    // SetUintArray(array, count) {}
 }
 
 class Shader {
@@ -32,9 +34,13 @@ class Shader {
         this.shader_reflection = new ShaderReflection();
     }
     GetDesc() { return this.desc; }
+
     GetShaderReflection() { return this.shader_reflection; }
+
+    GetShaderVariable(name) { throw 'need implement'; }
 }
 
 export {
     Shader,
+    ShaderVariable,
 }

@@ -372,6 +372,9 @@ class DeviceContext {
         this.is_default_framebuffer_bound = false;
         this.bound_depth_stencil = null;
     }
+
+    GraphicStateSave() { throw 'implementation needed'; }
+    GraphicStateRestore() { throw 'implementation needed'; }
 }
  
 export {

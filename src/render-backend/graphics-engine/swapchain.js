@@ -7,19 +7,19 @@ class SwapChain {
     }
 
     // Present a renderer image to the user
-    Present(sync_interval) { throw 'implementation needed'; }
+    Present(syncInterval) { throw 'implementation needed'; }
 
     // return the swapchain description
     GetDesc() { return this.swap_chain_desc; }
 
     // change size of swapchain's back buffer
-    Resize(new_width, new_height) {
-        if(new_height != 0 && new_width != 0 
-            && this.swap_chain_desc.width != new_width
-            && this.swap_chain_desc.height != new_height) 
+    Resize(newWidth, newHeight) {
+        if(newWidth != 0 && newHeight != 0 
+            && this.swap_chain_desc.width != newWidth
+            && this.swap_chain_desc.height != newHeight) 
         {
-            this.swap_chain_desc.width = new_width;
-            this.swap_chain_desc.height = new_height;
+            this.swap_chain_desc.width = newWidth;
+            this.swap_chain_desc.height = newHeight;
             return true;
         }
         return false;
@@ -34,6 +34,7 @@ class SwapChain {
     GetCurrentBackBufferRTV() { throw 'implementation needed'; }
     // returns depth-stencil view of the depth buffer
     GetDepthBufferDSV() { throw 'implementation needed'; }
+    ReadPixels() { throw 'implementation needed'; }
 }
 
 export {

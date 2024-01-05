@@ -5,6 +5,7 @@ class GraphicsDriver {
     constructor() {
         this.render_device = null;
         this.device_context = null;
+        this.enterSave = false;
     }
     Create() {}
 
@@ -225,6 +226,65 @@ class GraphicsDriver {
     // shader resource binding method
     GetPipielineState(shaderResourceBinding) {
         return shaderResourceBinding.GetPipielineState();
+    }
+    SetShaderVariableWithBuffer(shaderResourceBinding, shaderType, name, buffer) {
+        shaderResourceBinding.GetVariable(shaderType, name).Set(buffer);
+    }
+    SetShaderVariableWithBufferView(shaderResourceBinding, shaderType, name, bufferView) {
+        shaderResourceBinding.GetVariable(shaderType, name).Set(bufferView);
+    }
+    SetShaderVariableWithTextureView(shaderResourceBinding, shaderType, name, textureView) {
+        shaderResourceBinding.GetVariable(shaderType, name).Set(textureView);
+    }
+    SetShaderVariableWithBufferArray(shaderResourceBinding, shaderType, name, buffers, firstElement, numElements) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetArray(buffers, firstElement, numElements);
+    }
+    SetShaderVariableWithBufferViewArray(shaderResourceBinding, shaderType, name, bufferviews, firstElement, numElements) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetArray(bufferviews, firstElement, numElements);
+    }
+    SetShaderVariableWithTextureViewArray(shaderResourceBinding, shaderType, name, textureviews, firstElement, numElements) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetArray(textureviews, firstElement, numElements);
+    }
+    // SetShaderVariableFloatArray() {}
+    // SetShaderVariableIntArray() {}
+    // SetShaderVariableUintArray() {}
+
+    // swapchain method
+    GetSwapchainDesc(swapchain) {
+        return swapchain.GetDesc();
+    }
+    Present(swapchain, syncInterval) {
+        swapchain.Present(syncInterval);
+    }
+    Resize(swapchain, newWidth, newHeight) {
+        swapchain.Resize(newWidth, newHeight);
+    }
+    GetCurrentBackBufferRTV(swapchain) {
+        return swapchain.GetCurrentBackBufferRTV();
+    }
+    GetDepthBufferDSV(swapchain) {
+        return swapchain.GetDepthBufferDSV();
+    }
+    ReadPixels(swapchain) {
+        return swapchain.ReadPixels();
+    }
+
+    // graphics state
+    GraphicStateSave() {
+        if(this.enterSave) {
+            return false;
+        }
+        this.enterSave = true;
+        this.device_context.GraphicStateSave();
+        return true;
+    }
+    GraphicStateRestore() {
+        if(!this.enterSave) {
+            return false;
+        }
+        this.enterSave = false;
+        this.device_context.GraphicStateRestore();
+        return true;
     }
 }
 
