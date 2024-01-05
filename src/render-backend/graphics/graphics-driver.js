@@ -123,13 +123,13 @@ class GraphicsDriver {
     }
 
     // buffer method
-    GetDesc(buffer) {
+    GetBufferDesc(buffer) {
         return buffer.GetDesc();
     }
-    UpdateData(buffer, offset, size, data) {
+    UpdateBufferData(buffer, offset, size, data) {
         return buffer.UpdateData(this.device_context, offset, size, data);
     }
-    CopyData(dstBuffer, srcBuffer, srcOffset, dstOffset, size) {
+    CopyBufferData(dstBuffer, srcBuffer, srcOffset, dstOffset, size) {
         dstBuffer.CopyData(this.device_context, srcBuffer, srcOffset, dstOffset, size);
     }
     Map(buffer, mapType, mapFlags, mappedData) {
@@ -138,16 +138,93 @@ class GraphicsDriver {
     Unmap(buffer, mapType, mapFlags) {
         buffer.Unmap(this.device_context, mapType, mapFlags);
     }
-    GetDefaultView(buffer, view_type) {
+    GetDefaultBufferView(buffer, view_type) {
         return buffer.GetDefaultView(view_type);
     }
 
     // bufferview method
-    GetDesc(bufferView) {
+    GetBufferViewDesc(bufferView) {
         return bufferView.GetDesc();
     }
     GetBuffer(bufferView) {
         return bufferView.GetBuffer();
+    }
+
+    // texture method
+    GetTextureDesc(texture) {
+        return texture.GetDesc();
+    }
+    GetDefaultTextureView(texture, viewType) {
+        return texture.GetDefaultView(viewType);
+    }
+    UpdateTextureData(texture, mipLevel, slice, dstBox, subResData) {
+        return texture.UpdateData(this.device_context, mipLevel, slice, dstBox, subResData);
+    }
+    CopyTextureData(dstTexture, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ) {
+        return dstTexture.CopyData(this.device_context, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ);
+    }
+    ReadPixels(texture) {
+        return texture.ReadPixels(this.device_context);
+    }
+
+    // textureview method
+    GetTextureViewDesc(textureView) {
+        return textureView.GetDesc();
+    }
+    GetSampler(textureView) {
+        return textureView.GetSampler();
+    }
+    SetSampler(textureView, sampler) {
+        textureView.SetSampler(sampler);
+    }
+    GetTexture(textureView) {
+        return textureView.GetTexture();
+    }
+    GenerateMips(textureView) {
+        return textureView.GenerateMips(this.device_context);
+    }
+
+    // pipelinestate method
+    GetPipelineStateDesc(pipelineState) {
+        return pipelineState.GetDesc();
+    }
+
+    // program method
+    GetProgramDesc(program) {
+        return program.GetDesc();
+    }
+    GetVSShaderReflection(program) {
+        return program.GetVSShaderReflection();
+    }
+    GetPSShaderReflection(program) {
+        return program.GetPSShaderReflection();
+    }
+    GetGSShaderReflection(program) {
+        return program.GetGSShaderReflection();
+    }
+    GetHSShaderReflection(program) {
+        return program.GetHSShaderReflection();
+    }
+    GetDSShaderReflection(program) {
+        return program.GetDSShaderReflection();
+    }
+    GetCSShaderReflection(program) {
+        return program.GetCSShaderReflection();
+    }
+
+    // sampler method
+    GetSamplerDesc(sampler) {
+        return sampler.GetDesc();
+    }
+
+    // shader method
+    GetShaderDesc(shader) {
+        return shader.GetDesc();
+    }
+
+    // shader resource binding method
+    GetPipielineState(shaderResourceBinding) {
+        return shaderResourceBinding.GetPipielineState();
     }
 }
 

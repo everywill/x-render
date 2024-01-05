@@ -1,6 +1,16 @@
 import { ShaderReflection } from "../graphics/program-desc";
 import { ShaderVariableDesc, StaticSamplerDesc } from "../graphics/shader-desc";
 
+class ShaderVariable {
+    constructor() {}
+
+    Set(object) { throw 'implementation needed'; }
+    SetArray(deviceArray, firstElement, numElements) { throw 'implementation needed'; }
+    SetFloatArray()
+    SetIntArray()
+    SetUintArray()
+}
+
 class Shader {
     constructor(renderDevice, shaderDesc) {
         this.desc = shaderDesc;

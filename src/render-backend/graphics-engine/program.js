@@ -44,6 +44,8 @@ class Program {
             }
         }
     }
+    GetDesc() { return this.desc; }
+
     GetVS() { return this.p_vs; }
     GetPS() { return this.p_ps; }
     GetGS() { return this.p_gs; }
@@ -56,7 +58,7 @@ class Program {
     GetGSShaderReflection() { throw 'implementation needed'; }
     GetHSShaderReflection() { throw 'implementation needed'; }
     GetDSShaderReflection() { throw 'implementation needed'; }
-    GetCSShaderReflectino() { throw 'implementation needed'; }
+    GetCSShaderReflection() { throw 'implementation needed'; }
 }
 
 export {
