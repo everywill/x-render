@@ -1,5 +1,9 @@
 import { SwapChain } from "../graphics-engine/swapchain";
 import { DEVICE_TYPE } from "./device-caps";
+import { 
+    CreateDefaultVertexBuffer, CreateStaticVertexBuffer, CreateDynamicVertexBuffer,
+    CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
+} from "./buffer-helper";
 
 class GraphicsDriver {
     constructor() {
@@ -285,6 +289,24 @@ class GraphicsDriver {
         this.enterSave = false;
         this.device_context.GraphicStateRestore();
         return true;
+    }
+    CreateDefaultVertexBuffer(byteSize, data, gpuWriteable) {
+       return CreateDefaultVertexBuffer(this.render_device, byteSize, data, gpuWriteable);
+    }
+    CreateStaticVertexBuffer(byteSize, data) {
+        return CreateStaticVertexBuffer(this.render_device, byteSize, data);
+    }
+    CreateDynamicVertexBuffer(byteSize, data, gpuWriteable) {
+        return CreateDynamicVertexBuffer(this.render_device, byteSize, data, gpuWriteable);
+    }
+    CreateDefaultIndexBuffer(byteSize, data, gpuWriteable) {
+        return CreateDefaultIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
+    }
+    CreateStaticIndexBuffer(byteSize, data) {
+        return CreateStaticIndexBuffer(this.render_device, byteSize, data);
+    }
+    CreateDynamicIndexBuffer(byteSize, data, gpuWriteable) {
+        return CreateDynamicIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
 }
 

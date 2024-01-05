@@ -32,7 +32,15 @@ class BufferDesc {
     }
 }
 
+class BufferData {
+    constructor() {
+        this.data = null;
+        this.size = 0;
+    }
+}
+
 export {
     BUFFER_MODE,
     BufferDesc,
+    BufferData,
 }
