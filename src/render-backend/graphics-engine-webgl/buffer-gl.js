@@ -1,12 +1,90 @@
 import { Buffer } from "../graphics-engine/buffer";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "../graphics/graphics-types";
+import { gl } from "./gl";
 
-const USAGE_MAP = {
-    
+function UsageToGLUsage(usage) {
+    switch(usage) {
+        case USAGE.USAGE_STATIC:
+            return gl.STATIC_DRAW;
+            return 0x88E4;  // GL_STATIC_DRAW
+        case USAGE.USAGE_DEFAULT:
+            return gl.DYNAMIC_DRAW;
+            return 0x88E8;  // GL_DYNAMIC_DRAW
+        case USAGE.USAGE_DYNAMIC:
+            return gl.STREAM_DRAW;
+            return 0x88E0;  // GL_STREAM_DRAW
+        case USAGE.USAGE_STAGING:
+            return gl.DYNAMIC_READ;
+            return 0x88E9;  // GL_DYNAMIC_READ
+    }
+}
+
+function GetBufferBindTarget(bufferDesc) {
+    let target = gl.ARRAY_BUFFER;
+    // let target = 0x8892;  GL_ARRAY_BUFFER
+    if(bufferDesc.bind_flags == BIND_FLAGS.BIND_VERTEX_BUFFER) {
+        target = gl.ARRAY_BUFFER;
+        // target = 0x8892;  GL_ARRAY_BUFFER
+    } else if(bufferDesc.bind_flags == BIND_FLAGS.BIND_INDEX_BUFFER) {
+        target = gl.ELEMENT_ARRAY_BUFFER
+        // target = 0x8893;  GL_ELEMENT_ARRAY_BUFFER
+    } else if(bufferDesc.bind_flags == BIND_FLAGS.BIND_UNIFORM_BUFFER) {
+        target = gl.UNIFORM_BUFFER;
+        // target = 0x8A11;  GL_UNIFORM_BUFFER;
+    } else if(bufferDesc.bind_flags == BIND_FLAGS.BIND_INDIRECT_DRAW_ARGS) {
+        throw 'indirect draw are not supported';
+    } else if(bufferDesc.usage == USAGE.USAGE_STAGING && bufferDesc.cpu_access_flags == CPU_ACCESS_FLAGS.CPU_ACCESS_WRITE) {
+        target = gl.PIXEL_UNPACK_BUFFER;
+        target = 0x88EC;  // GL_PIXEL_UNPACK_BUFFER
+    }
+    return target;
 }
 
 class BufferGL extends Buffer {
-    constructor(renderDevice, bufferDesc, bufferData) {
+    constructor(renderDevice, bufferDesc, bufferData, glHandle = null) {
         super(renderDevice, bufferDesc);
         this.map_target = 0;
+        this.gl_usage_hint = UsageToGLUsage(bufferDesc.usage);
+        this.gl_buffer = gl.createBuffer();
+        if(bufferDesc.usage == USAGE.USAGE_STATIC && !bufferData.data) {
+            throw 'Static buffer must be initialized with data at creation time';
+        }
+        const target = GetBufferBindTarget(bufferDesc);
+        gl.bindBuffer(target, this.gl_buffer);
+        if(!bufferData.data && bufferData.size<bufferDesc.size) {
+            throw 'data is not null and data size is not consistent with buffer size'
+        }
+        let dataSize = bufferDesc.size;
+        let data = null;
+        if(bufferData.data && bufferData.size>=bufferDesc.size) {
+            data = bufferData.data;
+            dataSize = bufferData.size;
+        }
+
+        if(data && dataSize) {
+            gl.bufferData(target, data, this.gl_usage_hint, 0, dataSize);
+        } else {
+            gl.bufferData(target, dataSize, this.gl_usage_hint);
+        }
+        gl.bindBuffer(target, 0);
     }
+
+    Release() {
+        gl.deleteBuffer(this.gl_buffer);
+    }
+
+    UpdateData(deviceContext, offset, size, data) {
+        super.UpdateData(deviceContext, offset, size, data);
+        // buffermemorybarrior
+        const target = GetBufferBindTarget(bufferDesc);
+        gl.bindBuffer(target, this.gl_buffer);
+        if(size) {
+            gl.bufferSubData(target, offset, size, data);
+        }
+        gl.bindBuffer(target, 0);
+    }
+}
+
+export {
+    BufferGL,
 }
