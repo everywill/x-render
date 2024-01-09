@@ -2,6 +2,26 @@ import { BIND_FLAGS, BUFFER_VIEW_TYPE, CPU_ACCESS_FLAGS, MAP_FLAGS, MAP_TYPE, US
 import { BufferViewDesc } from '../graphics/bufferview-desc';
 import { BUFFER_MODE } from "../graphics/buffer-desc";
 
+function CorrectBufferViewDesc(bufferViewDesc, bufferDesc) {
+    if(bufferViewDesc.byte_width==0) {
+        bufferViewDesc.byte_width = bufferDesc.size;
+    }
+    if(bufferViewDesc.byte_width + bufferViewDesc.byte_offset>bufferDesc.size) {
+        throw `bufferview range is out of buffer bounary`;
+    }
+    if((bufferDesc.bind_flags&BIND_FLAGS.BIND_SHADER_RESOURCE) || (bufferDesc.bind_flags&BIND_FLAGS.BIND_UNORDERED_ACCESS)) {
+        if(bufferDesc.element_stride==0) {
+            throw 'buffer element stride is zero';
+        }
+        if(bufferViewDesc.byte_offset % bufferDesc.element_stride != 0) {
+            throw 'bufferview byte offset is not multiple of buffer element stride';
+        }
+        if(bufferViewDesc.byte_width % bufferDesc.element_stride != 0) {
+            throw 'bufferview byte width is not multiple of buffer element stride';
+        }
+    }
+}
+
 class Buffer {
     constructor(renderDevice, bufferDesc) {
         const allowedBindFlags = BIND_FLAGS.BIND_VERTEX_BUFFER | BIND_FLAGS.BIND_UNIFORM_BUFFER | BIND_FLAGS.BIND_INDEX_BUFFER
@@ -39,6 +59,7 @@ class Buffer {
             console.warn('uniform buffer size is greater than 6400, will be error on ios safari');
         }
 
+        this.render_device = renderDevice;
         this.desc = bufferDesc;
         this.default_SRV = null;
         this.default_UAV = null;
@@ -117,7 +138,7 @@ class Buffer {
 
     Unmap(deviceContext, mapType, mapFlags) { throw 'implementation needed'; }
 
-    CreateViewInternal() { throw 'implementation needed'; }
+    CreateViewInternal(bufferViewDesc) { throw 'implementation needed'; }
 
     CreateView(viewDesc) {
         let view = this.created_buffer_views.get(viewDesc)
@@ -157,4 +178,5 @@ class Buffer {
 
 export {
     Buffer,
+    CorrectBufferViewDesc
 }

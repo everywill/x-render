@@ -1,5 +1,6 @@
-import { Buffer } from "../graphics-engine/buffer";
-import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "../graphics/graphics-types";
+import { Buffer, CorrectBufferViewDesc } from "../graphics-engine/buffer";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, MAP_TYPE, USAGE } from "../graphics/graphics-types";
+import { BufferViewGL } from "./bufferview-gl";
 import { gl } from "./gl";
 
 function UsageToGLUsage(usage) {
@@ -75,13 +76,45 @@ class BufferGL extends Buffer {
 
     UpdateData(deviceContext, offset, size, data) {
         super.UpdateData(deviceContext, offset, size, data);
-        // buffermemorybarrior
+        // todo: bufferMemoryBarrier
         const target = GetBufferBindTarget(bufferDesc);
         gl.bindBuffer(target, this.gl_buffer);
         if(size) {
             gl.bufferSubData(target, offset, size, data);
         }
         gl.bindBuffer(target, 0);
+    }
+
+    CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size) {
+        super.CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size);
+        // todo: bufferMemoryBarrier
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, this.gl_buffer);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, srcBuffer.gl_buffer);
+        gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, srcOffset, dstOffset, size);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, 0);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, 0);
+    }
+
+    Map(deviceContext, mapType, mapFlags, mappedData) {
+        super.Map(deviceContext, mapType, mapFlags, mappedData);
+        // Map and Unmap are not supported in WebGL
+        // emscripten mock this by bufferSubData when and only when access is MAP_WRITE|INVALIDATE_BUFFER
+        throw 'not suppoerted in WebGL';
+    }
+
+    Unmap(deviceContext, mapType, mapFlags) {
+        throw 'not suppoerted in WebGL';
+    }
+
+    BufferMemoryBarrier(requiredBarriers, glContextState) { 
+        // todo: implement
+    }
+
+    CreateViewInternal(bufferViewDesc) {
+        CorrectBufferViewDesc(bufferViewDesc, this.desc);
+        const renderDevice = this.render_device;
+        const deviceContext = renderDevice.GetImmediateContext();
+        return new BufferViewGL(renderDevice, deviceContext, bufferViewDesc, this);
     }
 }
 

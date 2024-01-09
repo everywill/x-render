@@ -4,6 +4,7 @@ import { TextureViewDesc } from "../graphics/textureview-desc";
 
 class Texture {
     constructor(renderDevice, textureDesc) {
+        this.render_device = renderDevice;
         this.desc = textureDesc;
 
         if(this.desc.mip_levels == 0) {
