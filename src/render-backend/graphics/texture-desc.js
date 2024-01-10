@@ -31,7 +31,14 @@ class TextureSubResData {
     }
 }
 
+class TextureData {
+    constructor() {
+        this.sub_resources = [];
+    }
+}
+
 export {
     TextureDesc,
     TextureSubResData,
+    TextureData,
 }
