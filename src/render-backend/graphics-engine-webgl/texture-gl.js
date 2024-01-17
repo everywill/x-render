@@ -1,5 +1,5 @@
 import { Texture } from "../graphics-engine/texture";
-import { BIND_FLAGS, TEXTURE_FORMAT, USAGE } from '../graphics/graphics-types';
+import { BIND_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, USAGE } from '../graphics/graphics-types';
 import { gl } from "./gl";
 
 const FORMAT_GL_INTERNAL_FORMAT_MAP = {};
@@ -95,6 +95,26 @@ function TexFormatToGLInternalTexFormat(textureFormat, bindFlags) {
     }
 }
 
+function GetCurrentBindTexture(bindTarget) {
+    let currentTexture = null;
+    switch(bindTarget) {
+        case gl.TEXTURE_2D:
+            currentTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+            break;
+        case gl.TEXTURE_3D:
+            currentTexture = gl.getParameter(gl.TEXTURE_BINDING_3D);
+            break;
+        case gl.TEXTURE_CUBE_MAP:
+            currentTexture = gl.getParameter(gl.TEXTURE_BINDING_CUBE_MAP);
+            break;
+        case gl.TEXTURE_BINDING_2D_ARRAY:
+            currentTexture = gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY);
+        default:
+            break;
+
+    }
+}
+
 class TextureGL extends Texture {
     constructor(renderDevice, deviceContext, textureDesc, textureData) {
         super(renderDevice, textureDesc);
@@ -110,6 +130,24 @@ class TextureGL extends Texture {
         }
         if(this.desc.usage==USAGE.USAGE_STATIC && !textureData.sub_resources.length) {
             throw 'static texture must be initialized with data at creation time';
+        }
+
+        const currentRenderBuffer = gl.getParameter(gl.RENDERBUFFER_BINDING);
+        if(this.desc.sample_count > 1) {
+            if(this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) {
+                throw 'only 2D textures support multisamples';
+            }
+            if(this.desc.bind_flags & BIND_FLAGS.BIND_DEPTH_STENCILL) {
+                this.gl_renderbuffer = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, this.gl_renderbuffer);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.desc.sample_count, this.gl_tex_format, this.desc.width, this.desc.height);
+            } else {
+                const caps = this.render_device.GetDeviceCaps();
+                if(caps.multisample_rendertexture_supported) {
+                    const currentTexturre = GetCurrentBindTexture(gl.TEXTURE_BINDING_2D);
+                    this.gl_texture = gl.createTexture();
+                }
+            }
         }
     }
 }

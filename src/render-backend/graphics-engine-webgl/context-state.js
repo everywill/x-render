@@ -1,3 +1,4 @@
+import { AppGLState } from "./app-gl-state";
 import { gl } from "./gl";
 
 class ContextCaps {
@@ -41,7 +42,7 @@ class GLContextState {
     }
 
     SetCurrentGLState(renderDevice) {
-        
+        const appGLState = new AppGLState(renderDevice);
     }
 }
 
