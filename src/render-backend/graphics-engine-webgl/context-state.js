@@ -1,3 +1,4 @@
+import { CULL_MODE } from "../graphics/pipelinestate-desc";
 import { AppGLState } from "./app-gl-state";
 import { gl } from "./gl";
 
@@ -9,6 +10,39 @@ class ContextCaps {
         this.primitive_restart = true;
         this.max_combined_texture_units = 0;
         this.max_draw_buffers = 0;
+    }
+}
+
+class StencilOpState {
+    constructor() {
+        this.func = gl.ALWAYS;
+        this.stencil_fail_op = gl.KEEP;
+        this.stencil_depth_fail_op = gl.KEEP;
+        this.stencil_pass_op = gl.KEEP;
+    }
+}
+
+class DepthStencilGLState {
+    constructor() {
+        this.depth_enable_state = true;
+        this.depth_writes_enable_state = true;
+        this.depth_cmp_func = gl.ALWAYS;
+        this.stencil_test_enable_state = false;
+        this.stencil_read_mask = 0xffff;
+        this.stencil_write_mask = 0xffff;
+        this.stencil_op_states = [];
+        // front and back face
+        for(let i=0; i<=1; i++) {
+            this.stencil_op_states[i] = new StencilOpState();
+        }
+    }
+}
+
+class RasterizerGLState {
+    constructor() {
+        // fillMode selection not supported in WebGL2
+        // this.fill_mode
+        this.cull_mode = CULL_MODE.CULL_MODE_BACK;
     }
 }
 
@@ -43,6 +77,14 @@ class GLContextState {
 
     SetCurrentGLState(renderDevice) {
         const appGLState = new AppGLState(renderDevice);
+    }
+
+    Invalidate() {
+        // reset gl context state
+        gl.useProgram(null);
+        gl.bindVertexArray(null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
     }
 }
 

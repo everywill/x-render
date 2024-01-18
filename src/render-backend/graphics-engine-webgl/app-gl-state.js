@@ -19,14 +19,14 @@ class AppGLState {
         this.viewport = null;
         this.polygon_offset_factor = null;
         this.polygon_offset_units = null;
-        this.depth_mask = null;
+        this.depth_mask = false;
         this.depth_func = null;
         this.cull_face = null;
         this.cull_face_mode = null;
         this.front_face = null;
         this.scissor_test = null;
-        this.depth_test = null;
-        this.stencil_test = null;
+        this.depth_test = false;
+        this.stencil_test = false;
         this.sample_coverage = null;
         this.sample_alpha_to_coverage = null;
         this.blend = null;

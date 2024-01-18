@@ -1,6 +1,21 @@
 import { Sampler } from "../graphics-engine/sampler";
-import { FILTER_TYPE } from "../graphics/graphics-types";
-import { gl } from "./gl";
+import { FILTER_TYPE, TEXTURE_ADDRESS_MODE } from "../graphics/graphics-types";
+import { CompareFuncToGLCompare, gl } from "./gl";
+
+function AddressModeToGLAddressMode(mode) {
+    switch(mode) {
+        case TEXTURE_ADDRESS_MODE.TEXTURE_ADDRESS_WRAP:
+            return gl.REPEAT;
+        case TEXTURE_ADDRESS_MODE.TEXTURE_ADDRESS_MIRROR:
+            return gl.MIRRORED_REPEAT;
+        case TEXTURE_ADDRESS_MODE.TEXTURE_ADDRESS_CLAMP:
+            return gl.CLAMP_TO_EDGE;
+        case TEXTURE_ADDRESS_MODE.TEXTURE_ADDRESS_BORDER:
+        default:
+            console.warn('unknown texture address mode');
+            return gl.CLAMP_TO_EDGE;
+    }
+}
 
 class SamplerGL extends Sampler {
     constructor(renderDevice, samplerDesc) {
@@ -125,9 +140,23 @@ class SamplerGL extends Sampler {
             }
         }
         gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_MIN_FILTER, glMinMipFilter);
+
+        gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_WRAP_S, AddressModeToGLAddressMode(this.desc.address_u));
+        gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_WRAP_T, AddressModeToGLAddressMode(this.desc.address_v));
+        gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_WRAP_R, AddressModeToGLAddressMode(this.desc.address_w));
+
+        // if(samCaps.lod_bias_supported) { // not supported }
+        if(samCaps.anisotropic_filtering_supported) {
+            // gl.samplerParameterf(this.gl_sampler, gl.ani)
+        }
+        gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_COMPARE_MODE, minComparison ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE);
+
+        gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_COMPARE_FUNC, CompareFuncToGLCompare(this.desc.comparison_func));
+        gl.samplerParameterf(this.gl_sampler, gl.TEXTURE_MAX_LOD, this.desc.max_LOD);
+        gl.samplerParameterf(this.gl_sampler, gl.TEXTURE_MIN_LOD, this.desc.min_LOD);
     }
 }
 
 export {
-    Sampler
+    SamplerGL,
 }
