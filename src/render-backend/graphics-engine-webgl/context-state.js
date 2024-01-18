@@ -36,6 +36,18 @@ class DepthStencilGLState {
             this.stencil_op_states[i] = new StencilOpState();
         }
     }
+
+    // Equal(other) {
+    //     if(other.depth_enable_state != this.depth_enable_state) {
+    //         return false;
+    //     }
+    //     if(other.depth_writes_enable_state != this.depth_writes_enable_state) {
+    //         return false;
+    //     }
+    //     if(other.depth_cmp_func != this.depth_cmp_func) {
+    //         return false;
+    //     }
+    // }
 }
 
 class RasterizerGLState {
@@ -43,10 +55,21 @@ class RasterizerGLState {
         // fillMode selection not supported in WebGL2
         // this.fill_mode
         this.cull_mode = CULL_MODE.CULL_MODE_BACK;
+        this.front_counter_clock_wise = true;
+        this.depth_bias = 0;
+        this.slope_scaled_depth_bias = 0;
+        this.depth_clamp_enable = true;
+        this.scissor_test_enable = true;
     }
 }
 
 class GLContextState {
+    gl_prog = null;
+    // gl_pipeline = null;
+    vao = null;
+    fbo = null;
+    DS_state = null;
+    RS_state = null;
     constructor(renderDevice) {
         this.render_device = renderDevice;
         this.caps = new ContextCaps();
@@ -85,6 +108,45 @@ class GLContextState {
         gl.bindVertexArray(null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        this.gl_prog = null;
+        this.vao = null;
+        this.fbo = null;
+        this.bound_textures = [];
+        this.bound_samplers = [];
+        this.bound_images = [];
+    }
+
+    SetDepthStencilState(depthStencilState, stencilRef) {
+        if(this.DS_state != depthStencilState) {
+            if(depthStencilState.depth_enable_state) {
+                gl.enable(gl.DEPTH_TEST);
+            } else {
+                gl.disable(gl.DEPTH_TEST);
+            }
+            gl.depthMask(depthStencilState.depth_writes_enable_state);
+            gl.depthFunc(depthStencilState.depth_cmp_func);
+            if(depthStencilState.stencil_test_enable_state) {
+                gl.enable(gl.STENCIL_TEST);
+                gl.stencilMask(depthStencilState.stencil_write_mask);
+
+                for(let i=0; i<2; i++) {
+                    const face = i==0 ? gl.FRONT : gl.BACK;
+                    const stencilState = depthStencilState.stencil_op_states[i];
+                    gl.stencilFuncSeparate(face, stencilState.func, stencilRef, depthStencilState.stencil_read_mask);
+                    gl.stencilOpSeparate(face, stencilState.stencil_fail_op, stencilState.stencil_depth_fail_op, stencilState.stencil_pass_op);
+                }
+            } else {
+                gl.disable(gl.STENCIL_TEST);
+            }  
+            
+            this.DS_state = depthStencilState;
+        }
+    }
+    SetRasterizerState(rasterizerState) {
+        if(this.RS_state != rasterizerState) {
+            
+            this.RS_state = rasterizerState;
+        }
     }
 }
 
