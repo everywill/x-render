@@ -68,6 +68,7 @@ class GLContextState {
     // gl_pipeline = null;
     vao = null;
     fbo = null;
+    render_buffer = null;
     DS_state = null;
     RS_state = null;
     color_write_mask = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
@@ -258,6 +259,67 @@ class GLContextState {
         if(this.bound_textures[index] != texture) {
             gl.bindTexture(bindTarget, texture);
             this.bound_textures[index] = texture;
+        }
+    }
+
+    BindRenderBuffer(renderBuffer) {
+        if(this.render_buffer != renderBuffer) {
+            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
+            this.render_buffer = renderBuffer;
+        }
+    }
+
+    GetRenderBuffer() {
+        return this.render_buffer;
+    }
+
+    BindSampler(index, sampler) {
+        if(this.bound_samplers[index] != sampler) {
+            gl.bindSampler(index, sampler);
+            this.bound_samplers[index] = sampler;
+        }
+    }
+
+    BindImage() {
+        console.error('image texture is not supported');
+    }
+
+    EnsureMemoryBarrier() {}
+
+    SetStencilRef(glFace, ref) {
+        const faceStencilOp = this.DS_state.stencil_op_states[glFace == gl.FRONT ? 0 : 1];
+        gl.stencilFuncSeparate(glFace, faceStencilOp.func, ref, faceStencilOp.stencil_read_mask);
+    }
+
+    SetBlendFactors(blendFactors) {
+        gl.blendColor(blendFactors[0], blendFactors[1], blendFactors[2], blendFactors[3]);
+    }
+
+    SetColorWriteMask(renderTargetIndex, writeMask, isIndependent) {
+        // even though the write mask only applies to writes to a framebuffer, the mask state is NOT
+        // Framebuffer state. So it is NOT part of a Framebuffer Object or the Default Framebuffer.
+        // Binding a new framebuffer will NOT affect the mask.
+        if(!isIndependent) {
+            renderTargetIndex = 0;
+        }
+
+        if(this.color_write_mask[renderTargetIndex] != writeMask || this.independent_write_mask != isIndependent) {
+            if(isIndependent) {
+                if(this.render_device.GetDeviceCaps().independent_blend_supported) {
+                    this.color_write_mask[renderTargetIndex] = writeMask;
+                } else {
+                    console.error('independent color mask not supported');
+                }
+            } else {
+                
+            }
+        } 
+        gl.colorMask()
+    }
+
+    SetBlendState(blendStateDesc, sampleMask) {
+        if(sampleMask != 0xffffffff) {
+
         }
     }
 }
