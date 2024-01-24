@@ -70,6 +70,10 @@ class GLContextState {
     fbo = null;
     DS_state = null;
     RS_state = null;
+    color_write_mask = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
+    independent_write_mask = false;
+    active_texture = -1;
+    num_patch_vertices = -1;
     constructor(renderDevice) {
         this.render_device = renderDevice;
         this.caps = new ContextCaps();
@@ -100,6 +104,27 @@ class GLContextState {
 
     SetCurrentGLState(renderDevice) {
         const appGLState = new AppGLState(renderDevice);
+        appGLState.Save();
+        this.Invalidate();
+
+        const depthStencil = new DepthStencilGLState();
+        depthStencil.depth_enable_state = appGLState.depth_test;
+        depthStencil.depth_writes_enable_state = appGLState.depth_mask;
+        depthStencil.depth_cmp_func = appGLState.depth_func;
+        depthStencil.stencil_test_enable_state = appGLState.stencil_test;
+        depthStencil.stencil_read_mask = 0xffff;
+        depthStencil.stencil_write_mask = 0xffff;
+        this.SetDepthStencilState(depthStencil, 0);
+
+        const rasterizerState = new RasterizerGLState();
+        rasterizerState.cull_mode = appGLState.cull_face ? 
+            (appGLState.cull_face_mode == gl.FRONT ? CULL_MODE.CULL_MODE_FRONT : CULL_MODE.CULL_MODE_BACK) : CULL_MODE.CULL_MODE_NONE;
+        rasterizerState.front_counter_clock_wise = appGLState.front_face == gl.CCW ? true : false;
+        rasterizerState.depth_bias = appGLState.polygon_offset_units;
+        rasterizerState.slope_scaled_depth_bias = appGLState.polygon_offset_factor;
+        rasterizerState.depth_clamp_enable = false;
+        rasterizerState.scissor_test_enable = false;
+        this.SetRasterizerState(rasterizerState);
     }
 
     Invalidate() {
@@ -114,6 +139,16 @@ class GLContextState {
         this.bound_textures = [];
         this.bound_samplers = [];
         this.bound_images = [];
+
+        this.SetDepthStencilState(new DepthStencilGLState(), 0);
+        this.SetRasterizerState(new RasterizerGLState());
+
+        for(let i=0; i<this.color_write_mask.length; i++) {
+            this.color_write_mask[i] = 0xff;
+        }
+        this.independent_write_mask = false;
+        this.active_texture = -1;
+        this.num_patch_vertices = -1;
     }
 
     SetDepthStencilState(depthStencilState, stencilRef) {
@@ -142,10 +177,87 @@ class GLContextState {
             this.DS_state = depthStencilState;
         }
     }
+
     SetRasterizerState(rasterizerState) {
         if(this.RS_state != rasterizerState) {
-            
+            if(rasterizerState.cull_mode == CULL_MODE.CULL_MODE_NONE) {
+                gl.disable(gl.CULL_FACE);
+            } else {
+                gl.enable(gl.CULL_FACE);
+                gl.cullFace(rasterizerState.cullFace == CULL_MODE.CULL_MODE_BACK ? gl.BACK : gl.FRONT);
+            }
+            const frontFace = rasterizerState.front_counter_clock_wise ? gl.CCW : gl.CW;
+            gl.frontFace(frontFace);
+
+            if(rasterizerState.depth_bias!=0 || rasterizerState.slope_scaled_depth_bias!=0) {
+                gl.enable(gl.POLYGON_OFFSET_FILL);
+            } else {
+                gl.disable(gl.POLYGON_OFFSET_FILL);
+            }
+            gl.polygonOffset(rasterizerState.slope_scaled_depth_bias, rasterizerState.depth_bias);
+
+            if(this.caps.depth_clamp_supported) {
+                // not supported in WebGL
+            }
+
+            if(rasterizerState.scissor_test_enable) {
+                gl.enable(gl.SCISSOR_TEST);
+            } else {
+                gl.disable(gl.SCISSOR_TEST);
+            }
+
             this.RS_state = rasterizerState;
+        }
+    }
+
+    SetProgram(glProgram) {
+        if(this.gl_prog != glProgram) {
+            gl.useProgram(glProgram);
+            this.gl_prog = glProgram;
+        }
+    }
+
+    BindVAO(vao) {
+        if(this.vao != vao) {
+            gl.bindVertexArray(vao);
+            this.vao = vao;
+        }
+    }
+
+    UnbindVAO() {
+        gl.bindVertexArray(null);
+        this.vao = null;
+    }
+
+    BindFBO(fbo) {
+        if(this.fbo != fbo) {
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
+            this.fbo = fbo;
+        }
+    }
+
+    SetActiveTexture(index) {
+        if(index < 0) {
+            index += this.caps.max_combined_texture_units;
+        }
+        if(index<0 || index>=this.caps.max_combined_texture_units) {
+            throw 'Texture unit is out of range';
+        }
+        if(this.active_texture != index) {
+            gl.activeTexture(gl.TEXTURE0 + index);
+            this.active_texture = index;
+        }
+
+        return index;
+    }
+
+    BindTexture(index, bindTarget, texture) {
+        index = this.SetActiveTexture(index);
+
+        if(this.bound_textures[index] != texture) {
+            gl.bindTexture(bindTarget, texture);
+            this.bound_textures[index] = texture;
         }
     }
 }
