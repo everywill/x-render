@@ -206,6 +206,7 @@ export {
     FILL_MODE, CULL_MODE, 
     RasterizerStateDesc,
     BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK,
+    STENCIL_OP,
     // RenderTargetBlendDesc, 
     BlendStateDesc,
     DepthStencilStateDesc,

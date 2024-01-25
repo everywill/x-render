@@ -1,6 +1,6 @@
-import { COLOR_MASK, CULL_MODE } from "../graphics/pipelinestate-desc";
+import { COLOR_MASK, CULL_MODE, FILL_MODE } from "../graphics/pipelinestate-desc";
 import { AppGLState } from "./app-gl-state";
-import { CompareFuncToGLCompare, gl } from "./gl";
+import { CompareFuncToGLCompare, StencilOpToGLStencilOp, gl } from "./gl";
 
 class ContextCaps {
     constructor() {
@@ -53,7 +53,7 @@ class DepthStencilGLState {
 class RasterizerGLState {
     constructor() {
         // fillMode selection not supported in WebGL2
-        // this.fill_mode
+        // this.fill_mode = gl.FILL;
         this.cull_mode = CULL_MODE.CULL_MODE_BACK;
         this.front_counter_clock_wise = true;
         this.depth_bias = 0;
@@ -189,6 +189,20 @@ class GLContextState {
         gl_state.stencil_read_mask = depthStencilStateDesc.stencil_read_mask;
         gl_state.stencil_write_mask = depthStencilStateDesc.stencil_write_mask;
         
+        const stencilConvert = (stencilOpDesc) => {
+            const stencilOpState = new StencilOpState();
+            stencilOpState.func = CompareFuncToGLCompare(stencilOpDesc.stencil_func);
+            stencilOpState.stencil_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_fail_op);
+            stencilOpState.stencil_depth_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_depth_fail_op);
+            stencilOpState.stencil_pass_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_pass_op);
+
+            return stencilOpState;
+        }
+
+        gl_state.stencil_op_states[0] = stencilConvert(depthStencilStateDesc.front_face);
+        gl_state.stencil_op_states[1] = stencilConvert(depthStencilStateDesc.back_face);
+
+        return gl_state;
     }
 
     SetRasterizerState(rasterizerState) {
@@ -221,6 +235,18 @@ class GLContextState {
 
             this.RS_state = rasterizerState;
         }
+    }
+
+    GetRasterizerState(rasterizerStateDesc) {
+        const gl_state = new RasterizerGLState();
+        // gl_state.fill_mode = rasterizerStateDesc.
+        gl_state.cull_mode = rasterizerStateDesc.cull_mode;
+        gl_state.depth_bias = rasterizerStateDesc.depth_bias;
+        gl_state.slope_scaled_depth_bias = rasterizerStateDesc.slope_scaled_depth_bias;
+        gl_state.depth_clamp_enable = rasterizerStateDesc.depth_clip_enable;
+        gl_state.scissor_test_enable = rasterizerStateDesc.scissor_enable;
+
+        return gl_state;
     }
 
     SetProgram(glProgram) {
