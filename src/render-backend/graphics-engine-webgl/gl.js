@@ -1,6 +1,5 @@
 import { COMPARISON_FUNCTION } from "../graphics/graphics-types";
-import 
-    import { STENCIL_OP } from "../graphics/pipelinestate-desc";
+import { STENCIL_OP } from "../graphics/pipelinestate-desc";
 
 const canvas = document.createElement('canvas');
 const gl = canvas.getContext('webgl2');

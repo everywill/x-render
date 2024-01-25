@@ -395,8 +395,6 @@ class GLContextState {
     SetNumPatchVertices(numVertices) {
         console.error('not supported');
     }
-
-
 }
 
 export {
