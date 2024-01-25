@@ -1,6 +1,6 @@
-import { CULL_MODE } from "../graphics/pipelinestate-desc";
+import { COLOR_MASK, CULL_MODE } from "../graphics/pipelinestate-desc";
 import { AppGLState } from "./app-gl-state";
-import { gl } from "./gl";
+import { CompareFuncToGLCompare, gl } from "./gl";
 
 class ContextCaps {
     constructor() {
@@ -75,6 +75,7 @@ class GLContextState {
     independent_write_mask = false;
     active_texture = -1;
     num_patch_vertices = -1;
+    primitive_restart = false;
     constructor(renderDevice) {
         this.render_device = renderDevice;
         this.caps = new ContextCaps();
@@ -174,9 +175,20 @@ class GLContextState {
             } else {
                 gl.disable(gl.STENCIL_TEST);
             }  
-            
             this.DS_state = depthStencilState;
         }
+    }
+
+    GetDepthStencilState(depthStencilStateDesc) {
+        const gl_state = new DepthStencilGLState();
+        gl_state.depth_enable_state = depthStencilStateDesc.depth_enable;
+        gl_state.depth_writes_enable_state = depthStencilStateDesc.depth_write_enable;
+        gl_state.depth_cmp_func = CompareFuncToGLCompare(depthStencilStateDesc.depth_func);
+
+        gl_state.stencil_test_enable_state = depthStencilStateDesc.stencil_enable;
+        gl_state.stencil_read_mask = depthStencilStateDesc.stencil_read_mask;
+        gl_state.stencil_write_mask = depthStencilStateDesc.stencil_write_mask;
+        
     }
 
     SetRasterizerState(rasterizerState) {
@@ -311,10 +323,28 @@ class GLContextState {
                     console.error('independent color mask not supported');
                 }
             } else {
-                
+                // gl.colorMask sets the mask for ALL draw buffers
+                gl.colorMask(writeMask & COLOR_MASK.COLOR_MASK_RED ? true : false,
+                            writeMask & COLOR_MASK.COLOR_MASK_GREEN ? true : false,
+                            writeMask & COLOR_MASK.COLOR_MASK_BLUE ? true : false,
+                            writeMask & COLOR_MASK.COLOR_MASK_ALPHA ? true : false);
+                for(let i=0; i<this.color_write_mask.length; i++) {
+                    this.color_write_mask[i] = writeMask;
+                }
             }
+            this.independent_write_mask = isIndependent;
         } 
         gl.colorMask()
+    }
+
+    GetColorWriteMask(renderTargetIndex) {
+        if(!this.independent_write_mask) {
+            renderTargetIndex = 0;
+        }
+        return {
+            write_mask: this.color_write_mask[renderTargetIndex],
+            is_independent: this.independent_write_mask,
+        }
     }
 
     SetBlendState(blendStateDesc, sampleMask) {
@@ -322,6 +352,25 @@ class GLContextState {
 
         }
     }
+
+    SetPrimitiveRestart(enablePrimitiveRestart) {
+        if(this.caps.primitive_restart && this.primitive_restart != enablePrimitiveRestart) {
+            this.primitive_restart = enablePrimitiveRestart;
+            if(enablePrimitiveRestart) {
+                // not supported in WebgGL
+                // gl.enable
+            } else {
+                // not supported in WebgGL
+                // gl.disable
+            }
+        }
+    }
+
+    SetNumPatchVertices(numVertices) {
+        console.error('not supported');
+    }
+
+
 }
 
 export {
