@@ -103,9 +103,9 @@ class BlendStateDesc {
         this.alpha_to_coverage_enable = false;
         // if set to false, only RenderTargets[0] will be used
         this.independent_blend_enable = false;
-        this.RenderTargets = [];
+        this.render_targets = [];
         for(let i=0; i<MAX_RENDER_TARGETS; i++) {
-            this.RenderTargets.push(new RenderTargetBlendDesc());
+            this.render_targets.push(new RenderTargetBlendDesc());
         }
     }
 }
@@ -207,7 +207,7 @@ export {
     RasterizerStateDesc,
     BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK,
     STENCIL_OP,
-    // RenderTargetBlendDesc, 
+    RenderTargetBlendDesc, 
     BlendStateDesc,
     DepthStencilStateDesc,
     PipelineStateDesc,

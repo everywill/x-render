@@ -1,6 +1,7 @@
-import { COLOR_MASK, CULL_MODE, FILL_MODE } from "../graphics/pipelinestate-desc";
+import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
+import { COLOR_MASK, CULL_MODE, RenderTargetBlendDesc } from "../graphics/pipelinestate-desc";
 import { AppGLState } from "./app-gl-state";
-import { CompareFuncToGLCompare, StencilOpToGLStencilOp, gl } from "./gl";
+import { BlendFactorToGLBlend, BlendOperation2GLBlendOp, CompareFuncToGLCompare, StencilOpToGLStencilOp, gl } from "./gl";
 
 class ContextCaps {
     constructor() {
@@ -375,7 +376,54 @@ class GLContextState {
 
     SetBlendState(blendStateDesc, sampleMask) {
         if(sampleMask != 0xffffffff) {
+            throw 'sample mask is not supported in WebGL';
+        }
+        let enableBlend = false;
+        if(blendStateDesc.independent_blend_enable) {
+            for(let i=0; i<MAX_RENDER_TARGETS; i++) {
+                const renderTarget = blendStateDesc.render_targets[i];
+                if(renderTarget.blend_enable) {
+                    enableBlend = true;
+                }
+                if(i<this.caps.max_draw_buffers) {
+                    this.SetColorWriteMask(i, renderTarget.color_mask, true);
+                } else if(renderTarget.color_mask != (new RenderTargetBlendDesc()).color_mask){
+                    throw `render target write mask is specified for buffer ${i}, but this device only support ${this.caps.max_draw_buffers} buffer`;
+                }
+            }
+        } else {
+            const renderTarget0 = blendStateDesc.render_targets[0];
+            enableBlend = renderTarget0.blend_enable;
+            this.SetColorWriteMask(0, renderTarget0.color_mask, false);
+        }
 
+        if(enableBlend) {
+            gl.enable(gl.BLEND);
+            if(blendStateDesc.alpha_to_coverage_enable) {
+                gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+            } else {
+                gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+            }
+            if(blendStateDesc.independent_blend_enable) {
+                if(this.render_device.GetDeviceCaps().independent_blend_supported) {
+                    // not supported in WebGL
+                } else {
+                    console.error('not support indepedent blend')
+                }
+            } else {
+                const renderTarget0 = blendStateDesc.render_targets[0];
+                const srcFactorRGB = BlendFactorToGLBlend(renderTarget0.src_blend);
+                const dstFactorRBG = BlendFactorToGLBlend(renderTarget0.dest_blend);
+                const srcFactorAlpha = BlendFactorToGLBlend(renderTarget0.src_blend_alpha);
+                const dstFactorAlpha = BlendFactorToGLBlend(renderTarget0.dest_blend_alpha);
+                gl.blendFuncSeparate(srcFactorRGB, dstFactorRBG, srcFactorAlpha, dstFactorAlpha);
+
+                const modeRGB = BlendOperation2GLBlendOp(renderTarget0.blend_op);
+                const modeAlpha = BlendOperation2GLBlendOp(renderTarget0.blend_op_alpha);
+                gl.blendEquationSeparate(modeRGB, modeAlpha);
+            }
+        } else {
+            gl.disable(gl.BLEND);
         }
     }
 
