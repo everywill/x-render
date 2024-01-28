@@ -1,5 +1,6 @@
 class TextureView {
     constructor(renderDevice, viewDesc, texture) {
+        this.render_device = renderDevice;
         this.desc = viewDesc;
         this.texture = texture;
         this.sampler = null;

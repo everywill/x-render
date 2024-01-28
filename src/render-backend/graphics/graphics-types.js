@@ -347,21 +347,21 @@ const MAP_FLAGS = {
 }
 
 class TextureFormatAttribs {
-    constructor(base = {}) {
-        this.name = base.name || 'TEX_FORMAT_UNKNOWN';
-        this.format = base.format || TEXTURE_FORMAT[this.name];
-        this.component_size = base.component_size || 0;
-        this.num_components = base.num_components || 0;
-        this.component_type = base.component_type || COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED;
-        this.is_typeless = base.is_typeless || false;
-        this.block_width = base.block_width || 0;
-        this.block_height = base.block_height || 0;
+    constructor(name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight) {
+        this.name = name || 'TEX_FORMAT_UNKNOWN';
+        this.format = format || TEXTURE_FORMAT[this.name];
+        this.component_size = componentSize || 0;
+        this.num_components = numComponents || 0;
+        this.component_type = componentType || COMPONENT_TYPE.COMPONENT_TYPE_UNDEFINED;
+        this.is_typeless = isTypeless || false;
+        this.block_width = blockWidth || 0;
+        this.block_height = blockHeight || 0;
     }
 }
 
 class TextureFormatInfo extends TextureFormatAttribs {
-    constructor(base) {
-        super(base);
+    constructor(name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight) {
+        super(name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight);
         // if this format is supported by the device
         this.supported = false;
         // if this format can be filtered

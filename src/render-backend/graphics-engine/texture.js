@@ -38,7 +38,13 @@ class Texture {
     GetResolveFlag() { return this.resolved; }
     SetResolveFlag(resolved) { this.resolved = resolved; }
 
-    CreateViewInternal() { throw 'implementation needed'; }
+    CreateViewInternal(viewDesc) { throw 'implementation needed'; }
+
+    CorrectTextureViewDesc(viewDesc) {
+        if(!(viewDesc.view_type>TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNDEFINED && viewDesc.view_type<TEXTURE_VIEW_TYPE.TEXTURE_VIEW_NUM_VIEWS)) {
+            console.error('texture view type is not specified');
+        }
+    }
 
     // calls CreateViewInternal() that creates texture view for the specific engine implementation
     CreateView(viewDesc) {
