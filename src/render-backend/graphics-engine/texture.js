@@ -44,6 +44,13 @@ class Texture {
         if(!(viewDesc.view_type>TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNDEFINED && viewDesc.view_type<TEXTURE_VIEW_TYPE.TEXTURE_VIEW_NUM_VIEWS)) {
             console.error('texture view type is not specified');
         }
+        if(viewDesc.most_detailed_mip+viewDesc.num_mip_levels>this.desc.mip_levels) {
+            console.error('most detailed mip and number of mip levels in the view specify more levels than target texture');
+        }
+
+        if(viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN) {
+            
+        }
     }
 
     // calls CreateViewInternal() that creates texture view for the specific engine implementation
