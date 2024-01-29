@@ -51,6 +51,10 @@ class Texture {
         if(viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN) {
             viewDesc.format = GetViewFormat(this.desc.format, viewDesc.view_type, this.desc.bind_flags);
         }
+
+        if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_UNDEFINED) {
+            
+        }
     }
 
     // calls CreateViewInternal() that creates texture view for the specific engine implementation
