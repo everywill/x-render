@@ -1,4 +1,4 @@
-import { BIND_FLAGS, Box, COMPONENT_TYPE, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE } from "../graphics/graphics-types";
+import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE } from "../graphics/graphics-types";
 import { ComputeMipLevelsCount, GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { TextureViewDesc } from "../graphics/textureview-desc";
 
@@ -49,7 +49,7 @@ class Texture {
         }
 
         if(viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN) {
-            
+            viewDesc.format = GetViewFormat(this.desc.format, viewDesc.view_type, this.desc.bind_flags);
         }
     }
 
