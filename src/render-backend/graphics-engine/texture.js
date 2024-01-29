@@ -53,7 +53,75 @@ class Texture {
         }
 
         if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_UNDEFINED) {
-            
+            if(this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE || this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY) {
+                switch(viewDesc.view_type) {
+                    case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE:
+                        viewDesc.texture_dim = this.desc.type;
+                        break;
+                    case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET:
+                    case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL:
+                    case TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS:
+                        viewDesc.texture_dim = RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY;
+                        break;
+                    default:
+                        throw 'unexpected view type';
+                }
+            }
+
+            switch(this.desc.type) {
+                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D 
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+                    {
+                        console.error('incorrect texture view type for Texture 2D, only Texture 2D view is allowed');
+                    }
+                    break;
+                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+                    {
+                        console.error('incorrect texture view type for Textuure 2D array, only Texture 2D view or Texture 2D array view are allowed');
+                    }
+                    break;
+                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
+                        console.error('incorrect texture view type for Texture 3D, only Texture 3D view is allowed');
+                    }
+                    break;
+                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+                    if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE 
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
+                        {
+                            console.error('incorrect texture SRV type for Texture cube, only Texture2D/Texture2D array/Texture cube view are allowed');
+                        }
+                    } else {
+                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
+                        {
+                            console.error('incorrect texture non-SRV type for Texture cube, only Texture2D/Texture2D array view are allowed');
+                        }
+                    }
+                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
+                    if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
+                        {
+                            console.error('incorrect texture SRV for Texture cube array, only Texture2D/Texture2D array/Texture cube/Texture cube array are allowed');
+                        }
+                    } else {
+                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
+                        {
+                            console.error('incorrect texture non-SRV type for Texture cube array, only Texture2D/Texture2D array view are allowed');
+                        }
+                    }
+                default:
+                    throw 'unexpected texture type';
+            }
         }
     }
 
