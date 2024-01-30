@@ -1,6 +1,6 @@
 import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { Texture } from "../graphics-engine/texture";
-import { BIND_FLAGS, Box, COMPONENT_TYPE, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TextureFormatAttribs, USAGE } from '../graphics/graphics-types';
+import { BIND_FLAGS, Box, COMPONENT_TYPE, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, TextureFormatAttribs, USAGE } from '../graphics/graphics-types';
 import { gl } from "./gl";
 
 const FORMAT_GL_INTERNAL_FORMAT_MAP = {};
@@ -424,7 +424,24 @@ class TextureGL extends Texture {
     }
 
     CreateViewInternal(viewDesc) {
+        viewDesc = this.CorrectTextureViewDesc(viewDesc);
+        const viewGLFormat = CorrectGLTexFormat(FORMAT_GL_INTERNAL_FORMAT_MAP[viewDesc.format], this.desc.bind_flags);
+        if(viewGLFormat == 0) {
+            throw 'unsupported texture format';
+        }
 
+        let view;
+        if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+
+        } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS) {
+
+        } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET) {
+
+        } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL) {
+
+        }
+
+        return view;
     }
 }
 
