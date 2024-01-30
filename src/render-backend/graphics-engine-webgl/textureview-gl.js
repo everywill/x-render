@@ -14,7 +14,7 @@ class TextureViewGL extends TextureView {
         if(this.view_gl_texture) {
             return this.view_gl_texture; 
         } else {
-            return this.GetTexture();
+            return this.texture.GetGLTexture();
         }
     }
 

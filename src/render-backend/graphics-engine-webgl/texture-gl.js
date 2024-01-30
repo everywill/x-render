@@ -1,7 +1,8 @@
 import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { Texture } from "../graphics-engine/texture";
-import { BIND_FLAGS, Box, COMPONENT_TYPE, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, TextureFormatAttribs, USAGE } from '../graphics/graphics-types';
+import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, TextureFormatAttribs, USAGE } from '../graphics/graphics-types';
 import { gl } from "./gl";
+import { TextureViewGL } from "./textureview-gl";
 
 const FORMAT_GL_INTERNAL_FORMAT_MAP = {};
 
@@ -178,7 +179,7 @@ class TextureGL extends Texture {
         super(renderDevice, textureDesc);
         this.gl_texture = null;
         this.gl_renderbuffer = null;
-        this.gl_resolved_texture = null;
+        this.resolved_texture = null;
         this.gl_tex_format = TexFormatToGLInternalTexFormat(this.desc.format, this.desc.bind_flags);
         this.bind_target = gl.TEXTURE_2D;
         this.PBOs = [];  
@@ -218,8 +219,8 @@ class TextureGL extends Texture {
                         const desc = Object.create(this.desc);
                         desc.misc_flag &= ~MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE;
                         desc.sample_count = 1;
-                        const resolved_texture = new TextureGL(renderDevice, deviceContext, desc, textureData);
-                        this.gl_resolved_texture = resolved_texture.GetGLTexture();
+                        this.resolved_texture = new TextureGL(renderDevice, deviceContext, desc, textureData);
+                        //  = resolved_texture.GetGLTexture();
                     }
                 }
             }
@@ -432,6 +433,16 @@ class TextureGL extends Texture {
 
         let view;
         if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+            const isFullTextureView = 
+                viewDesc.texture_dim == this.desc.type &&
+                viewDesc.format == GetViewFormat(this.desc.format, viewDesc.view_type, this.desc.bind_flags) &&
+                viewDesc.most_detailed_mip == 0 &&
+                viewDesc.num_mip_levels == this.desc.mip_levels &&
+                viewDesc.first_array_or_depth_slice == 0 &&
+                viewDesc.num_array_or_depth_slice == this.desc.array_size_or_depth;
+            view = new TextureViewGL(this.render_device, viewDesc, 
+                        ((this.desc.misc_flag&MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE) && !this.render_device.GetDeviceCaps().multisample_rendertexture_supported) ? this.resolved_texture : this, !isFullTextureView);
+
 
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS) {
 
