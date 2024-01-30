@@ -66,62 +66,135 @@ class Texture {
                     default:
                         throw 'unexpected view type';
                 }
+            } else {
+                viewDesc.texture_dim = this.desc.type;
             }
+        }
 
-            switch(this.desc.type) {
-                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
-                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D 
-                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+        switch(this.desc.type) {
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+                if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D 
+                    && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+                {
+                    console.error('incorrect texture view type for Texture 2D, only Texture 2D view is allowed');
+                }
+                break;
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+                if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D
+                    && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+                {
+                    console.error('incorrect texture view type for Textuure 2D array, only Texture 2D view or Texture 2D array view are allowed');
+                }
+                break;
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+                if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
+                    console.error('incorrect texture view type for Texture 3D, only Texture 3D view is allowed');
+                }
+                break;
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+                if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE 
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
                     {
-                        console.error('incorrect texture view type for Texture 2D, only Texture 2D view is allowed');
+                        console.error('incorrect texture SRV type for Texture cube, only Texture2D/Texture2D array/Texture cube view are allowed');
                     }
-                    break;
-                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
-                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D
-                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY)
+                } else {
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
                     {
-                        console.error('incorrect texture view type for Textuure 2D array, only Texture 2D view or Texture 2D array view are allowed');
+                        console.error('incorrect texture non-SRV type for Texture cube, only Texture2D/Texture2D array view are allowed');
                     }
-                    break;
-                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
-                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
-                        console.error('incorrect texture view type for Texture 3D, only Texture 3D view is allowed');
+                }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
+                if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
+                    {
+                        console.error('incorrect texture SRV for Texture cube array, only Texture2D/Texture2D array/Texture cube/Texture cube array are allowed');
                     }
-                    break;
-                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
-                    if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
-                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE 
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
-                        {
-                            console.error('incorrect texture SRV type for Texture cube, only Texture2D/Texture2D array/Texture cube view are allowed');
-                        }
-                    } else {
-                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
-                        {
-                            console.error('incorrect texture non-SRV type for Texture cube, only Texture2D/Texture2D array view are allowed');
-                        }
+                } else {
+                    if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                        && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
+                    {
+                        console.error('incorrect texture non-SRV type for Texture cube array, only Texture2D/Texture2D array view are allowed');
                     }
-                case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
-                    if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
-                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D)
-                        {
-                            console.error('incorrect texture SRV for Texture cube array, only Texture2D/Texture2D array/Texture cube/Texture cube array are allowed');
-                        }
-                    } else {
-                        if(viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
-                            && viewDesc.texture_dim != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) 
-                        {
-                            console.error('incorrect texture non-SRV type for Texture cube array, only Texture2D/Texture2D array view are allowed');
-                        }
-                    }
-                default:
-                    throw 'unexpected texture type';
+                }
+            default:
+                throw 'unexpected texture type';
+        }
+
+        if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE) {
+            if(viewDesc.view_type != TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                throw 'unexpected texture view type, SRV is expected';
             }
+            if(viewDesc.num_array_or_depth_slice!=6 && viewDesc.num_array_or_depth_slice!=0) {
+                console.error('texture cube SRV is expected to have 6 array slices');
+            }
+            if(viewDesc.first_array_or_depth_slice != 0) {
+                console.error('first slice must be 0 for non-array texture cube SRV');
+            }
+        }
+        if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY) {
+            if(viewDesc.view_type != TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                throw 'unexpected texture view type, SRV is expected'
+            }
+            if((viewDesc.num_array_or_depth_slice%6) != 0) {
+                console.error('number of slices in texture cube array SRV is expected to be multiple of 6');
+            }
+        }
+        if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) {
+            if(viewDesc.first_array_or_depth_slice != 0) {
+                console.error('first slice must be 0 for non-array texture 1D/2D views');
+            }
+            if(viewDesc.num_array_or_depth_slice > 1) {
+                console.error('number of slices in view must be 1(or 0) for non-array texture 1D/2D views');
+            }
+        } else if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                || viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE
+                || viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY) 
+        {
+            if(viewDesc.first_array_or_depth_slice + viewDesc.num_array_or_depth_slice > this.desc.array_size_or_depth) {
+                console.error('first slice and number of slices in the view specify more slices than target texture has');
+            }
+        } else if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
+            const mipDepth = this.desc.array_size_or_depth >> viewDesc.most_detailed_mip;
+            if(viewDesc.first_array_or_depth_slice + viewDesc.num_array_or_depth_slice > mipDepth) {
+                console.error('first depth and number of depth in the view specify more depth than target 3D mip level texture has');
+            }
+        } else {
+            throw 'unexpected texture view dimension';
+        }
+
+        if(viewDesc.num_mip_levels == 0) {
+            if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE) {
+                viewDesc.num_mip_levels = this.desc.mip_levels - viewDesc.most_detailed_mip;
+            } else {
+                viewDesc.num_mip_levels = 1;
+            }
+        }
+
+        if(viewDesc.num_array_or_depth_slice == 0) {
+            if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY
+                || viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE
+                || viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY)
+            {
+                viewDesc.num_array_or_depth_slice = this.desc.array_size_or_depth - viewDesc.first_array_or_depth_slice;
+            } else if(viewDesc.texture_dim == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
+                const mipDepth = this.desc.array_size_or_depth >> viewDesc.most_detailed_mip;
+                viewDesc.num_array_or_depth_slice = mipDepth - viewDesc.first_array_or_depth_slice;
+            } else {
+                viewDesc.num_array_or_depth_slice = 1;
+            }
+        }
+
+        if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET && (
+            viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_R8_SNORM || viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_RG8_SNORM || viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_RGBA8_SNORM ||
+            viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_R16_SNORM || viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_RG16_SNORM || viewDesc.format == TEXTURE_FORMAT.TEX_FORMAT_RGBA16_SNORM   
+        )) {
+            console.warn('There might be an issue in OpenGL driver on NVidia hardware: when rendering to SNORM textures, all negative values are clamped to zero. Use UNORM format instead');
         }
     }
 
