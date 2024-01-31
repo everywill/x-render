@@ -442,6 +442,28 @@ class TextureGL extends Texture {
                 viewDesc.num_array_or_depth_slice == this.desc.array_size_or_depth;
             view = new TextureViewGL(this.render_device, viewDesc, 
                         ((this.desc.misc_flag&MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE) && !this.render_device.GetDeviceCaps().multisample_rendertexture_supported) ? this.resolved_texture : this, !isFullTextureView);
+            
+            if(!isFullTextureView) {
+                let glViewTarget = 0;
+                switch(viewDesc.texture_dim) {
+                    case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+                        glViewTarget = gl.TEXTURE_2D;
+                        break;
+                    case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+                        glViewTarget = gl.TEXTURE_2D_ARRAY;
+                        break;
+                    case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+                        glViewTarget = gl.TEXTURE_3D;
+                        break;
+                    case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+                        glViewTarget = gl.TEXTURE_CUBE_MAP;
+                        break;
+                    // case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
+                    default:
+                        throw 'unexpected texture view type';
+                }
+                view.SetBindTarget(glViewTarget);
+            }
 
 
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS) {
