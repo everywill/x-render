@@ -464,10 +464,17 @@ class TextureGL extends Texture {
                 }
                 view.SetBindTarget(glViewTarget);
             }
-
-
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_UNORDERED_ACCESS) {
-
+            if(!(viewDesc.num_array_or_depth_slice == 1 
+                || (this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D && viewDesc.num_array_or_depth_slice == Math.max(viewDesc.most_detailed_mip, 1))
+                || viewDesc.num_array_or_depth_slice == this.desc.array_size_or_depth))
+            {
+                throw 'only single array/depth slice or the whole texture can be bound as UAV';
+            }
+            if(viewDesc.access_flag == 0) {
+                throw 'at least one access flag must be specified';
+            }
+            view = new TextureViewGL(thid.render_device, viewDesc, this, false);
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET) {
 
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL) {
