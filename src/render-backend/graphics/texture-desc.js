@@ -25,9 +25,9 @@ class TextureSubResData {
         // not null if provided with CPU memory
         this.data = data;
         // not null if provided with GPU buffer
-        this.srcBuffer = srcBuffer;
+        this.src_buffer = srcBuffer;
         this.stride = stride;
-        this.depthStride = depthStride;
+        this.depth_stride = depthStride;
     }
 }
 

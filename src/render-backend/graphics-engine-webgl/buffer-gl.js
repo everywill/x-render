@@ -70,6 +70,8 @@ class BufferGL extends Buffer {
         gl.bindBuffer(target, 0);
     }
 
+    GetGLBuffer() { return this.gl_buffer; }
+
     Release() {
         gl.deleteBuffer(this.gl_buffer);
     }

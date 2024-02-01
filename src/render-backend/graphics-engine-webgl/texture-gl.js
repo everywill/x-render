@@ -1,6 +1,6 @@
 import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { Texture } from "../graphics-engine/texture";
-import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, TextureFormatAttribs, USAGE } from '../graphics/graphics-types';
+import { BIND_FLAGS, Box, GetViewFormat, MISC_TEXTURE_FLAGS, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, USAGE } from '../graphics/graphics-types';
 import { gl } from "./gl";
 import { TextureViewGL } from "./textureview-gl";
 
@@ -131,6 +131,14 @@ FORMAT_TO_GL_PIXEL_FORMAT[TEXTURE_FORMAT.TEX_FORMAT_R8_SNORM] = new NativePixelA
 FORMAT_TO_GL_PIXEL_FORMAT[TEXTURE_FORMAT.TEX_FORMAT_R8_SINT] = new NativePixelAttribs(gl.RED_INTEGER, gl.BYTE);
 
 FORMAT_TO_GL_PIXEL_FORMAT[TEXTURE_FORMAT.TEX_FORMAT_RGB9E5_SHAREDEXP] = new NativePixelAttribs(gl.RGB, gl.UNSIGNED_INT_5_9_9_9_REV);
+
+function GetNativePixelTransferAttribs(format) {
+    if(format>TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN && format<TEXTURE_FORMAT.TEX_FORMAT_NUM_FORMATS) {
+        return FORMAT_TO_GL_PIXEL_FORMAT[format];
+    } else {
+        throw 'texture format is out of expected range';
+    }
+}
 
 function CorrectGLTexFormat(glTexFormat, bindFlags) {
     if(bindFlags & BIND_FLAGS.BIND_DEPTH_STENCILL) {
@@ -474,16 +482,90 @@ class TextureGL extends Texture {
             if(viewDesc.access_flag == 0) {
                 throw 'at least one access flag must be specified';
             }
-            view = new TextureViewGL(thid.render_device, viewDesc, this, false);
+            view = new TextureViewGL(this.render_device, viewDesc, this, false);
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET) {
-
+            if(viewDesc.um_mip_levels != 1) {
+                throw 'only single mipmap can be bound as RTV';
+            }
+            view = new TextureViewGL(this.render_device, viewDesc, this, false);
         } else if(viewDesc.view_type == TEXTURE_VIEW_TYPE.TEXTURE_VIEW_DEPTH_STENCIL) {
-
+            if(viewDesc.um_mip_levels != 1) {
+                throw 'only single mipmap can be bound as DSV';
+            }
+            view = new TextureViewGL(this.render_device, viewDesc, this, false);
         }
 
         return view;
     }
-}
+
+    UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
+        super.UpdateData(deviceContext, mipLevel, slice, dstBox, subResData);
+
+        const currentTexture = GetCurrentBindTexture(this.bind_target);
+        switch(this.desc.type) {
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+            {
+                gl.bindTexture(this.bind_target, this.gl_texture);
+                let unpackBuffer = null;
+                if(subResData.src_buffer) {
+                    unpackBuffer = subResData.src_buffer.GetGLBuffer();
+                }
+
+                // Transfers to OpenGL memory are called unpack operations
+                // If there is a buffer bound to GL_PIXEL_UNPACK_BUFFER target, then all the pixel transfer
+                // operations will be performed from this buffer.
+                gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, unpackBuffer);
+
+                const transferAttribs = GetNativePixelTransferAttribs(this.desc.format);
+                
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+
+                if(transferAttribs.is_compressed) {
+                    if((!(dstBox.min_x%4==0 && dstBox.min_y%4==0) ||
+                        (dstBox.max_x%4==0 || dstBox.max_x==Math.max(this.desc.width>>mipLevel, 1)) ||
+                        (dstBox.max_y%4==0 || dstBox.max_y==Math.max(this.desc.height>>mipLevel, 1))))
+                    {
+                        throw 'compressed texture update region must be 4-pixel aligned';
+                    }
+                    const fmtAttribs = GetTextureFormatAttribs(this.desc.format);
+                    const blockBytesInRow = (dstBox.max_x-dstBox.min_x+3)/4 * fmtAttribs.component_size;
+                    if(subResData.stride != blockBytesInRow) {
+                        throw 'compressed data stride must match the size of a row of compressed block';
+                    }
+                    gl.compressedTexSubImage2D(this.bind_target, 
+                                                mipLevel, 
+                                                dstBox.min_x, 
+                                                dstBox.min_y, 
+                                                dstBox.max_x-dstBox.min_x, 
+                                                dstBox.max_y-dstBox.min_y, 
+                                                this.gl_tex_format,
+                                                (dstBox.max_y-dstBox.min_y+3)/4*subResData.stride,
+                                                subResData.data);
+                } else {
+                    const texFormatAttribs = GetTextureFormatAttribs(this.desc.format);
+                    const pixelSize = texFormatAttribs.component_size * texFormatAttribs.num_components;
+                    if(subResData.stride % pixelSize != 0) {
+                        throw 'data stride is not multiple of pixelSize';
+                    }
+                    gl.pixelStorei(gl.UNPACK_ROW_LENGTH, subResData.stride / pixelSize);
+                    gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
+                    gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
+
+                    gl.texSubImage2D(this.bind_target, mipLevel, dstBox.min_x, dstBox.min_y, dstBox.max_x-dstBox.min_x, dstBox.max_y-dstBox.min_y, transferAttribs.pixel_format, transferAttribs.data_type, subResData.data);
+                }
+                if(unpackBuffer) {
+                    gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null);
+                }
+                gl.bindTexture(this.bind_target, currentTexture);
+            }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+            default:
+                break;
+        }
+    }
+} 
 
 export {
     TextureGL,
