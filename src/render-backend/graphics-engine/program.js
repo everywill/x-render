@@ -2,6 +2,7 @@ import { SHADER_TYPE } from "../graphics/graphics-types";
 
 class Program {
     constructor(renderDevice, programDesc) {
+        this.render_device = renderDevice;
         this.desc = programDesc;
         if(this.desc.p_cs) {
             if(this.desc.p_vs || this.desc.p_ps || this.desc.p_gs || this.desc.p_hs || this.desc.p_ds) {

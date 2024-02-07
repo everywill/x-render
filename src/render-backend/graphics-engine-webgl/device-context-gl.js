@@ -14,6 +14,12 @@ class DeviceContextGL extends DeviceContext {
     }
 
     ResolveResource(msaaTexture, resolvedTexture) {
+        if(msaaTexture && resolvedTexture) {
+            
+        }
+    }
+
+    SetPipelineState(pipelineState) {
         
     }
 }

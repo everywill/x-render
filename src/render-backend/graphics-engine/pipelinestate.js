@@ -4,6 +4,7 @@ import { VALUE_TYPE } from "../graphics/graphics-types";
 
 class PipelineState {
     constructor(renderDevice, pipelineStateDesc) {
+        this.render_device = renderDevice;
         this.desc = pipelineStateDesc;
         this.strides = [];
         this.buffer_slots_used = 0;
