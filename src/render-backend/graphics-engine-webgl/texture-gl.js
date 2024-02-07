@@ -596,6 +596,7 @@ class TextureGL extends Texture {
                                                 slice,
                                                 dstBox.max_x-dstBox.min_x, 
                                                 dstBox.max_y-dstBox.min_y, 
+                                                1,
                                                 this.gl_tex_format,
                                                 (dstBox.max_y-dstBox.min_y+3)/4*subResData.stride,
                                                 subResData.data);
@@ -625,13 +626,136 @@ class TextureGL extends Texture {
                     gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null);
                 }
             }
+            break;
             case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+            {
+                gl.bindTexture(this.bind_target, this.gl_texture);
+                let unpackBuffer = null;
+                if(subResData.src_buffer) {
+                    unpackBuffer = subResData.src_buffer.GetGLBuffer();
+                }
+
+                gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, unpackBuffer);
+                const transferAttribs = GetNativePixelTransferAttribs(this.desc.format);
+
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+                gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
+                gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
+                gl.pixelStorei(gl.UNPACK_SKIP_IMAGES, 0);
+
+                
+                const texFormatAttribs = GetTextureFormatAttribs(this.desc.format);
+                const pixelSize = texFormatAttribs.component_size * texFormatAttribs.num_components;
+                if(subResData.stride % pixelSize != 0) {
+                    throw 'data stride is not multiple of pixelSize';
+                }
+                gl.pixelStorei(gl.UNPACK_ROW_LENGTH, subResData.stride / pixelSize);
+                
+
+                gl.texSubImage3D(this.bind_target, mipLevel, 
+                                dstBox.min_x, 
+                                dstBox.min_y, 
+                                slice,
+                                dstBox.max_x-dstBox.min_x, 
+                                dstBox.max_y-dstBox.min_y, 
+                                1,
+                                transferAttribs.pixel_format, 
+                                transferAttribs.data_type, 
+                                subResData.data);
+
+                if(unpackBuffer) {
+                    gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null);
+                }
+            }
+            break;
             case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+            {
+                gl.bindTexture(this.bind_target, this.gl_texture);
+
+                let unpackBuffer = null;
+                if(subResData.src_buffer) {
+                    unpackBuffer = subResData.src_buffer.GetGLBuffer();
+                }
+                gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, unpackBuffer);
+
+                const transferAttribs = GetNativePixelTransferAttribs(this.desc.format);
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+
+                if(transferAttribs.is_compressed) {
+                    if((!(dstBox.min_x%4==0 && dstBox.min_y%4==0) ||
+                        (dstBox.max_x%4==0 || dstBox.max_x==Math.max(this.desc.width>>mipLevel, 1)) ||
+                        (dstBox.max_y%4==0 || dstBox.max_y==Math.max(this.desc.height>>mipLevel, 1))))
+                    {
+                        throw 'compressed texture update region must be 4-pixel aligned';
+                    }
+                    const fmtAttribs = GetTextureFormatAttribs(this.desc.format);
+                    const blockBytesInRow = (dstBox.max_x-dstBox.min_x+3)/4 * fmtAttribs.component_size;
+                    if(subResData.stride != blockBytesInRow) {
+                        throw 'compressed data stride must match the size of a row of compressed block';
+                    }
+                    gl.compressedTexSubImage2D(this.bind_target, mipLevel, 
+                                                dstBox.min_x, 
+                                                dstBox.min_y,
+                                                dstBox.max_x-dstBox.min_x, 
+                                                dstBox.max_y-dstBox.min_y, 
+                                                this.gl_tex_format,
+                                                (dstBox.max_y-dstBox.min_y+3)/4*subResData.stride,
+                                                subResData.data);
+                } else {
+                    const texFormatAttribs = GetTextureFormatAttribs(this.desc.format);
+                    const pixelSize = texFormatAttribs.component_size * texFormatAttribs.num_components;
+                    if(subResData.stride % pixelSize != 0) {
+                        throw 'data stride is not multiple of pixelSize';
+                    }
+                    gl.pixelStorei(gl.UNPACK_ROW_LENGTH, subResData.stride / pixelSize);
+                    gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
+                    gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
+
+                    gl.texSubImage2D(this.bind_target, mipLevel, 
+                                    dstBox.min_x, 
+                                    dstBox.min_y, 
+                                    dstBox.max_x-dstBox.min_x, 
+                                    dstBox.max_y-dstBox.min_y, 
+                                    transferAttribs.pixel_format, 
+                                    transferAttribs.data_type, 
+                                    subResData.data);
+                }
+            }
+            break;
             default:
                 break;
         }
 
         gl.bindTexture(this.bind_target, currentTexture);
+        gl.pixelStorei(gl.UNPACK_ROW_LENGTH, 0)
+    }
+
+    CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
+        dstMipLevel, dstSlice, dstX, dstY, dstZ) 
+    {
+        super.CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
+            dstMipLevel, dstSlice, dstX, dstY, dstZ);
+        
+        const srcTextureDesc = srcTexture.GetDesc();
+
+        if(!srcBox) {
+            srcBox = new Box();
+            srcBox. max_x = Math.max(srcTextureDesc.width >> srcMipLevel, 1);
+            srcBox.max_y = Math.max(srcTextureDesc.height >> srcMipLevel, 1);
+
+            if(srcTextureDesc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D) {
+                srcBox.max_z = Math.max(srcTextureDesc.array_size_or_depth >> srcMipLevel, 1);
+            } else {
+                srcBox.max_z = 1;
+            }
+        }
+        
+        if(this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) {
+            // this.render_device.GetImmediateContext()
+        } else {
+            throw 'WebGL texture copy not supported';
+        }
+        
     }
 } 
 
