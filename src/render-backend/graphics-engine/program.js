@@ -1,9 +1,11 @@
-import { SHADER_TYPE } from "../graphics/graphics-types";
+import { SHADER_TYPE } from "../graphics/shader-desc";
 
 class Program {
     constructor(renderDevice, programDesc) {
         this.render_device = renderDevice;
         this.desc = programDesc;
+        this.num_shaders = 0;
+        this.shaders = [];
         if(this.desc.p_cs) {
             if(this.desc.p_vs || this.desc.p_ps || this.desc.p_gs || this.desc.p_hs || this.desc.p_ds) {
                 console.warn('compute shader provided, no other shader will take effect');
@@ -47,6 +49,7 @@ class Program {
     }
     GetDesc() { return this.desc; }
 
+    GetShader(index) { return this.shaders[index]; }
     GetVS() { return this.p_vs; }
     GetPS() { return this.p_ps; }
     GetGS() { return this.p_gs; }

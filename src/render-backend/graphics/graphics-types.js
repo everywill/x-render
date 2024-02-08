@@ -512,16 +512,6 @@ const TEXTURE_ADDRESS_MODE = {
     TEXTURE_ADDRESS_NUM_MODES: 5,
 };
 
-const SHADER_TYPE = {
-    SHADER_TYPE_UNKNOWN: 0x0,
-    SHADER_TYPE_VERTEX: 0x1,
-    SHADER_TYPE_PIXEL: 0x2,
-    SHADER_TYPE_GEOMETRY: 0x4,
-    SHADER_TYPE_HULL: 0x8,
-    SHADER_TYPE_DOMAIN: 0x10,
-    SHADER_TYPE_COMPUTE: 0x20,
-}
-
 const TARGET_BUFFER_FLAGS = {
     // no buffer selected
     NONE: 0,
@@ -681,7 +671,6 @@ export {
     FILTER_TYPE,
     TEXTURE_ADDRESS_MODE,
     MAP_TYPE, MAP_FLAGS,
-    SHADER_TYPE,
     TextureFormatInfo,
     TARGET_BUFFER_FLAGS,
     GetViewFormat

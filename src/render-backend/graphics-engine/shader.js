@@ -1,5 +1,5 @@
 import { ShaderReflection } from "../graphics/program-desc";
-import { ShaderVariableDesc, StaticSamplerDesc } from "../graphics/shader-desc";
+// import { ShaderVariableDesc, StaticSamplerDesc } from "../graphics/shader-desc";
 
 class ShaderVariable {
     constructor() {}
@@ -15,8 +15,9 @@ class ShaderVariable {
 
 class Shader {
     constructor(renderDevice, shaderDesc) {
+        this.render_device = renderDevice;
         this.desc = shaderDesc;
-        this.name = '';
+        // this.name = '';
         this.variables_desc = [];
         for(let i=0; i<this.desc.variable_desc.length; i++) {
             this.variables_desc.push(this.desc.variable_desc[i]);

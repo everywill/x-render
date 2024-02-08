@@ -1,5 +1,14 @@
-import { SHADER_TYPE } from "./graphics-types";
 import { SamplerDesc } from './sampler-desc';
+
+const SHADER_TYPE = {
+    SHADER_TYPE_UNKNOWN: 0x0,
+    SHADER_TYPE_VERTEX: 0x1,
+    SHADER_TYPE_PIXEL: 0x2,
+    SHADER_TYPE_GEOMETRY: 0x4,
+    SHADER_TYPE_HULL: 0x8,
+    SHADER_TYPE_DOMAIN: 0x10,
+    SHADER_TYPE_COMPUTE: 0x20,
+}
 
 const SHADER_RESOURCE_VARIABLE_TYPE = {
     // shader resource bound to the variable is the same(or constant) for all shader instances。
@@ -47,6 +56,7 @@ class ShaderCreationAttribs {
 }
 
 export {
+    SHADER_TYPE,
     ShaderDesc,
     ShaderVariableDesc,
     StaticSamplerDesc,
