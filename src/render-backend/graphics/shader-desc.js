@@ -57,6 +57,7 @@ class ShaderCreationAttribs {
 
 export {
     SHADER_TYPE,
+    SHADER_RESOURCE_VARIABLE_TYPE,
     ShaderDesc,
     ShaderVariableDesc,
     StaticSamplerDesc,
