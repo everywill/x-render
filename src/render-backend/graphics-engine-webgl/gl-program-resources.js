@@ -1,4 +1,5 @@
 import { UNIFORM_TYPE } from "../graphics/graphics-types";
+import { ShaderReflection } from "../graphics/program-desc";
 import { gl } from "./gl";
 
 class GLProgramVariable {
@@ -195,9 +196,38 @@ class GLProgramResources {
     GetSamplers() { return this.samplers; }
     GetScaleUniforms() { return this.scale_uniform_info; }
 
-    LoadUniforms(renderDevice, glProgram, defaultVariableType, variableDescs, staticSamples) {}
+    LoadUniforms(renderDevice, glProgram, defaultVariableType, variableDescs, staticSamples) {
+        let result = new ShaderReflection();
+        if(glProgram = null) {
+            throw 'GL program is null';
+        }
+        let numActiveUniforms = 0;
+        numActiveUniforms = gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORMS);
 
-    GetShaderVariable(name) {}
+        let numActiveUniformBlocks = 0;
+        numActiveUniformBlocks = gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORM_BLOCKS);
+
+        const globalScaleUniform = new Map();
+
+        for(let i=0; i<numActiveUniforms; i++) {
+            const info = gl.getActiveUniform(glProgram, i);
+            const dataType = info.type;
+            const size = info.size;
+            const name = info.name;
+
+            if(dataType == gl.SAMPLER_2D || dataType == gl.SAMPLER_CUBE) {
+                result.texture2D_ref.push(name);
+            }
+
+            switch(dataType) {
+                
+            }
+        }
+    }
+
+    GetShaderVariable(name) {
+
+    }
 }
 
 export {
