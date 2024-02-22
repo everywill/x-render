@@ -56,6 +56,34 @@ const VALUE_TYPE = {
     VT_NUM_TYPES: 9     
 }
 
+const UNIFORM_TYPE = {
+    BOOL: 0,
+    BOOL2: 1,
+    BOOL3: 2,
+    BOOL4: 3,
+    FLOAT: 4,
+    FLOAT2: 5,
+    FLOAT3: 6,
+    FLOAT4: 7,
+    INT: 8,
+    INT2: 9,
+    INT3: 10,
+    INT4: 11,
+    UINT: 12,
+    UINT2: 13,
+    UINT3: 14,
+    UINT4: 15,
+    MAT2X2: 16,
+    MAT3X3: 17,
+    MAT4X4: 18,
+    MAT2X3: 19,
+    MAT2X4: 20,
+    MAT3X2: 21,
+    MAT3X4: 22,
+    MAT4X2: 23,
+    MAT4X3: 24,
+};
+
 // describe available texture formats
 const TEXTURE_FORMAT = {
     TEX_FORMAT_UNKNOWN: 0,
@@ -673,5 +701,6 @@ export {
     MAP_TYPE, MAP_FLAGS,
     TextureFormatInfo,
     TARGET_BUFFER_FLAGS,
-    GetViewFormat
+    GetViewFormat,
+    UNIFORM_TYPE,
 }
