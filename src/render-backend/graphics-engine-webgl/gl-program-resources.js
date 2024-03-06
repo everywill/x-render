@@ -1,5 +1,7 @@
+import { GetShaderVariableTypeByName } from "../graphics-engine/shader";
 import { UNIFORM_TYPE } from "../graphics/graphics-types";
-import { ShaderReflection } from "../graphics/program-desc";
+import { CBufferReflection, ElementReflection, ShaderReflection } from "../graphics/program-desc";
+import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
 import { gl } from "./gl";
 
 class GLProgramVariable {
@@ -36,19 +38,19 @@ class SamplerInfo extends GLProgramVariable {
     }
 }
 
-class ImageInfo extends GLProgramVariable {
-    constructor(name, size, varType, binding, dataType) {
-        super(name, size, varType);
-        this.binding = binding;
-        this.type = dataType;
-    }
-}
+// class ImageInfo extends GLProgramVariable {
+//     constructor(name, size, varType, binding, dataType) {
+//         super(name, size, varType);
+//         this.binding = binding;
+//         this.type = dataType;
+//     }
+// }
 
 class GlobalScaleUniform {
-    constructor() {
-        this.uniform_location = 0;
-        this.scale_size = 0;
-        this.data_type = UNIFORM_TYPE.BOOL;
+    constructor(location, size, dataType) {
+        this.uniform_location = location;
+        this.scale_size = size;
+        this.data_type = dataType;
     }
 }
 
@@ -196,7 +198,7 @@ class GLProgramResources {
     GetSamplers() { return this.samplers; }
     GetScaleUniforms() { return this.scale_uniform_info; }
 
-    LoadUniforms(renderDevice, glProgram, defaultVariableType, variableDescs, staticSamples) {
+    LoadUniforms(renderDevice, glProgram, defaultVariableType, variableDescs, staticSamplers) {
         let result = new ShaderReflection();
         if(glProgram = null) {
             throw 'GL program is null';
@@ -220,14 +222,133 @@ class GLProgramResources {
             }
 
             switch(dataType) {
+                case gl.FLOAT:
+                case gl.FLOAT_VEC2:
+                case gl.FLOAT_VEC3:
+                case gl.FLOAT_VEC4:
+                case gl.FLOAT_MAT2:
+                case gl.FLOAT_MAT3:
+                case gl.FLOAT_MAT4:
+                case gl.FLOAT_MAT2x3:
+                case gl.FLOAT_MAT2x4:
+                case gl.FLOAT_MAT3x2:
+                case gl.FLOAT_MAT3x4:
+                case gl.FLOAT_MAT4x2:
+                case gl.FLOAT_MAT4x3:
+
+                case gl.INT:
+                case gl.INT_VEC2:
+                case gl.INT_VEC3:
+                case gl.INT_VEC4:
+                case gl.UNSIGNED_INT:
+                case gl.UNSIGNED_INT_VEC2:
+                case gl.UNSIGNED_INT_VEC3:
+                case gl.UNSIGNED_INT_VEC4:
+                {
+                    const uniformLocation = gl.getUniformLocation(glProgram, name);
+                    globalScaleUniform.set(name, new GlobalScaleUniform(uniformLocation, size, dataType));
+                    break;
+                }
+                case gl.BOOL:
+                case gl.BOOL_VEC2:
+                case gl.BOOL_VEC3:
+                case gl.BOOL_VEC4:
+                {
+                    console.error('OpenGL shader cannot use bool uniform value, please use float instead');
+                }
+                case gl.SAMPLER_2D:
+                case gl.SAMPLER_3D:
+                case gl.SAMPLER_CUBE:
+                case gl.SAMPLER_2D_SHADOW:
                 
+                case gl.SAMPLER_2D_ARRAY:
+                case gl.SAMPLER_2D_ARRAY_SHADOW:
+                case gl.SAMPLER_CUBE_SHADOW:
+                
+                case gl.INT_SAMPLER_2D:
+                case gl.INT_SAMPLER_3D:
+                case gl.INT_SAMPLER_CUBE:
+                case gl.INT_SAMPLER_2D_ARRAY:
+                case gl.UNSIGNED_INT_SAMPLER_2D:
+                case gl.UNSIGNED_INT_SAMPLER_3D:
+                case gl.UNSIGNED_INT_SAMPLER_CUBE:
+                case gl.UNSIGNED_INT_SAMPLER_2D_ARRAY:
+                {
+                    const uniformLocation = gl.getUniformLocation(glProgram, name);
+                    const varType = GetShaderVariableTypeByName(name, SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC, variableDescs, variableDescs.length);
+
+                    let staticSampler = null;
+                    for(let i=0; i<staticSamplers.length; i++) {
+                        if(name == staticSamplers[i].sampler_name) {
+                            staticSampler = renderDevice.CreateSampler(staticSamplers[i].desc);
+                            break;
+                        }
+                    }
+                    this.samplers.push(new SamplerInfo(name, size, varType, uniformLocation, dataType, staticSampler));
+                    break;
+                }
+                default:
+                    // some other uniform type like scaler, matrix etc
+                    break;
+            }
+        }
+
+        for(let i=0; i<numActiveUniformBlocks; i++) {
+            const cbReflection = new CBufferReflection();
+            result.CBuffer_ref.push(cbReflection);
+
+            const name = gl.getActiveUniformBlockName(glProgram, i);
+            const uniformBlockIndex = gl.getUniformBlockIndex(glProgram, name);
+            const uboSize = gl.getActiveUniformBlockParameter(glProgram, uniformBlockIndex, gl.UNIFORM_BLOCK_DATA_SIZE);
+
+            cbReflection.CBuffer_size = uboSize;
+            cbReflection.CBuffer_name = name;
+
+            const arraySize = 1;
+            const varType = GetShaderVariableTypeByName(name, defaultVariableType, variableDescs, variableDescs.length);
+            this.uniform_blocks.push(new UniformBufferInfo(name, arraySize, varType, uniformBlockIndex));
+
+            // remove scale uniform from uniform buffer
+            const uniforms = gl.getActiveUniformBlockParameter(glProgram, uniformBlockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS);
+            const uniformIndices = gl.getActiveUniformBlockParameter(glProgram, uniformBlockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES);
+
+            const uniformOffsets = gl.getActiveUniforms(glProgram, uniformIndices, gl.UNIFORM_OFFSET);
+
+            for(let j=0; j<uniforms; j++) {
+                const info = gl.getActiveUniform(glProgram, i);
+                const name = info.name;
+
+                globalScaleUniform.delete(name);
+                cbReflection.elements.push(new ElementReflection(name, uniformOffsets[i]));
+            }
+
+            for(let [key, value] of globalScaleUniform) {
+                this.scale_uniform_info.push(new ScaleUniformInfo(key, 0, 
+                                                                SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC, 
+                                                                value.uniform_location, 
+                                                                value.scale_size, 
+                                                                value.data_type));
+            }
+        }
+
+        return result;
+    }
+
+    Clone(srcResources, varTypes) {
+        for(let info of srcResources.uniform_blocks) {
+            if(varTypes.indexOf(info.var_type) != -1) {
+                this.uniform_blocks.push(new UniformBufferInfo(info.name, info.resources.length, info.var_type, info.index));
+            }
+        }
+
+        for(let info of srcResources.samplers) {
+            if(varTypes.indexOf(info.var_type) != -1) {
+                this.samplers.push(new SamplerInfo(info.name, info))
             }
         }
     }
 
-    GetShaderVariable(name) {
-
-    }
+    GetShaderVariable(name) { }
 }
 
 export {

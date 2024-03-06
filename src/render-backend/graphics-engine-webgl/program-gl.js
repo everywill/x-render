@@ -1,6 +1,7 @@
 import { Program } from "../graphics-engine/program";
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
+import { GLProgram } from "./gl-program";
 import { gl } from "./gl";
 
 class ProgramGL extends Program {
@@ -28,20 +29,20 @@ class ProgramGL extends Program {
     }
 
     LinkProgram() {
-        this.gl_program = gl.createProgram();
+        this.gl_program = new GLProgram();
         for(let i=0; i<this.num_shaders; i++) {
             const currShader = this.GetShader(i);
             currShader.CompileShader();
-            gl.attachShader(this.gl_program, currShader);
+            gl.attachShader(this.gl_program.native_handle, currShader);
         }
-        gl.linkProgram(this.gl_program);
+        gl.linkProgram(this.gl_program.native_handle);
     }
 
     LinkFailed() {
         const info = gl.getProgramInfoLog();
         console.error('failed to link program');
         console.error(info);
-        gl.deleteProgram(this.gl_program);
+        this.gl_program.Release();
     }
 
     CheckLinkStateAndReflection() {
@@ -53,7 +54,7 @@ class ProgramGL extends Program {
                 currShader.CheckCompileStateAndReflection();
             }
 
-            const isLinked = gl.getProgramParameter(this.gl_program, gl.LINK_STATUS);
+            const isLinked = gl.getProgramParameter(this.gl_program.native_handle, gl.LINK_STATUS);
 
             if(!isLinked) {
                 this.LinkFailed();
@@ -98,7 +99,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_vs.GetShaderReflection();
         }
-        // return this.gl_program.GetShaderReflection()
+        return this.gl_program.GetShaderReflection()
     }
 
     GetPSShaderReflection() {
@@ -109,6 +110,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_ps.GetShaderReflection();
         }
+        return this.gl_program.GetShaderReflection();
     }
 
     GetGSShaderReflection() {
@@ -119,6 +121,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_gs.GetShaderReflection();
         }
+        return this.gl_program.GetShaderReflection();
     }
 
     GetHSShaderReflection() {
@@ -129,6 +132,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_hs.GetShaderReflection();
         }
+        return this.gl_program.GetShaderReflection();
     }
 
     GetDSShaderReflection() {
@@ -139,6 +143,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_ds.GetShaderReflection();
         }
+        return this.gl_program.GetShaderReflection();
     }
 
     GetCSShaderReflection() {
@@ -149,6 +154,7 @@ class ProgramGL extends Program {
         if(this.separable_program_supported) {
             return this.p_cs.GetShaderReflection();
         }
+        return this.gl_program.GetShaderReflection();
     }
 }
 

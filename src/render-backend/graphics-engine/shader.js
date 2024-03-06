@@ -13,6 +13,21 @@ class ShaderVariable {
     // SetUintArray(array, count) {}
 }
 
+function GetShaderVariableType(defaultVariableType, variableDescs, numVars, compFunc) {
+    for(let i=0; i<numVars; i++) {
+        const currVarDesc = variableDescs[i];
+        // user's config first
+        if(compFunc(currVarDesc.name)) {
+            return currVarDesc.type;
+        }
+        return defaultVariableType;
+    }
+}
+
+function GetShaderVariableTypeByName(name, defaultVariableType, variableDescs, numVars) {
+    return GetShaderVariableType(defaultVariableType, variableDescs, numVars, function(name) {return name == name});
+}
+
 class Shader {
     constructor(renderDevice, shaderDesc) {
         this.render_device = renderDevice;
@@ -44,4 +59,5 @@ class Shader {
 export {
     Shader,
     ShaderVariable,
+    GetShaderVariableTypeByName,
 }
