@@ -88,6 +88,8 @@ class ProgramGL extends Program {
                     }
                 }
             }
+
+            this.gl_program.InitResources(this.render_device, defaultVarType, mergedVarTypesArray, mergedStaticSamplersArray);
         }
     }
 

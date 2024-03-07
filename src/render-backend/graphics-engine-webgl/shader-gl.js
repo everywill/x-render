@@ -37,18 +37,18 @@ class ShaderGL extends Shader {
             const deviceCaps = this.render_device.GetDeviceCaps();
             if(deviceCaps.shader_binary_supported) {
                 // not supported in WebGL
-                this.gl_program = gl.createProgram();
+                // this.gl_program = gl.createProgram();
                 // set program to be separable
-                gl.attachShader(this.gl_program, shader);
-                gl.linkProgram(this.gl_program);
-                const isLinked = gl.getProgramParameter(this.gl_program, gl.LINK_STATUS);
-                if(!isLinked) {
-                    const info = gl.getProgramInfoLog(this.gl_program);
-                    console.error('failed to link shader program');
-                    console.error(info);
-                }
-                gl.detachShader(this.gl_program, shader);
-                gl.deleteShader(shader);
+                // gl.attachShader(this.gl_program, shader);
+                // gl.linkProgram(this.gl_program);
+                // const isLinked = gl.getProgramParameter(this.gl_program, gl.LINK_STATUS);
+                // if(!isLinked) {
+                //     const info = gl.getProgramInfoLog(this.gl_program);
+                //     console.error('failed to link shader program');
+                //     console.error(info);
+                // }
+                // gl.detachShader(this.gl_program, shader);
+                // gl.deleteShader(shader);
             } else {
                 this.gl_shader = shader;
             }
@@ -74,7 +74,9 @@ class ShaderGL extends Shader {
     }
 
     GetShaderReflection() {
-        // gl.p
+        if(!this.gl_program) {
+            throw 'Shader variable queries are currently suppored for separable programs only';
+        }
     }
 }
 

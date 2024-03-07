@@ -4,13 +4,18 @@ import { ShaderReflection } from "../graphics/program-desc";
 class ShaderVariable {
     constructor() {}
 
+    // set the variable to the given value
     Set(object) { throw 'implementation needed'; }
+
+    // set the variable array
     SetArray(objectArray, firstElement, numElements) { throw 'implementation needed'; }
     // used in OpenGLES 2.0
     // others should use uniform buffer object 
-    // SetFloatArray(array, count) {}
-    // SetIntArray(array, count) {}
-    // SetUintArray(array, count) {}
+    SetFloatArray(floatArray, count) { throw 'implementation needed'; }
+
+    SetIntArray(intArray, count) { throw 'implementation needed'; }
+
+    SetUintArray(uintArray, count) { throw 'implementation needed'; }
 }
 
 function GetShaderVariableType(defaultVariableType, variableDescs, numVars, compFunc) {

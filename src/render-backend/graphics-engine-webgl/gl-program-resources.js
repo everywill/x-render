@@ -1,4 +1,4 @@
-import { GetShaderVariableTypeByName } from "../graphics-engine/shader";
+import { GetShaderVariableTypeByName, ShaderVariable } from "../graphics-engine/shader";
 import { UNIFORM_TYPE } from "../graphics/graphics-types";
 import { CBufferReflection, ElementReflection, ShaderReflection } from "../graphics/program-desc";
 import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
@@ -7,8 +7,9 @@ import { gl } from "./gl";
 class GLProgramVariable {
     constructor(name, size, varType) {
         this.name = name;
+        // array of device object
         this.resources = [];
-        // scale_uniform store data in uint8array
+        // scale_uniform store data in typedArray
         this.scale_uniform = null;
         this.array_size = size;
         this.var_type = varType;
@@ -182,6 +183,34 @@ class ScaleUniformInfo extends GLProgramVariable {
     }
 }
 
+class GLShaderVariable extends ShaderVariable {
+    constructor(programVar) {
+        super();
+        this.program_var = programVar;
+    }
+
+    Set(object) {
+        this.program_var.resources[0] = object;
+    }
+
+    SetArray(objectArray, firstElement, numElements) {
+        for(let i=0; i<numElements; i++) {
+            this.program_var[firstElement+i] = objectArray[i];
+        }
+    }
+
+    SetFloatArray(floatArray/* Float32Array */, count) {
+        this.program_var.scale_uniform = floatArray;
+    }
+
+    SetIntArray(intArray/* IntArray */, count) {
+        this.program_var.scale_uniform = intArray;
+    }
+
+    SetUintArray(uintArray/* IntArray */, count) {
+        this.program_var.scale_uniform = uintArray;
+    }
+}
 
 
 class GLProgramResources {
@@ -192,6 +221,8 @@ class GLProgramResources {
         this.samplers = [];
         // array of ScaleUniformInfo
         this.scale_uniform_info = [];
+
+        this.variable_map = new Map();
     }
 
     GetUniformBlocks() { return this.uniform_blocks; }
@@ -323,7 +354,7 @@ class GLProgramResources {
             }
 
             for(let [key, value] of globalScaleUniform) {
-                this.scale_uniform_info.push(new ScaleUniformInfo(key, 0, 
+                this.scale_uniform_info.push(new ScaleUniformInfo(key/* name */, 0, 
                                                                 SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC, 
                                                                 value.uniform_location, 
                                                                 value.scale_size, 
@@ -337,18 +368,46 @@ class GLProgramResources {
     Clone(srcResources, varTypes) {
         for(let info of srcResources.uniform_blocks) {
             if(varTypes.indexOf(info.var_type) != -1) {
-                this.uniform_blocks.push(new UniformBufferInfo(info.name, info.resources.length, info.var_type, info.index));
+                this.uniform_blocks.push(new UniformBufferInfo(info.name, info.array_size, info.var_type, info.index));
             }
         }
 
         for(let info of srcResources.samplers) {
             if(varTypes.indexOf(info.var_type) != -1) {
-                this.samplers.push(new SamplerInfo(info.name, info))
+                this.samplers.push(new SamplerInfo(info.name, info.array_size, info.var_type, info.location, info.type, info.static_sampler));
             }
+        }
+
+        for(let info of srcResources.scale_uniform_info) {
+            if(varTypes.indexOf(info.var_type) != -1) {
+                this.scale_uniform_info.puush(new ScaleUniformInfo(info.name, info.array_size, info.var_type, info.uniform_location, info.scale_size, info.data_type));
+            }
+        }
+
+        InitVariables();
+    }
+
+    InitVariables() {
+        // after all program resources are loaded, we can populate shader variable map
+        for(let info of srcResources.uniform_blocks) {
+            this.variable_map.set(info.name, new GLShaderVariable(info));
+        }
+
+        for(let info of srcResources.samplers) {
+            this.variable_map.set(info.name, new GLShaderVariable(info));
+        }
+
+        for(let info of srcResources.scale_uniform_info) {
+            this.variable_map.set(info.name, new GLShaderVariable(info));
         }
     }
 
-    GetShaderVariable(name) { }
+    GetShaderVariable(name) {
+        if(this.variable_map.has(name)) {
+            return this.variable_map.get(name);
+        }
+        return null;
+    }
 }
 
 export {
