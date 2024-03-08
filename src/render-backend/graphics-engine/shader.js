@@ -2,8 +2,6 @@ import { ShaderReflection } from "../graphics/program-desc";
 // import { ShaderVariableDesc, StaticSamplerDesc } from "../graphics/shader-desc";
 
 class ShaderVariable {
-    constructor() {}
-
     // set the variable to the given value
     Set(object) { throw 'implementation needed'; }
 
@@ -16,6 +14,14 @@ class ShaderVariable {
     SetIntArray(intArray, count) { throw 'implementation needed'; }
 
     SetUintArray(uintArray, count) { throw 'implementation needed'; }
+}
+
+class DummyShaderVariable extends ShaderVariable {
+    Set(object) {}
+    SetArray(objectArray, firstElement, numElements) {}
+    SetFloatArray(floatArray, count) {}
+    SetIntArray(intArray, count) {}
+    SetUintArray(uintArray, count) {}
 }
 
 function GetShaderVariableType(defaultVariableType, variableDescs, numVars, compFunc) {
@@ -64,5 +70,6 @@ class Shader {
 export {
     Shader,
     ShaderVariable,
+    DummyShaderVariable,
     GetShaderVariableTypeByName,
 }

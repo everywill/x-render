@@ -28,6 +28,8 @@ class ProgramGL extends Program {
         }
     }
 
+    GetGLProgram() { return this.gl_program; }
+
     LinkProgram() {
         this.gl_program = new GLProgram();
         for(let i=0; i<this.num_shaders; i++) {

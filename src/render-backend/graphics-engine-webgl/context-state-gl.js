@@ -180,31 +180,7 @@ class GLContextState {
         }
     }
 
-    GetDepthStencilState(depthStencilStateDesc) {
-        const gl_state = new DepthStencilGLState();
-        gl_state.depth_enable_state = depthStencilStateDesc.depth_enable;
-        gl_state.depth_writes_enable_state = depthStencilStateDesc.depth_write_enable;
-        gl_state.depth_cmp_func = CompareFuncToGLCompare(depthStencilStateDesc.depth_func);
-
-        gl_state.stencil_test_enable_state = depthStencilStateDesc.stencil_enable;
-        gl_state.stencil_read_mask = depthStencilStateDesc.stencil_read_mask;
-        gl_state.stencil_write_mask = depthStencilStateDesc.stencil_write_mask;
-        
-        const stencilConvert = (stencilOpDesc) => {
-            const stencilOpState = new StencilOpState();
-            stencilOpState.func = CompareFuncToGLCompare(stencilOpDesc.stencil_func);
-            stencilOpState.stencil_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_fail_op);
-            stencilOpState.stencil_depth_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_depth_fail_op);
-            stencilOpState.stencil_pass_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_pass_op);
-
-            return stencilOpState;
-        }
-
-        gl_state.stencil_op_states[0] = stencilConvert(depthStencilStateDesc.front_face);
-        gl_state.stencil_op_states[1] = stencilConvert(depthStencilStateDesc.back_face);
-
-        return gl_state;
-    }
+    
 
     SetRasterizerState(rasterizerState) {
         if(this.RS_state != rasterizerState) {
@@ -236,18 +212,6 @@ class GLContextState {
 
             this.RS_state = rasterizerState;
         }
-    }
-
-    GetRasterizerState(rasterizerStateDesc) {
-        const gl_state = new RasterizerGLState();
-        // gl_state.fill_mode = rasterizerStateDesc.
-        gl_state.cull_mode = rasterizerStateDesc.cull_mode;
-        gl_state.depth_bias = rasterizerStateDesc.depth_bias;
-        gl_state.slope_scaled_depth_bias = rasterizerStateDesc.slope_scaled_depth_bias;
-        gl_state.depth_clamp_enable = rasterizerStateDesc.depth_clip_enable;
-        gl_state.scissor_test_enable = rasterizerStateDesc.scissor_enable;
-
-        return gl_state;
     }
 
     SetProgram(glProgram) {
@@ -443,6 +407,44 @@ class GLContextState {
     SetNumPatchVertices(numVertices) {
         console.error('not supported');
     }
+}
+
+GLContextState.GetDepthStencilState = function(depthStencilStateDesc) {
+    const gl_state = new DepthStencilGLState();
+    gl_state.depth_enable_state = depthStencilStateDesc.depth_enable;
+    gl_state.depth_writes_enable_state = depthStencilStateDesc.depth_write_enable;
+    gl_state.depth_cmp_func = CompareFuncToGLCompare(depthStencilStateDesc.depth_func);
+
+    gl_state.stencil_test_enable_state = depthStencilStateDesc.stencil_enable;
+    gl_state.stencil_read_mask = depthStencilStateDesc.stencil_read_mask;
+    gl_state.stencil_write_mask = depthStencilStateDesc.stencil_write_mask;
+    
+    const stencilConvert = (stencilOpDesc) => {
+        const stencilOpState = new StencilOpState();
+        stencilOpState.func = CompareFuncToGLCompare(stencilOpDesc.stencil_func);
+        stencilOpState.stencil_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_fail_op);
+        stencilOpState.stencil_depth_fail_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_depth_fail_op);
+        stencilOpState.stencil_pass_op = StencilOpToGLStencilOp(stencilOpDesc.stencil_pass_op);
+
+        return stencilOpState;
+    }
+
+    gl_state.stencil_op_states[0] = stencilConvert(depthStencilStateDesc.front_face);
+    gl_state.stencil_op_states[1] = stencilConvert(depthStencilStateDesc.back_face);
+
+    return gl_state;
+}
+
+GLContextState.GetRasterizerState = function(rasterizerStateDesc) {
+    const gl_state = new RasterizerGLState();
+    // gl_state.fill_mode = rasterizerStateDesc.
+    gl_state.cull_mode = rasterizerStateDesc.cull_mode;
+    gl_state.depth_bias = rasterizerStateDesc.depth_bias;
+    gl_state.slope_scaled_depth_bias = rasterizerStateDesc.slope_scaled_depth_bias;
+    gl_state.depth_clamp_enable = rasterizerStateDesc.depth_clip_enable;
+    gl_state.scissor_test_enable = rasterizerStateDesc.scissor_enable;
+
+    return gl_state;
 }
 
 export {

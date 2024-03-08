@@ -249,9 +249,15 @@ class GraphicsDriver {
     SetShaderVariableWithTextureViewArray(shaderResourceBinding, shaderType, name, textureviews, firstElement, numElements) {
         shaderResourceBinding.GetVariable(shaderType, name).SetArray(textureviews, firstElement, numElements);
     }
-    // SetShaderVariableFloatArray() {}
-    // SetShaderVariableIntArray() {}
-    // SetShaderVariableUintArray() {}
+    SetShaderVariableFloatArray(shaderResourceBinding, shaderType, name, floatArray, count) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetFloatArray(floatArray, count);
+    }
+    SetShaderVariableIntArray(shaderResourceBinding, shaderType, name, intArray, count) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetIntArray(intArray, count);
+    }
+    SetShaderVariableUintArray(shaderResourceBinding, shaderType, name, uintArray, count) {
+        shaderResourceBinding.GetVariable(shaderType, name).SetUintArray(uintArray, count);
+    }
 
     // swapchain method
     GetSwapchainDesc(swapchain) {
