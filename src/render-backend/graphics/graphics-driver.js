@@ -314,6 +314,9 @@ class GraphicsDriver {
     CreateDynamicIndexBuffer(byteSize, data, gpuWriteable) {
         return CreateDynamicIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
+    CreateUniformBuffer(byteSize, usage, bindFlag, cpuAccessFlas) {
+        
+    }
 }
 
 export {

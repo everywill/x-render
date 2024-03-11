@@ -183,8 +183,9 @@ function GetCurrentBindTexture(bindTarget) {
 }
 
 class TextureGL extends Texture {
-    constructor(renderDevice, deviceContext, textureDesc, textureData) {
+    constructor(renderDevice, textureDesc, textureData) {
         super(renderDevice, textureDesc);
+        const deviceContext = this.render_device.GetImmediateContext();
         this.gl_texture = null;
         this.gl_renderbuffer = null;
         this.resolved_texture = null;

@@ -1,5 +1,12 @@
 import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
+import { DeviceCaps } from "../graphics/device-caps";
 import { TEXTURE_FORMAT, TextureFormatInfo } from "../graphics/graphics-types";
+
+class EngineCreationAttribs {
+    constructor() {
+        this.custom_device_caps = new DeviceCaps();
+    }
+}
 
 class RenderDevice {
     constructor(customDeviceCaps, numDeferredContexts) {
@@ -106,5 +113,6 @@ class RenderDevice {
 }
 
 export  {
-    RenderDevice
+    RenderDevice,
+    EngineCreationAttribs,
 }
