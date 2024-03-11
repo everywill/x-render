@@ -2,6 +2,7 @@ import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-d
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { BufferGL } from "./buffer-gl";
 import { gl } from "./gl";
+import { PipelineStateGL } from "./pipeline-state-gl";
 import { ProgramGL } from "./program-gl";
 import { SamplerGL } from "./sampler-gl";
 import { ShaderGL } from "./shader-gl";
@@ -60,7 +61,7 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     CreatePipelineState(pipelineStateDesc) {
-
+        return new PipelineStateGL(this, pipelineStateDesc);
     }
 
     TestTextureFormat(textureFormat) {

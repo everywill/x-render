@@ -1,5 +1,6 @@
 import { PipelineState } from "../graphics-engine/pipelinestate";
 import { DEVICE_TYPE } from "../graphics/device-caps";
+import { GLContextState } from "./context-state-gl";
 import { ShaderResourceBindingGL } from "./shader-resource-binding-gl";
 
 class PipelineStateGL extends PipelineState {
@@ -12,7 +13,8 @@ class PipelineStateGL extends PipelineState {
         }
         this.LinkGLProgram(deviceCaps.separable_program_supported);
 
-        t
+        this.ds_state = GLContextState.GetDepthStencilState(pipelineStateDesc.graphics_pipeline_desc.depth_stencil_state_desc);
+        this.ra_state = GLContextState.GetRasterizerState(pipelineStateDesc.graphics_pipeline_desc.rasterizer_state_desc);
     }
 
     LinkGLProgram(isProgramPipelineSupported) {
