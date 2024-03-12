@@ -82,7 +82,7 @@ class GLContextState {
         this.caps = new ContextCaps();
         const deviceCaps = this.render_device.GetDeviceCaps();
         this.caps.fill_mode_selection_supported = deviceCaps.wireframe_fill_supported;
-        this.caps.reservedz_perspertive = deviceCaps.eversedz_perspective;
+        this.caps.reservedz_perspertive = deviceCaps.reversedz_perspective;
         this.caps.depth_clamp_supported = deviceCaps.depth_clamp_supported;
 
         // supported above 430
@@ -179,8 +179,6 @@ class GLContextState {
             this.DS_state = depthStencilState;
         }
     }
-
-    
 
     SetRasterizerState(rasterizerState) {
         if(this.RS_state != rasterizerState) {
@@ -284,10 +282,12 @@ class GLContextState {
     }
 
     BindImage() {
-        console.error('image texture is not supported');
+        throw 'image texture is not supported';
     }
 
-    EnsureMemoryBarrier() {}
+    EnsureMemoryBarrier() {
+        throw 'image texture is not supported';
+    }
 
     SetStencilRef(glFace, ref) {
         const faceStencilOp = this.DS_state.stencil_op_states[glFace == gl.FRONT ? 0 : 1];
@@ -405,7 +405,7 @@ class GLContextState {
     }
 
     SetNumPatchVertices(numVertices) {
-        console.error('not supported');
+        throw 'not supported';
     }
 }
 

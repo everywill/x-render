@@ -9,7 +9,7 @@ class GLProgramVariable {
         this.name = name;
         // array of device object
         this.resources = [];
-        // scale_uniform store data in typedArray
+        // scale_uniform store data in ArrayBuffer
         this.scale_uniform = null;
         this.array_size = size;
         this.var_type = varType;
@@ -19,6 +19,7 @@ class GLProgramVariable {
 class UniformBufferInfo extends GLProgramVariable {
     constructor(name, size, varType, index) {
         super(name, size, varType);
+        // block index
         this.index = index;
     }
 }
@@ -179,7 +180,7 @@ class ScaleUniformInfo extends GLProgramVariable {
                 typeSize = 0;
                 break;
         }
-        this.scale_uniform = new Uint8Array(typeSize);
+        this.scale_uniform = new ArrayBuffer(typeSize);
     }
 }
 
@@ -200,15 +201,15 @@ class GLShaderVariable extends ShaderVariable {
     }
 
     SetFloatArray(floatArray/* Float32Array */, count) {
-        this.program_var.scale_uniform = floatArray;
+        this.program_var.scale_uniform = floatArray.buffer;
     }
 
     SetIntArray(intArray/* IntArray */, count) {
-        this.program_var.scale_uniform = intArray;
+        this.program_var.scale_uniform = intArray.buffer;
     }
 
     SetUintArray(uintArray/* IntArray */, count) {
-        this.program_var.scale_uniform = uintArray;
+        this.program_var.scale_uniform = uintArray.buffer;
     }
 }
 
@@ -277,7 +278,7 @@ class GLProgramResources {
                 case gl.UNSIGNED_INT_VEC4:
                 {
                     const uniformLocation = gl.getUniformLocation(glProgram, name);
-                    globalScaleUniform.set(name, new GlobalScaleUniform(uniformLocation, size, dataType));
+                    globalScaleUniform.set(name, new GlobalScaleUniform(uniformLocation, size, GetUniformType(dataType)));
                     break;
                 }
                 case gl.BOOL:
@@ -352,14 +353,14 @@ class GLProgramResources {
                 globalScaleUniform.delete(name);
                 cbReflection.elements.push(new ElementReflection(name, uniformOffsets[i]));
             }
+        }
 
-            for(let [key, value] of globalScaleUniform) {
-                this.scale_uniform_info.push(new ScaleUniformInfo(key/* name */, 0, 
-                                                                SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC, 
-                                                                value.uniform_location, 
-                                                                value.scale_size, 
-                                                                value.data_type));
-            }
+        for(let [key, value] of globalScaleUniform) {
+            this.scale_uniform_info.push(new ScaleUniformInfo(key/* name */, 0, 
+                                                            SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC, 
+                                                            value.uniform_location, 
+                                                            value.scale_size, 
+                                                            value.data_type));
         }
 
         return result;

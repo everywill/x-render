@@ -61,7 +61,9 @@ class GraphicsDriver {
                 return new SwapChain();
         }
     }
-    DestroyBuffer(buffer) {}
+    DestroyBuffer(buffer) {
+       
+    }
     DestroyPipelineState(pipelineState) {}
     DestroyShaderResourceBinding(shaderResourceBinding) {}
     DestroyProgram(program) {}

@@ -55,6 +55,7 @@ class Program {
         }
     }
     GetDesc() { return this.desc; }
+    GetNumShaders() { return this.num_shaders; }
 
     GetShader(index) { return this.shaders[index]; }
     GetVS() { return this.p_vs; }

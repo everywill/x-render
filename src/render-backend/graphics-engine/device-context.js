@@ -179,7 +179,7 @@ class DeviceContext {
 
     // pipelinestate object that was used to create the shader resource binding must be bound
     // if no pipeline state object is bound or the pipeline state object does not match shader resource binding, the method will fail
-    CommitShaderResources(shaderResourceBindin) { throw 'implementation needed'; }
+    CommitShaderResources(shaderResourceBinding, flags) { return true; }
 
     FinishCommandList(commandList) { throw 'implementation needed'; }
 

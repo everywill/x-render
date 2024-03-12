@@ -17,6 +17,9 @@ class PipelineStateGL extends PipelineState {
         this.ra_state = GLContextState.GetRasterizerState(pipelineStateDesc.graphics_pipeline_desc.rasterizer_state_desc);
     }
 
+    GetDepthStencilState() { return this.ds_state; }
+    GetRasterizerState() { return this.ra_state; }
+
     LinkGLProgram(isProgramPipelineSupported) {
         if(isProgramPipelineSupported) {
             // not supported in WebGL

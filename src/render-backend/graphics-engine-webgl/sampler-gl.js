@@ -155,6 +155,8 @@ class SamplerGL extends Sampler {
         gl.samplerParameterf(this.gl_sampler, gl.TEXTURE_MAX_LOD, this.desc.max_LOD);
         gl.samplerParameterf(this.gl_sampler, gl.TEXTURE_MIN_LOD, this.desc.min_LOD);
     }
+
+    GetGLSampler() { return this.gl_sampler; }
 }
 
 export {

@@ -1,6 +1,5 @@
 import { Program } from '../graphics-engine/program';
 import { MAX_RENDER_TARGETS } from './constant';
-import { GraphicsHandle } from './graphics-handle';
 import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT } from './graphics-types'
 import { InputLayoutDesc } from './input-layout';
 
@@ -176,6 +175,7 @@ class GraphicsPipelineDesc {
         this.rasterizer_state_desc = new RasterizerStateDesc();
         this.depth_stencil_state_desc = new DepthStencilStateDesc();
         this.input_layout_desc = new InputLayoutDesc();
+        this.enable_primitive_restart = false;
         this.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         this.num_viewports = 1;  // multiple viewports not supported in OpenGL 
         // Number of render targets in the RTV_formats member

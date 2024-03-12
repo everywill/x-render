@@ -31,7 +31,12 @@ class TextureViewGL extends TextureView {
     }
 
     GenerateMips(deviceContext) {
-
+        const contextState = deviceContext.GetContextState
+        const bindTarget = this.GetBindTarget();
+        // bind to the last unit
+        contextState.BindTexture(-1, bindTarget, this.GetTexture());
+        gl.generateMipmap(bindTarget);
+        contextState.BindTexture(-1, bindTarget, null);
     }
 }
 

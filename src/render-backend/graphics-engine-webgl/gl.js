@@ -86,10 +86,20 @@ function BlendOperation2GLBlendOp(blendOp) {
     }
 }
 
+// 16MB
+const Memory = new ArrayBuffer(16 * 1024 * 1024);
+
+const HEAP8 = new Int8Array(Memory);
+const HEAPU8 = new Uint8Array(Memory);
+const HEAP16 = new Int16Array(Memory);
+const HEAPU16 = new Uint16Array(Memory);
+const HEAPF32 = new Float32Array(Memory);
+
 export {
     gl,
     CompareFuncToGLCompare,
     StencilOpToGLStencilOp,
     BlendFactorToGLBlend,
     BlendOperation2GLBlendOp,
+    HEAP8, HEAPU8, HEAP16, HEAPU16, HEAPF32
 }
