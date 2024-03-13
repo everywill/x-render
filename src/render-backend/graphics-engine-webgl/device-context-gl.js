@@ -1,7 +1,7 @@
 import { DeviceContext } from "../graphics-engine/device-context";
 import { UNIFORM_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
-import { GLContextState } from "./context-state-gl";
+import { GLContextState } from "./gl-context-state";
 import { HEAPF32, gl } from "./gl";
 
 class DeviceContextGL extends DeviceContext {
@@ -128,16 +128,90 @@ class DeviceContextGL extends DeviceContext {
                         case UNIFORM_TYPE.FLOAT:
                             gl.uniform1fv(uniform.uniform_location, new Float32Array(uniform.scale_uniform));
                             break;
+                        case UNIFORM_TYPE.FLOAT2:
+                            gl.uniform2fv(uniform.uniform_location, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.FLOAT3:
+                            gl.uniform3fv(uniform.uniform_location, new Float32Array(uniform.scale_uniform));
+                            break;
+
+                        case UNIFORM_TYPE.FLOAT4:
+                            gl.uniform4fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT2X2:
+                            gl.uniformMatrix2fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform))
+                            break;
+                        case UNIFORM_TYPE.MAT3X3:
+                            gl.uniformMatrix3fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT4X4:
+                            gl.uniformMatrix4fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT2X3:
+                            gl.uniformMatrix2x3fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT2X4:
+                            gl.uniformMatrix2x4fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT3X2:
+                            gl.uniformMatrix3x2fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT3X4:
+                            gl.uniformMatrix3x4fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT4X2:
+                            gl.uniformMatrix4x2fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.MAT4X3:
+                            gl.uniformMatrix4x3fv(uniform.uniform_location, false, new Float32Array(uniform.scale_uniform));
+                            break;
+
+                        case UNIFORM_TYPE.INT:
+                            gl.uniform1iv(uniform.uniform_location, new Int32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.INT2:
+                            gl.uniform2iv(uniform.uniform_location, new Int32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.INT3:
+                            gl.uniform3iv(uniform.uniform_location, new Int32Array(uniform.scale_uniform));
+                            break;
+                        case UNIFORM_TYPE.INT4:
+                            gl.uniform4iv(uniform.uniform_location, new Int32Array(uniform.scale_uniform));
+                            break;
                     }
                 }
             }
         }
     }
 
+
+
     ResolveResource(msaaTexture, resolvedTexture) {
         if(msaaTexture && resolvedTexture) {
             
         }
+    }
+
+    FinishCommandList(commandList) {
+        throw 'deferred context is not supported in WebGL';
+    }
+
+    ExecuteCommandList(commandList) { 
+        throw 'deferred context is not supported in WebGL';
+    }
+
+    Flush() {
+        gl.flush();
+    }
+
+    GraphicStateSave() {
+        this.app_gl_state.Save();
+        this.InvalidateState();
+    }
+
+    GraphicStateRestore() {
+        this.app_gl_state.Restore();
+        // this.context_state.
     }
 }
 
