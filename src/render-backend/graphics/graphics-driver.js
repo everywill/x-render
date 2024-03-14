@@ -4,6 +4,7 @@ import {
     CreateDefaultVertexBuffer, CreateStaticVertexBuffer, CreateDynamicVertexBuffer,
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
 } from "./buffer-helper";
+import { BufferDesc } from "./buffer-desc";
 
 class GraphicsDriver {
     constructor() {
@@ -329,7 +330,13 @@ class GraphicsDriver {
         return CreateDynamicIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
     CreateUniformBuffer(byteSize, usage, bindFlag, cpuAccessFlas) {
-        
+        const CBDesc = new BufferDesc()
+        CBDesc.size = byteSize;
+        CBDesc.usage = usage;
+        CBDesc.bind_flags = bindFlag;
+        CBDesc.cpu_access_flags = cpuAccessFlas;
+        const data = new ArrayBuffer();
+        return this.render_device.CreateBuffer(CBDesc, data);
     }
 }
 
