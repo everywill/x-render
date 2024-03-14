@@ -2,6 +2,7 @@ import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-d
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { BufferGL } from "./buffer-gl";
 import { gl } from "./gl";
+import { GLContext } from "./gl-context";
 import { PipelineStateGL } from "./pipeline-state-gl";
 import { ProgramGL } from "./program-gl";
 import { SamplerGL } from "./sampler-gl";
@@ -18,6 +19,7 @@ class RenderDeviceGL extends RenderDevice {
     constructor(engineAttribs) {
         super(engineAttribs.custom_device_caps, 0);
         this.device_caps.separable_program_supported = false;
+        this.gl_context = new GLContext(engineAttribs, this.device_caps);
     }
 
     InitDeviceLimits() {

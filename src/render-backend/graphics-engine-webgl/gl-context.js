@@ -1,3 +1,10 @@
+
 class GLContext {
-    constructor() {}
+    constructor(engineAttribs, deviceCaps) {
+        
+    }
+}
+
+export {
+    GLContext,
 }
