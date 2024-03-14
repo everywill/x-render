@@ -68,6 +68,12 @@ class Buffer {
 
     GetDesc() { return this.desc; }
 
+    Release() { 
+        for(let [key, view] of this.created_buffer_views) {
+            view.Release();
+        }
+    }
+
     UpdateData(deviceContext, offset, size, data) {
         if(this.desc.usage != USAGE.USAGE_DEFAULT) {
             throw 'only default usage buffers can be updated with UpdateBuffer';

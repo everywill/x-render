@@ -84,8 +84,9 @@ class PipelineState {
     }
 
     GetDesc() { return this.desc; }
-
     GetProgram() { return this.program; }
+
+    Release() { throw 'need implement'; }
 
     CreateShaderResourceBinding() { throw 'implementation needed'; }
 

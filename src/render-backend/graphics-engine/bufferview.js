@@ -6,6 +6,8 @@ class BufferView {
     }
     GetDesc() { return this.desc; }
     GetBuffer() { return this.buffer; }
+
+    Release() { throw 'need implement'; }
 }
 
 export {

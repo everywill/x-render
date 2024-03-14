@@ -57,6 +57,8 @@ class Program {
     GetDesc() { return this.desc; }
     GetNumShaders() { return this.num_shaders; }
 
+    Release() { throw 'need implement'; }
+
     GetShader(index) { return this.shaders[index]; }
     GetVS() { return this.p_vs; }
     GetPS() { return this.p_ps; }

@@ -4,8 +4,9 @@ class ShaderResourceBinding {
     }
 
     GetPipielineState() { return this.pipelinestate; }
-
     GetVariable(shaderType, name) { throw 'implementation needed'; }
+
+    Release() { throw 'need implement'; }
 }
 
 export {

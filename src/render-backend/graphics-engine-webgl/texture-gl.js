@@ -228,8 +228,8 @@ class TextureGL extends Texture {
                         const desc = Object.create(this.desc);
                         desc.misc_flag &= ~MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE;
                         desc.sample_count = 1;
-                        this.resolved_texture = new TextureGL(renderDevice, deviceContext, desc, textureData);
-                        //  = resolved_texture.GetGLTexture();
+                        
+                        this.resolved_texture = new TextureGL(renderDevice, deviceContext, desc, textureData).gl_texture;
                     }
                 }
             }
@@ -423,6 +423,18 @@ class TextureGL extends Texture {
 
     GetGLTexture() { return this.gl_texture; }
     GetBindTarget() { return this.bind_target; }
+
+    Release() {
+        if(this.gl_texture) {
+            gl.deleteTexture(this.gl_texture);
+        }
+        if(this.gl_renderbuffer) {
+            gl.deleteRenderbuffer(this.gl_renderbuffer);
+        }
+        if(this.resolved_texture) {
+            gl.deleteTexture(this.resolved_texture);
+        }
+    }
 
     SetDefaultGLParameters() {
         // The default value of GL_TEXTURE_MIN_FILTER is GL_NEAREST_MIPMAP_LINEAR

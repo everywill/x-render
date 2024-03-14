@@ -26,6 +26,8 @@ class TextureViewGL extends TextureView {
         } 
     }
 
+    Release() {}
+
     SetBindTarget(bindTarget) {
         this.view_texture_bind_target = bindTarget;
     }

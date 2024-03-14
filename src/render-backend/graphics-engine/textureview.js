@@ -8,6 +8,9 @@ class TextureView {
     GetDesc() { return this.desc; }
     GetSampler() { return this.sampler; }
     GetTexture() { return this.texture; }
+
+    Release() { throw 'need implement'; }
+
     SetSampler(sampler) { this.sampler = sampler; }
     GenerateMips(deviceContext) { throw 'need implement'; }
 }

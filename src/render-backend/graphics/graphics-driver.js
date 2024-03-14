@@ -62,14 +62,26 @@ class GraphicsDriver {
         }
     }
     DestroyBuffer(buffer) {
-       
+       buffer.Release();
     }
-    DestroyPipelineState(pipelineState) {}
-    DestroyShaderResourceBinding(shaderResourceBinding) {}
-    DestroyProgram(program) {}
-    DestroySampler(sampler) {}
-    DestroyShader(shader) {}
-    DestroyTexture(texture) {}
+    DestroyPipelineState(pipelineState) {
+        pipelineState.Release();
+    }
+    DestroyShaderResourceBinding(shaderResourceBinding) {
+        shaderResourceBinding.Release();
+    }
+    DestroyProgram(program) {
+        program.Release();
+    }
+    DestroySampler(sampler) {
+        sampler.Release();
+    }
+    DestroyShader(shader) {
+        shader.Release();
+    }
+    DestroyTexture(texture) {
+        texture.Release();
+    }
     DestroySwapChain(swapchain) {}
 
     GetDeviceCaps() {

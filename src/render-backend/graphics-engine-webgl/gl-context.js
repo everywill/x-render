@@ -1,0 +1,3 @@
+class GLContext {
+    constructor() {}
+}

@@ -6,6 +6,8 @@ class SwapChain {
         this.swap_chain_desc = swapchainDesc;
     }
 
+    Release() { throw 'need implement'; }
+
     // Present a renderer image to the user
     Present(syncInterval) { throw 'implementation needed'; }
 

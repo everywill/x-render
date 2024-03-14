@@ -157,6 +157,10 @@ class SamplerGL extends Sampler {
     }
 
     GetGLSampler() { return this.gl_sampler; }
+
+    Release() { 
+        gl.deleteSampler(this.gl_sampler);
+    }
 }
 
 export {

@@ -35,6 +35,12 @@ class Texture {
 
     GetDesc() { return this.desc; }
 
+    Release() {
+        for(let [key, view] of this.created_texture_views) {
+            view.Release();
+        }
+    }
+
     GetResolveFlag() { return this.resolved; }
     SetResolveFlag(resolved) { this.resolved = resolved; }
 

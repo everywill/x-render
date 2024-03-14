@@ -63,8 +63,9 @@ class Shader {
     GetDesc() { return this.desc; }
 
     GetShaderReflection() { return this.shader_reflection; }
-
     GetShaderVariable(name) { throw 'need implement'; }
+
+    Release() { throw 'need implement';  }
 }
 
 export {

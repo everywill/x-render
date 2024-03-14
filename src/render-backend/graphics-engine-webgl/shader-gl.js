@@ -24,6 +24,15 @@ class ShaderGL extends Shader {
         this.has_checked_compiled_status = false;
     }
 
+    Release() {
+        if(this.gl_program) {
+            gl.deleteProgram(this.gl_program);
+        }
+        if(this.gl_shader) {
+            gl.deleteShader(this.gl_shader);
+        }
+    }
+
     CompileShader() {
         if(!this.is_shader_compiled) {
             this.is_shader_compiled = true;

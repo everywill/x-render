@@ -5,6 +5,8 @@ class BufferViewGL extends BufferView {
         super(renderDevice, viewDesc, buffer);
         // texture buffer(glTexBuffer) is not supported in WebGL
     }
+
+    Release() { }
 }
 
 export {

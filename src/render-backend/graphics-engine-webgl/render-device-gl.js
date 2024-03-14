@@ -71,5 +71,6 @@ class RenderDeviceGL extends RenderDevice {
 
 export {
     EngineGLAttribs,
+    EngineGLAttribs,
     RenderDeviceGL,
 }
