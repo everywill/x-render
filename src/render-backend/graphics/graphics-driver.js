@@ -5,6 +5,7 @@ import {
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
 } from "./buffer-helper";
 import { BufferDesc } from "./buffer-desc";
+import { EngineGLAttribs } from "../graphics-engine-webgl/render-device-gl";
 
 class GraphicsDriver {
     constructor() {
@@ -12,7 +13,6 @@ class GraphicsDriver {
         this.device_context = null;
         this.enterSave = false;
     }
-    Create() {}
 
     // Create Graphics Object
     CreateBuffer(bufferDesc, bufferData) {
@@ -83,7 +83,9 @@ class GraphicsDriver {
     DestroyTexture(texture) {
         texture.Release();
     }
-    DestroySwapChain(swapchain) {}
+    DestroySwapChain(swapchain) {
+        swapchain.Release();
+    }
 
     GetDeviceCaps() {
         return this.render_device.GetDeviceCaps();
@@ -338,6 +340,55 @@ class GraphicsDriver {
         const data = new ArrayBuffer();
         return this.render_device.CreateBuffer(CBDesc, data);
     }
+}
+
+GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
+    engineCreationAttribs.custom_device_caps = deviceCaps;
+    switch(deviceCaps.dev_type) {
+        case DEVICE_TYPE.DEVICE_TYPE_OPENGLES:
+            engineCreationAttribs.custom_device_caps.major_version = 3;
+            engineCreationAttribs.custom_device_caps.minor_version = 0;
+            break;
+        case DEVICE_TYPE.DEVICE_TYPE_WEBGPU:
+            break;
+        default:
+            throw 'unknown device type';
+    }
+
+    // deferred context number
+    return 0;
+}
+
+GraphicsDriver.Create = function(deviceCaps) {
+    const driver = new GraphicsDriver();
+
+    let numDeferredContexts = 0;
+    const contexts = [];
+    let device = null;
+
+    switch(deviceCaps.dev_type) {
+        case DEVICE_TYPE.DEVICE_TYPE_OPENGLES:
+        {
+            const creationAttribs = new EngineGLAttribs();
+            creationAttribs.device_type = deviceCaps.dev_type;
+
+            numDeferredContexts = GraphicsDriver.InitAttribs(deviceCaps, creationAttribs);
+            if(numDeferredContexts != 0) {
+                console.warn('deferred contexts are not supported in OpenGL mode');
+                numDeferredContexts = 0;
+            }
+            
+        }
+        break;
+        case DEVICE_TYPE.DEVICE_TYPE_WEBGPU:
+            break;
+        default:
+            throw 'unknown device type';
+    }
+    driver.render_device = device;
+    driver.device_context = contexts[0];
+
+    return driver;
 }
 
 export {
