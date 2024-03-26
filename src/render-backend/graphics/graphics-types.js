@@ -1,3 +1,8 @@
+const CONTEXT_CREATION_TYPE = {
+    ATTACH: 0,
+    CREATE: 1
+};
+
 // used by SamplerDesc to define a comparisonn function if one of the comparison mode filters is used
 // used by StencilOpDDesc to define a stencil function
 // used by DepthStencilStateDesc to define a depth function
@@ -681,6 +686,7 @@ function GetViewFormat(textureFormat, viewType, bindFlags) {
 }
 
 export {
+    CONTEXT_CREATION_TYPE,
     COMPARISON_FUNCTION,
     PRIMITIVE_TOPOLOGY,
     VALUE_TYPE,

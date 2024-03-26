@@ -1,5 +1,6 @@
 import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-device";
 import { DEVICE_TYPE } from "../graphics/device-caps";
+import { CONTEXT_CREATION_TYPE } from "../graphics/graphics-types";
 import { BufferGL } from "./buffer-gl";
 import { gl } from "./gl";
 import { GLContext } from "./gl-context";
@@ -12,6 +13,7 @@ class EngineGLAttribs extends EngineCreationAttribs {
     constructor() {
         super();
         this.device_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
+        this.context_creation_type = CONTEXT_CREATION_TYPE.ATTACH;
     }
 }
 

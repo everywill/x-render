@@ -6,6 +6,7 @@ import {
 } from "./buffer-helper";
 import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs } from "../graphics-engine-webgl/render-device-gl";
+import { CONTEXT_CREATION_TYPE } from "./graphics-types";
 
 class GraphicsDriver {
     constructor() {
@@ -359,7 +360,7 @@ GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
     return 0;
 }
 
-GraphicsDriver.Create = function(deviceCaps) {
+GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     const driver = new GraphicsDriver();
 
     let numDeferredContexts = 0;
@@ -376,6 +377,11 @@ GraphicsDriver.Create = function(deviceCaps) {
             if(numDeferredContexts != 0) {
                 console.warn('deferred contexts are not supported in OpenGL mode');
                 numDeferredContexts = 0;
+            }
+            if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
+                
+            } else {
+                
             }
             
         }
