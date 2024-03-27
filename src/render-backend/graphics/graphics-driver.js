@@ -5,8 +5,9 @@ import {
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
 } from "./buffer-helper";
 import { BufferDesc } from "./buffer-desc";
-import { EngineGLAttribs } from "../graphics-engine-webgl/render-device-gl";
+import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
 import { CONTEXT_CREATION_TYPE } from "./graphics-types";
+import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 
 class GraphicsDriver {
     constructor() {
@@ -360,6 +361,18 @@ GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
     return 0;
 }
 
+function AttachToActiveGLContext(creationAttribs, swapChainDesc, driver) {
+    const renderDeviceGL = new RenderDeviceGL(creationAttribs);
+    const deviceContextGL = new DeviceContextGL(renderDeviceGL, false);
+
+    renderDeviceGL.SetImmediateContext(deviceContextGL);
+    
+}
+
+function CreateDeviceAndSwapChainGL(creationAttribs, swapChainDesc, driver) {
+
+}
+
 GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     const driver = new GraphicsDriver();
 
@@ -379,7 +392,7 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 numDeferredContexts = 0;
             }
             if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
-                
+
             } else {
                 
             }
