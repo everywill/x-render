@@ -8,8 +8,17 @@ class SwapchainGL extends SwapChain {
     Release() {}
 
     Present(syncInterval) {
-        
+        const GLContext = this.render_device.gl_context;
+        GLContext.SwapBuffers(syncInterval);
     }
+
+    GetCurrentBackBufferRTV() { }
+
+    GetCurrentBackBufferDSV() { }
+
+    ReadPixels() { }
+
+    GetDefaultFBO() { return null; }
 }
 
 export {

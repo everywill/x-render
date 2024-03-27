@@ -8,6 +8,7 @@ import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
 import { CONTEXT_CREATION_TYPE } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
+import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
 
 class GraphicsDriver {
     constructor() {
@@ -361,11 +362,15 @@ GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
     return 0;
 }
 
-function AttachToActiveGLContext(creationAttribs, swapChainDesc, driver) {
+function AttachToActiveGLContext(creationAttribs, swapchainDesc, driver) {
     const renderDeviceGL = new RenderDeviceGL(creationAttribs);
     const deviceContextGL = new DeviceContextGL(renderDeviceGL, false);
 
     renderDeviceGL.SetImmediateContext(deviceContextGL);
+    swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+    const swapchain = new SwapchainGL(renderDeviceGL, deviceContextGL, swapchainDesc);
+
+    deviceContextGL.SetSwapChain(swapchain);
     
 }
 

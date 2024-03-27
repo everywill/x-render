@@ -35,7 +35,7 @@ class SwapChain {
     // OpenGL backends return null
     GetCurrentBackBufferRTV() { throw 'implementation needed'; }
     // returns depth-stencil view of the depth buffer
-    GetDepthBufferDSV() { throw 'implementation needed'; }
+    GetCurrentBackBufferDSV() { throw 'implementation needed'; }
     ReadPixels() { throw 'implementation needed'; }
 }
 
