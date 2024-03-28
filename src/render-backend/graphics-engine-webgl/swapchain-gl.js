@@ -12,9 +12,19 @@ class SwapchainGL extends SwapChain {
         GLContext.SwapBuffers(syncInterval);
     }
 
-    GetCurrentBackBufferRTV() { }
+    Resize(newWidth, newHeight) {
+        if(super.Resize(newWidth, newHeight)) {
+            if(this.device_context) {
 
-    GetCurrentBackBufferDSV() { }
+            } else {
+                throw 'Immediate context has been released';
+            }
+        }
+    }
+
+    GetCurrentBackBufferRTV() { return null; }
+
+    GetCurrentBackBufferDSV() { return null; }
 
     ReadPixels() { }
 

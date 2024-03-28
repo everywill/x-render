@@ -37,7 +37,7 @@ class DeviceContextGL extends DeviceContext {
         }
     }
 
-    TransitionShaderResources(pipelineState, shaderResourceBinding) {}
+    TransitionShaderResources(pipelineState, shaderResourceBinding) { }
 
     CommitShaderResources(shaderResourceBinding, flags) {
         super.CommitShaderResources(shaderResourceBinding, flags);
@@ -212,6 +212,19 @@ class DeviceContextGL extends DeviceContext {
     GraphicStateRestore() {
         this.app_gl_state.Restore();
         // this.context_state.
+    }
+
+    CommitRenderTargets() {
+        if(this.is_default_framebuffer_bound) {
+            const swapchain = this.swapchain;
+            const defaultFBO = swapchain.GetDefaultFBO();
+            if(this.default_fbo != defaultFBO) {
+                this.default_fbo = defaultFBO;
+            }
+            this.context_state.BindFBO(this.default_fbo);
+        } else {
+
+        }
     }
 }
 
