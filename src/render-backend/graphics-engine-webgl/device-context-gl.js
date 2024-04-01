@@ -214,6 +214,13 @@ class DeviceContextGL extends DeviceContext {
         // this.context_state.
     }
 
+    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
+        if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
+            
+        }
+        
+    }
+
     CommitRenderTargets() {
         if(this.is_default_framebuffer_bound) {
             const swapchain = this.swapchain;

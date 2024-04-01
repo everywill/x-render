@@ -6,9 +6,10 @@ import {
 } from "./buffer-helper";
 import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
-import { CONTEXT_CREATION_TYPE } from "./graphics-types";
+import { CONTEXT_CREATION_TYPE, SwapChainDesc, TEXTURE_FORMAT } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
+import { RennderPassAttribs } from "./device-context-desc";
 
 class GraphicsDriver {
     constructor() {
@@ -362,21 +363,21 @@ GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
     return 0;
 }
 
-function AttachToActiveGLContext(creationAttribs, swapchainDesc, driver) {
-    const renderDeviceGL = new RenderDeviceGL(creationAttribs);
-    const deviceContextGL = new DeviceContextGL(renderDeviceGL, false);
+// function AttachToActiveGLContext(creationAttribs, swapchainDesc, driver) {
+//     const renderDeviceGL = new RenderDeviceGL(creationAttribs);
+//     const deviceContextGL = new DeviceContextGL(renderDeviceGL, false);
 
-    renderDeviceGL.SetImmediateContext(deviceContextGL);
-    swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
-    const swapchain = new SwapchainGL(renderDeviceGL, deviceContextGL, swapchainDesc);
+//     renderDeviceGL.SetImmediateContext(deviceContextGL);
+//     swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+//     const swapchain = new SwapchainGL(renderDeviceGL, deviceContextGL, swapchainDesc);
 
-    deviceContextGL.SetSwapChain(swapchain);
+//     deviceContextGL.SetSwapChain(swapchain);
     
-}
+// }
 
-function CreateDeviceAndSwapChainGL(creationAttribs, swapChainDesc, driver) {
+// function CreateDeviceAndSwapChainGL(creationAttribs, swapChainDesc, driver) {
 
-}
+// }
 
 GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     const driver = new GraphicsDriver();
@@ -384,6 +385,9 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     let numDeferredContexts = 0;
     const contexts = [];
     let device = null;
+    let deviceContext = null;
+    let swapchainDesc = new SwapChainDesc();
+    swapchainDesc.color_buffer_format = TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM;
 
     switch(deviceCaps.dev_type) {
         case DEVICE_TYPE.DEVICE_TYPE_OPENGLES:
@@ -396,10 +400,31 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 console.warn('deferred contexts are not supported in OpenGL mode');
                 numDeferredContexts = 0;
             }
-            if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
 
+            swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+
+            if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
+                device = new RenderDeviceGL(creationAttribs);
+                deviceContext = new DeviceContextGL(device, false);
+                device.SetImmediateContext(deviceContext);
+
+                const swapchain = new SwapChain(device, deviceContext, swapchainDesc);
+
+                deviceContext.SetSwapChain(swapchain);
+                const renderPassAttribs = new RennderPassAttribs();
+                deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
+                deviceContext.EndRenderPass();
             } else {
-                
+                device = new RenderDeviceGL(creationAttribs);
+                deviceContext = new DeviceContextGL(device, false);
+                device.SetImmediateContext(deviceContext);
+
+                const swapchain = new SwapChain(device, deviceContext, swapchainDesc);
+
+                deviceContext.SetSwapChain(swapchain);
+                const renderPassAttribs = new RennderPassAttribs();
+                deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
+                deviceContext.EndRenderPass();
             }
             
         }

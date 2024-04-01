@@ -1,6 +1,15 @@
 import { CONTEXT_CREATION_TYPE } from "../graphics/graphics-types";
 import { gl } from "./gl";
 
+let CURRENT_CONTEXT = null;
+function makeContextCurrent(ctx) {
+    CURRENT_CONTEXT = ctx;
+}
+
+function getCurrentContext() {
+    return CURRENT_CONTEXT;
+}
+
 class GLContext {
     constructor(engineAttribs, deviceCaps) {
         this.context_creation_type = engineAttribs.context_creation_type;
@@ -11,9 +20,9 @@ class GLContext {
 
     InitContext(engineGLAttribs, deviceCaps) {
         if(engineGLAttribs.context_creation_type == CONTEXT_CREATION_TYPE.ATTACH) {
-            this.CreateContext(engineGLAttribs, deviceCaps);
+            
         } else if(engineGLAttribs.context_creation_type == CONTEXT_CREATION_TYPE.CREATE){
-
+            this.CreateContext(engineGLAttribs, deviceCaps);
         }
     }
 
@@ -65,10 +74,14 @@ class GLContext {
             stencil: false,
             desynchronized: false
         }
+
+        const canvas = document.getElementById('canvas');
+        this.context = canvas.getContext('webgl2', GLContextAttributes);
+        makeContextCurrent(this.context);
     }
 
     AttachContext(engineGLAttribs, deviceCaps) {
-        // this.context = 
+        this.context = getCurrentContext();
     }
 
     SwapBuffers(syncInterval) { /* do nothing */ }

@@ -274,7 +274,7 @@ class DeviceContext {
             }
             const texture = depthStencil.GetTexture();
             if(texture) {
-                if(numRenderTargets==0 && texture.ample_count>1) {
+                if(numRenderTargets==0 && texture.sample_count>1) {
                     console.error('depth only render target with msaa may be invalid on some andorid platform')
                 }
             }

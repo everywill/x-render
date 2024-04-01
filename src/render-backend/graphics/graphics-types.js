@@ -492,6 +492,7 @@ class SwapChainDesc {
         this.buffer_count = 2;
         this.default_depth_value = 1.0; // float
         this.default_stencil_value = 0 // uint8
+        this.sample_count = 1;
     }
 }
 
