@@ -1,5 +1,5 @@
 import { DeviceContext } from "../graphics-engine/device-context";
-import { UNIFORM_TYPE } from "../graphics/graphics-types";
+import { MISC_TEXTURE_FLAGS, UNIFORM_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
 import { HEAPF32, gl } from "./gl";
@@ -187,8 +187,11 @@ class DeviceContextGL extends DeviceContext {
 
 
     ResolveResource(msaaTexture, resolvedTexture) {
-        if(msaaTexture && resolvedTexture) {
-            
+        const desc = msaaTexture.GetDesc();
+        if(msaaTexture && (desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE)) {
+            const renderDevice = this.render_device;
+            const currentNativeGLContext = renderDevice.gl_context;
+            gl.blitFramebuffer()
         }
     }
 
@@ -216,7 +219,10 @@ class DeviceContextGL extends DeviceContext {
 
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
-            
+            for(let i=0; i<this.num_targets_to_resolve; i++) {
+                this.ResolveResource(this.pre_render_targets_to_resolve[i].GetTexture());
+                this.pre_render_targets_to_resolve[i] = null;
+            }
         }
         
     }
