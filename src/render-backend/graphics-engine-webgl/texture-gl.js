@@ -182,6 +182,15 @@ function GetCurrentBindTexture(bindTarget) {
     return currentTexture;
 }
 
+const CubeMapFaces = [
+    gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+    gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+]
+
 class TextureGL extends Texture {
     constructor(renderDevice, textureDesc, textureData) {
         super(renderDevice, textureDesc);
@@ -685,6 +694,8 @@ class TextureGL extends Texture {
             {
                 gl.bindTexture(this.bind_target, this.gl_texture);
 
+                const cubemapFaceBindTarget = CubeMapFaces[slice];
+
                 let unpackBuffer = null;
                 if(subResData.src_buffer) {
                     unpackBuffer = subResData.src_buffer.GetGLBuffer();
@@ -706,7 +717,7 @@ class TextureGL extends Texture {
                     if(subResData.stride != blockBytesInRow) {
                         throw 'compressed data stride must match the size of a row of compressed block';
                     }
-                    gl.compressedTexSubImage2D(this.bind_target, mipLevel, 
+                    gl.compressedTexSubImage2D(CubeMapFaceBindTarget, mipLevel, 
                                                 dstBox.min_x, 
                                                 dstBox.min_y,
                                                 dstBox.max_x-dstBox.min_x, 
@@ -724,7 +735,7 @@ class TextureGL extends Texture {
                     gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
                     gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
 
-                    gl.texSubImage2D(this.bind_target, mipLevel, 
+                    gl.texSubImage2D(CubeMapFaceBindTarget, mipLevel, 
                                     dstBox.min_x, 
                                     dstBox.min_y, 
                                     dstBox.max_x-dstBox.min_x, 
@@ -768,6 +779,79 @@ class TextureGL extends Texture {
         } else {
             throw 'WebGL texture copy not supported';
         }
+    }
+
+    AttachToFramebuffer(viewDesc, attachmentPoint) {
+        switch(this.desc.type) {
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+            {
+                if(this.desc.sample_count>=2) {
+                    if(attachmentPoint == gl.DEPTH_STENCIL_ATTACHMENT || attachmentPoint == gl.DEPTH_ATTACHMENT) {
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentPoint, gl.RENDERBUFFER, this.gl_renderbuffer);
+                    } else {
+                        if(this.render_device.GetDeviceCaps().multisample_rendertexture_supported && viewDesc.format) {
+                            // not supported in WebGL
+                        } else {
+                            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentPoint, gl.RENDERBUFFER, this.gl_renderbuffer);
+                        }
+                    }
+                } else {
+                    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, attachmentPoint, this.bind_target, this.gl_texture, viewDesc.most_detailed_mip);
+                    gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, attachmentPoint, this.bind_target, this.gl_texture, viewDesc.most_detailed_mip);
+                }
+                break;
+            }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+            {
+                if(viewDesc.num_array_or_depth_slice == this.desc.array_size_or_depth) {
+                    throw 'Render target not support entire 2D Array Texture';
+                } else if(viewDesc.num_array_or_depth_slice == 1) {
+                    gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, attachmentPoint, this.gl_texture, viewDesc.most_detailed_mip, viewDesc.first_array_or_depth_slice);
+                    gl.framebufferTextureLayer(gl.READ_FRAMEBUFFER, attachmentPoint, this.gl_texture, viewDesc.most_detailed_mip, viewDesc.first_array_or_depth_slice);
+                } else {
+                    throw 'Only one slice or the entire texture array can be attached to a framebuffer';
+                }
+                break;
+            }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+            {
+                const numDepthSlicesInMip = this.desc.array_size_or_depth >> viewDesc.most_detailed_mip;
+                if(viewDesc.num_array_or_depth_slice == numDepthSlicesInMip) {
+                    throw 'Render target not support entire 3D Array Texture';
+                } else if(viewDesc.num_array_or_depth_slice == 1) {
+                    gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, attachmentPoint, this.gl_texture, viewDesc.most_detailed_mip, viewDesc.first_array_or_depth_slice);
+                    gl.framebufferTextureLayer(gl.READ_FRAMEBUFFER, attachmentPoint, this.gl_texture, viewDesc.most_detailed_mip, viewDesc.first_array_or_depth_slice);
+                } else {
+                    throw 'Only one slice or the entire 3D texture can be attached to a framebuffer';
+                }
+                break;
+            }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+            {
+                if(viewDesc.num_array_or_depth_slice == this.desc.array_size_or_depth) {
+                    throw 'Render Target not support entire Cube Array Texture';
+                } else if(viewDesc.num_array_or_depth_slice == 1) {
+                    const cubemapFaceBindTarget = CubeMapFaces[viewDesc.first_array_or_depth_slice];
+
+                    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, attachmentPoint, cubemapFaceBindTarget, this.gl_texture, viewDesc.most_detailed_mip);
+                    gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, attachmentPoint, cubemapFaceBindTarget, this.gl_texture, viewDesc.most_detailed_mip);
+                } else {
+                    throw 'Only one slice or the entire Cube Array texture can be attached to a framebuffer'
+                }
+                break;
+            }
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
+            {
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, attachmentPoint, this.bind_target, this.gl_texture, viewDesc.most_detailed_mip);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, attachmentPoint, this.bind_target, this.gl_texture, viewDesc.most_detailed_mip);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    ReadPixels(deviceContext, isHDR) { 
         
     }
 } 

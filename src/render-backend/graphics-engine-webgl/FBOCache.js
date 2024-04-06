@@ -1,4 +1,5 @@
 import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
+import { gl } from "./gl";
 
 class FBOCacheKey {
     constructor() {
@@ -40,6 +41,14 @@ class FBOCache {
         this.cache = new Map();
     }
 
+    FindKey(cacheKey) {
+        for(let [key, value] of this.cache) {
+            if(key.equal(cacheKey)) {
+                return key;
+            }
+        }
+    }
+
     GetFBO(numRenderTargets, renderTargets, depthStencil, contextState) {
         if(numRenderTargets>0 && !renderTargets[numRenderTargets-1]) {
             numRenderTargets--;
@@ -68,6 +77,15 @@ class FBOCache {
         if(depthStencil) {
             key.depth_stencil = depthStencil.GetTexture();
             key.depth_stencil_desc = depthStencil.GetDesc();
+        }
+
+        const cacheKey = this.FindKey(key);
+
+        if(cacheKey) {
+            return this.cache[cacheKey];
+        } else {
+            const newFBO = gl.createFramebuffer();
+            contextState.BindFBO(newFBO);
         }
     }
 }
