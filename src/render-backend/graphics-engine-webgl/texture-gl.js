@@ -202,6 +202,7 @@ class TextureGL extends Texture {
         this.bind_target = gl.TEXTURE_2D;
         this.PBOs = [];  
         this.current_PBO = null;
+        this.fences = [];
 
         if(this.desc.sample_count<=1) {
             this.gl_texture = gl.createTexture();
@@ -432,6 +433,7 @@ class TextureGL extends Texture {
 
     GetGLTexture() { return this.gl_texture; }
     GetBindTarget() { return this.bind_target; }
+    GetGLTexFormat() { return this.gl_tex_format; }
 
     Release() {
         if(this.gl_texture) {
@@ -851,8 +853,60 @@ class TextureGL extends Texture {
         }
     }
 
-    ReadPixels(deviceContext, isHDR) { 
-        
+    ReadPixels(deviceContext, pixels, isHDR) { 
+        if(isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA32_FLOAT)) {
+            console.error('Read Pixels only support 2D Texture, HDR Texture only support RGBA32F');
+            return;
+        }
+        if(!isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM)) {
+            console.error('Read Pixels only support 2D Texture, 8bit Texture only support RGBA8');
+        }
+        const fbo = gl.createFramebuffer();
+        deviceContext.GetContextState().BindFBO(fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.gl_texture, 0);
+
+        if(this.desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_ASYNC_READ) {
+            const defaultPBO = gl.getParameter(gl.PIXEL_PACK_BUFFER_BINDING);
+            if(!this.PBOs[0] || !this.PBOs[1]) {
+                this.PBOs[0] = gl.createBuffer();
+                this.PBOs[1] = gl.createBuffer();
+
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this.PBOs[0]);
+                gl.bufferData(gl.PIXEL_PACK_BUFFER, this.desc.width*this.desc.height*4*(isHDR ? 4 : 1), gl.STREAM_READ);
+                this.fences[0] = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this.PBOs[1]);
+                gl.bufferData(gl.PIXEL_PACK_BUFFER, this.desc.width*this.desc.height*4*(isHDR ? 4 : 1), gl.STREAM_READ);
+                this.fences[1] = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, defaultPBO);
+            }
+
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this.PBOs[this.current_PBO]);
+            gl.readPixels(0, 0, this.desc.width, this.desc.height, gl.RGBA, isHDR ? gl.FLOAT : gl.UNSIGNED_BYTE, 0);
+            this.fences[this.current_PBO] = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+            // wait for last operation to finish
+            if(this.fences[(this.current_PBO + 1) % 2]) {
+                gl.waitSync(this.fences[(this.current_PBO + 1) % 2], 0, gl.TIMEOUT_IGNORED);
+                gl.deleteSync(this.fences[(this.current_PBO + 1) % 2]);
+                this.fences[(this.current_PBO + 1) % 2] = null;
+            }
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this.PBOs[(this.current_PBO + 1) % 2]);
+            gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pixels, 0, this.desc.width*this.desc.height*4*(isHDR ? 4 : 1));
+
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, defaultPBO);
+
+            deviceContext.InvalidateState();
+        } else {
+            gl.readPixels(0, 0, this.desc.width, this.desc.height, gl.RGBA, isHDR ? gl.FLOAT : gl.UNSIGNED_BYTE, pixels);
+        }
+    }
+
+    ReadPixels(deviceContext, pixels) {
+        if(pixels instanceof Float32Array) {
+            return this.ReadPixels(deviceContext, pixels, true);
+        } else {
+            return this.ReadPixels(deviceContext, pixels, false);
+        }
     }
 } 
 

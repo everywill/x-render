@@ -184,8 +184,6 @@ class DeviceContextGL extends DeviceContext {
         }
     }
 
-
-
     ResolveResource(msaaTexture, resolvedTexture) {
         const desc = msaaTexture.GetDesc();
         if(msaaTexture && (desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE)) {

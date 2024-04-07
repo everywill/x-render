@@ -270,7 +270,7 @@ class Texture {
         this.ValidateCopyDataParams(srcTexture.GetDesc(), srcMipLevel, srcSlice, srcBox, this.desc, dstMipLevel, dstSlice, dstBox);
     }
 
-    ReadPixels(deviceContext) { throw 'need implement'; }
+    ReadPixels(deviceContext, pixels) { throw 'need implement'; }
 
     ValidateTextureDesc(desc) {
         if(desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_UNDEFINED) {
