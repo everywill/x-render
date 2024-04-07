@@ -22,6 +22,7 @@ class RenderDeviceGL extends RenderDevice {
         super(engineAttribs.custom_device_caps, 0);
         this.device_caps.separable_program_supported = false;
         this.gl_context = new GLContext(engineAttribs, this.device_caps);
+        this.FBO_cache = new Map();
     }
 
     InitDeviceLimits() {
@@ -39,6 +40,10 @@ class RenderDeviceGL extends RenderDevice {
 
         // depth/slices
         this.device_caps.limit_caps.max_texture_array_layers = gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS);
+    }
+
+    GetFBOCache(context) {
+        return this.FBO_cache[context];
     }
 
     CreateBuffer(bufferDesc, bufferData) {

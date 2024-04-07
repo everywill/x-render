@@ -1,5 +1,5 @@
 import { DeviceContext } from "../graphics-engine/device-context";
-import { MISC_TEXTURE_FLAGS, UNIFORM_TYPE } from "../graphics/graphics-types";
+import { MISC_TEXTURE_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
 import { HEAPF32, gl } from "./gl";
@@ -185,12 +185,32 @@ class DeviceContextGL extends DeviceContext {
     }
 
     ResolveResource(msaaTexture, resolvedTexture) {
-        const desc = msaaTexture.GetDesc();
-        if(msaaTexture && (desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE)) {
+        if(msaaTexture && resolvedTexture) {
+            const desc = msaaTexture.GetDesc();
+            msaaTexture.SetResolveFlag(resolved);
             const renderDevice = this.render_device;
-            const currentNativeGLContext = renderDevice.gl_context;
-            gl.blitFramebuffer()
+            const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
+            const FBOCache = renderDevice.GetFBOCache(currentNativeGLContext);
+
+            const srcTexView = msaaTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
+            const srcFBO = FBOCache.GetFBO(1, [srcTexView], null, this.context_state);
+
+            const dstTexView = resolvedTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
+            const dstFBO = FBOCache.GetFBO(1, [dstTexView], null, this.context_state);
+
+            if(srcFBO && dstFBO) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFBO);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dstFBO);
+
+                gl.disable(gl.SCISSOR_TEST);
+                gl.blitFramebuffer(0, 0, desc.width, desc.height, 0, 0, desc.width, desc.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+            }
         }
+    }
+
+    ResolveResource(msaaTexture) {
+        const desc = msaaTexture.GetDesc();
+        if()
     }
 
     FinishCommandList(commandList) {

@@ -18,6 +18,10 @@ class GLContext {
         this.InitContext(engineAttribs, deviceCaps);
     }
 
+    GetCurrentNativeGLContext() {
+        return getCurrentContext();
+    }
+
     InitContext(engineGLAttribs, deviceCaps) {
         if(engineGLAttribs.context_creation_type == CONTEXT_CREATION_TYPE.ATTACH) {
             
