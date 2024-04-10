@@ -3,6 +3,7 @@ import { MISC_TEXTURE_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
 import { HEAPF32, gl } from "./gl";
+import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
 
 class DeviceContextGL extends DeviceContext {
     constructor(renderDevice, isDeferred) {
@@ -190,13 +191,13 @@ class DeviceContextGL extends DeviceContext {
             msaaTexture.SetResolveFlag(resolved);
             const renderDevice = this.render_device;
             const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
-            const FBOCache = renderDevice.GetFBOCache(currentNativeGLContext);
+            const fboCache = renderDevice.GetFBOCache(currentNativeGLContext);
 
             const srcTexView = msaaTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
-            const srcFBO = FBOCache.GetFBO(1, [srcTexView], null, this.context_state);
+            const srcFBO = fboCache.GetFBO(1, [srcTexView], null, this.context_state);
 
             const dstTexView = resolvedTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
-            const dstFBO = FBOCache.GetFBO(1, [dstTexView], null, this.context_state);
+            const dstFBO = fboCache.GetFBO(1, [dstTexView], null, this.context_state);
 
             if(srcFBO && dstFBO) {
                 gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFBO);
@@ -210,7 +211,22 @@ class DeviceContextGL extends DeviceContext {
 
     ResolveResource(msaaTexture) {
         const desc = msaaTexture.GetDesc();
-        if()
+        if(msaaTexture && desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE) {
+            const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
+            const fboCache = this.render_device.GetFBOCache(currentNativeGLContext);
+
+            const srcTexView = msaaTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
+            const srcFBO = fboCache.GetFBO(1, [srcTexView], null, this.context_state);
+
+            const dstTexView = msaaTexture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE);
+            const dstFBO = fboCache.GetFBO(1, [dstTexView], null, this.context_state);
+
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFBO);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dstFBO);
+
+            gl.disable(gl.SCISSOR_TEST);
+            gl.blitFramebuffer(0, 0, desc.width, desc.height, 0, 0, desc.width, desc.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        }
     }
 
     FinishCommandList(commandList) {
@@ -254,8 +270,36 @@ class DeviceContextGL extends DeviceContext {
             }
             this.context_state.BindFBO(this.default_fbo);
         } else {
+            if(this.num_bind_render_targets==0 && !this.bound_depth_stencil) {
+                throw 'at least one render target or a depth stencil is expected';
+            }
+            let numRenderTargets = this.num_bind_render_targets;
+            if(numRenderTargets >= MAX_RENDER_TARGETS) {
+                console.warn('too many render target are set');
+                numRenderTargets = Math.min(numRenderTargets, MAX_RENDER_TARGETS);
+            }
 
+            const ctxCaps = this.context_state.GetContextCaps();
+            if(numRenderTargets >= ctxCaps.max_draw_buffers) {
+                console.warn(`this device only supports ${ctxCaps.max_draw_buffers} draw buffers`);
+                numRenderTargets = Math.min(numRenderTargets, ctxCaps.max_draw_buffers);
+            }
+
+            const boundRTVs = [];
+            for(let i=0; i<numRenderTargets; i++) {
+                boundRTVs[i] = this.bound_render_targets[i];
+            }
+
+            const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
+            const fboCache = this.render_device.GetFBOCache(currentNativeGLContext);
+            const fbo = fboCache.GetFBO(numRenderTargets, boundRTVs, this.bound_depth_stencil, this.context_state);
+            this.context_state.BindFBO(fbo);
         }
+        this.SetViewports(1, null, 0, 0);
+    }
+
+    SetViewports(numViewports, viewports, RTWidth, RTHeight) {
+        
     }
 }
 

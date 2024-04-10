@@ -105,6 +105,8 @@ class GLContextState {
         this.bound_images_capacity = 32;
     }
 
+    GetContextCaps() { return this.caps; }
+
     SetCurrentGLState(renderDevice) {
         const appGLState = new AppGLState(renderDevice);
         appGLState.Save();
