@@ -2,8 +2,8 @@ import { DeviceContext } from "../graphics-engine/device-context";
 import { MISC_TEXTURE_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
-import { HEAPF32, gl } from "./gl";
-import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
+import { gl } from "./gl";
+import { DEVICE_TYPE, MAX_RENDER_TARGETS } from "../graphics/device-caps";
 
 class DeviceContextGL extends DeviceContext {
     constructor(renderDevice, isDeferred) {
@@ -259,6 +259,13 @@ class DeviceContextGL extends DeviceContext {
             }
             this.num_targets_to_resolve = 0;
             this.CommitRenderTargets();
+            // const caps = this.render_device.GetDeviceCaps();
+            const clearFlag = this.render_pass_attribs.flags.clear;
+            // const discardStartFlag = this.render_pass_attribs.flags.discard_start;
+
+            if(clearFlag) {
+
+            }
         }
         
     }
@@ -321,7 +328,10 @@ class DeviceContextGL extends DeviceContext {
         }
     }
 
-
+    ClearWithRasterPipe(clearFlags) {
+        const depthWriteEnabled = this.context_state.GetDepthWriteEnable();
+        const scissorTestEnabled = this.context_state.GetScissorTestEnable();
+    }
 }
 
 export {

@@ -300,6 +300,9 @@ class GLContextState {
         gl.blendColor(blendFactors[0], blendFactors[1], blendFactors[2], blendFactors[3]);
     }
 
+    GetDepthWriteEnable() { return this.DS_state.depth_writes_enable_state; }
+    GetScissorTestEnable() { return this.RS_state.scissor_test_enable; }
+
     SetColorWriteMask(renderTargetIndex, writeMask, isIndependent) {
         // even though the write mask only applies to writes to a framebuffer, the mask state is NOT
         // Framebuffer state. So it is NOT part of a Framebuffer Object or the Default Framebuffer.
