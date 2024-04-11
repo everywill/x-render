@@ -135,14 +135,14 @@ class DeviceContext {
 
         if(numViewports >= MAX_VIEWPORTS) {
             console.error('number of viewports exceed the limit');
-            this.num_viewports = Math.min(MAX_BUFFER_SLOTS, numViewports);
+            this.num_viewports = Math.min(MAX_VIEWPORTS, numViewports);
         }
 
         const defaultVP = new Viewport();
         defaultVP.width = RTWidth;
         defaultVP.height = RTHeight;
         // if no viewports provided, use default viewport
-        if(this.numViewports == 1 && !viewports) {
+        if(this.num_viewports == 1 && !viewports) {
             viewports = [defaultVP];
         }
 

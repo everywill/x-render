@@ -188,7 +188,7 @@ class DeviceContextGL extends DeviceContext {
     ResolveResource(msaaTexture, resolvedTexture) {
         if(msaaTexture && resolvedTexture) {
             const desc = msaaTexture.GetDesc();
-            msaaTexture.SetResolveFlag(resolved);
+            msaaTexture.SetResolveFlag(true);
             const renderDevice = this.render_device;
             const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
             const fboCache = renderDevice.GetFBOCache(currentNativeGLContext);
@@ -257,6 +257,8 @@ class DeviceContextGL extends DeviceContext {
                 this.ResolveResource(this.pre_render_targets_to_resolve[i].GetTexture());
                 this.pre_render_targets_to_resolve[i] = null;
             }
+            this.num_targets_to_resolve = 0;
+            this.CommitRenderTargets();
         }
         
     }
@@ -299,8 +301,27 @@ class DeviceContextGL extends DeviceContext {
     }
 
     SetViewports(numViewports, viewports, RTWidth, RTHeight) {
-        
+        super.SetViewports(numViewports, viewports, RTWidth, RTHeight);
+        if(numViewports != this.num_viewports) {
+            console.warn('unexpected num of viewports');
+        }
+
+        if(numViewports == 1) {
+            // OpenGL window coordinates start from left-bottom
+            const vp = viewports[0];
+            const bottomLeftX = vp.top_left_x;
+            const bottomLeftY = vp.top_left_y;
+            const width = vp.width;
+            const height = vp.height;
+
+            gl.viewport(bottomLeftX, bottomLeftY, width, height);
+            gl.depthRange(vp.min_depth, vp.max_depth);
+        } else {
+            throw 'not support multople viewports';
+        }
     }
+
+
 }
 
 export {
