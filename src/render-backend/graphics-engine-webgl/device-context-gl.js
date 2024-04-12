@@ -1,9 +1,10 @@
 import { DeviceContext } from "../graphics-engine/device-context";
-import { MISC_TEXTURE_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics/graphics-types";
+import { MISC_TEXTURE_FLAGS, TARGET_BUFFER_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
 import { gl } from "./gl";
 import { DEVICE_TYPE, MAX_RENDER_TARGETS } from "../graphics/device-caps";
+import { COLOR_MASK } from "../graphics/pipelinestate-desc";
 
 class DeviceContextGL extends DeviceContext {
     constructor(renderDevice, isDeferred) {
@@ -259,15 +260,22 @@ class DeviceContextGL extends DeviceContext {
             }
             this.num_targets_to_resolve = 0;
             this.CommitRenderTargets();
-            // const caps = this.render_device.GetDeviceCaps();
+            const caps = this.render_device.GetDeviceCaps();
             const clearFlag = this.render_pass_attribs.flags.clear;
-            // const discardStartFlag = this.render_pass_attribs.flags.discard_start;
-
+            const discardStartFlag = this.render_pass_attribs.flags.discard_start;
+            if(caps.dev_type ==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
+                const attachmentArray = [];
+                this.GetAttachments(attachmentArray, discardStartFlag);
+                if(attachmentArray.length) {
+                    gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
+                }
+            } else {
+                this.ClearWithRasterPipe(targetBuffers & ~clearFlag);
+            }
             if(clearFlag) {
-
+                this.ClearWithRasterPipe(clearFlag);
             }
         }
-        
     }
 
     CommitRenderTargets() {
@@ -328,9 +336,95 @@ class DeviceContextGL extends DeviceContext {
         }
     }
 
+    GetAttachments(attachmentArray, targetBuffers) {
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR0) {
+            attachmentArray.push(this.is_default_framebuffer_bound ? gl.COLOR : gl.COLOR_ATTACHMENT0);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR1) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT1);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR2) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT2);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR3) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT3);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR4) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT4);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR5) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT5);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR6) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT6);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR7) {
+            attachmentArray.push(gl.COLOR_ATTACHMENT7);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.DEPTH) {
+            attachmentArray.push(this.is_default_framebuffer_bound ? gl.DEPTH : gl.DEPTH_ATTACHMENT);
+        }
+        if(targetBuffers & TARGET_BUFFER_FLAGS.STENCIL) {
+            attachmentArray.push(this.is_default_framebuffer_bound ? gl.STENCIL : gl.STENCIL_ATTACHMENT);
+        }
+    }
+
     ClearWithRasterPipe(clearFlags) {
         const depthWriteEnabled = this.context_state.GetDepthWriteEnable();
         const scissorTestEnabled = this.context_state.GetScissorTestEnable();
+        if(!depthWriteEnabled) {
+            gl.depthMask(true);
+        }
+        if(scissorTestEnabled) {
+            gl.disable(gl.SCISSOR_TEST);
+        }
+
+        for(let i=0; i<MAX_RENDER_TARGETS; i++) {
+            const colorAttachment = TARGET_BUFFER_FLAGS.COLOR0 << i;
+            if(clearFlags & colorAttachment) {
+                const colorWriteMask = this.context_state.GetColorWriteMask(i);
+                this.context_state.SetColorWriteMask(i, COLOR_MASK.COLOR_MASK_ALL, colorWriteMask.is_independent);
+                gl.clearBufferfv(gl.COLOR, i, this.render_pass_attribs.clear_color[i]);
+                this.context_state.SetColorWriteMask(i, colorWriteMask.write_mask, colorWriteMask.is_independent);
+            }
+
+            if((clearFlags & TARGET_BUFFER_FLAGS.DEPTH_AND_STENCIL) == TARGET_BUFFER_FLAGS.DEPTH_AND_STENCIL) {
+                gl.clearBufferfi(gl.DEPTH_STENCIL, 0, this.render_pass_attribs.depth_value, this.render_pass_attribs.stencil_value);
+            } else {
+                if(clearFlags & TARGET_BUFFER_FLAGS.DEPTH) {
+                    gl.clearBufferfv(gl.DEPTH, 0, [this.render_pass_attribs.depth_value]);
+                }
+                if(clearFlags & TARGET_BUFFER_FLAGS.STENCIL) {
+                    gl.clearBufferiv(gl.STENCIL, 0, [this.render_pass_attribs.stencil_value]);
+                }
+            }
+        }
+
+        if(scissorTestEnabled) {
+            gl.enable(gl.SCISSOR_TEST);
+        }
+        if(!depthWriteEnabled) {
+            gl.depthMask(false);
+        }
+    }
+
+    EndRenderPass() {
+        const caps = this.render_device.GetDeviceCaps();
+        const clearFlag = this.render_pass_attribs.flags.clear;
+        const discardEndFlag = this.render_pass_attribs.flags.discard_end;
+        if(caps.dev_type ==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
+            this.CommitRenderTargets();
+            const attachmentArray = [];
+            this.GetAttachments(attachmentArray, discardEndFlag);
+            if(attachmentArray.length) {
+                gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
+            }
+        }
+    }
+
+    Draw(drawAttribs) {
+        super.Draw(drawAttribs);
+        const renderDevice = this.render_device;
     }
 }
 

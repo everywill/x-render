@@ -64,7 +64,7 @@ class DrawAttribs {
         // when more than 1, instance drawing will be performed
         this.num_instances = 1;
         // location(or index) of the first vertex buffer to start reading from
-        this.start_instance_locatino = 0;
+        this.start_instance_location = 0;
         // if indirect drawing will be performing
         // when true, indirect_draw_attribs must be valid
         this.is_indirect = false;
