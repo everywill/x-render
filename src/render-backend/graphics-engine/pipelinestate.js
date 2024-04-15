@@ -85,6 +85,7 @@ class PipelineState {
 
     GetDesc() { return this.desc; }
     GetProgram() { return this.program; }
+    GetBufferStrides() { return this.strides; }
 
     Release() { throw 'need implement'; }
 

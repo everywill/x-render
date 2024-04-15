@@ -425,6 +425,8 @@ class DeviceContextGL extends DeviceContext {
     Draw(drawAttribs) {
         super.Draw(drawAttribs);
         const renderDevice = this.render_device;
+        const currentNativeGLContext = renderDevice.gl_context.GetCurrentNativeGLContext();
+        
     }
 }
 
