@@ -54,7 +54,7 @@ class PipelineState {
                 this.strides[bufferSlot] = inputElem.stride;
             }
 
-            tightStrides[bufferSlot] += GetValueSize(inputElem.num_components) * inputElem.num_components;
+            tightStrides[bufferSlot] += GetValueSize(inputElem.value_type) * inputElem.num_components;
         }
 
         for(let elem=0; elem<this.desc.input_layout_desc.layout_elements.length; elem++) {
