@@ -1,8 +1,8 @@
 import { COMPARISON_FUNCTION } from "../graphics/graphics-types";
 import { BLEND_FACTOR, BLEND_OPERATION, STENCIL_OP } from "../graphics/pipelinestate-desc";
+import { getCurrentContext } from "./gl-context";
 
-const canvas = document.createElement('canvas');
-const gl = canvas.getContext('webgl2');
+const gl = getCurrentContext()
 
 function CompareFuncToGLCompare(func) {
     switch(func) {

@@ -1,5 +1,4 @@
 import { CONTEXT_CREATION_TYPE } from "../graphics/graphics-types";
-import { gl } from "./gl";
 
 let CURRENT_CONTEXT = null;
 function makeContextCurrent(ctx) {
@@ -16,6 +15,7 @@ class GLContext {
         this.device_type = engineAttribs.device_type;
 
         this.InitContext(engineAttribs, deviceCaps);
+        this.CheckFeatures(engineAttribs, deviceCaps);
     }
 
     GetCurrentNativeGLContext() {
@@ -31,11 +31,13 @@ class GLContext {
     }
 
     CheckFeatures(engineGLAttribs, deviceCaps) {
-        const version = gl.getParameter(gl.VERSION);
-        const renderer = gl.getParameter(gl.RENDERER);
+        const version = this.context.getParameter(this.context.VERSION);
+        const renderer = this.context.getParameter(this.context.RENDERER);
 
         const majorVersion = 3;
         const minorVersion = 0;
+
+        console.info(`${engineGLAttribs.context_creation_type == CONTEXT_CREATION_TYPE.CREATE ? 'Initialize WebGL context' : 'Attach WebGL context'}, ${majorVersion}.${minorVersion}, ${version}, ${renderer}`);
 
         deviceCaps.device_type = engineGLAttribs.device_type;
 
@@ -93,4 +95,5 @@ class GLContext {
 
 export {
     GLContext,
+    getCurrentContext,
 }
