@@ -340,7 +340,14 @@ class DeviceContextGL extends DeviceContext {
 
     GraphicStateRestore() {
         this.app_gl_state.Restore();
-        // this.context_state.
+        this.context_state.gl_prog = null;
+        this.context_state.vao = null;
+        this.context_state.fbo = null;
+        this.context_state.render_buffer = null;
+        
+        // risk: ddelete resources safely
+        this.context_state.bound_samplers = [];
+        this.context_state.bound_textures = [];
     }
 
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
@@ -444,6 +451,9 @@ class DeviceContextGL extends DeviceContext {
             //     /
             //  OpenGL (0,0)
             //
+            const width = rect.right - rect.left;
+            const height = rect.top - rect.bottom;
+            gl.scissor(rect.left, rect.bottom, width, height);
         } else {
             console.error('not support multiple scissors');
         }
