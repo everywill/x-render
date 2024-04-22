@@ -90,6 +90,7 @@ class DeviceContext {
             }
         }
 
+        // remove null buffers from the end of the array
         while(this.num_vertex_streams>0 && !this.vertex_streams[this.num_vertex_streams-1].buffer) {
             this.vertex_streams[this.num_vertex_streams--] = new VertexStreamInfo();
         }

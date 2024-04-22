@@ -1,10 +1,75 @@
 import { DeviceContext } from "../graphics-engine/device-context";
-import { MISC_TEXTURE_FLAGS, TARGET_BUFFER_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE } from "../graphics/graphics-types";
+import { MISC_TEXTURE_FLAGS, PRIMITIVE_TOPOLOGY, TARGET_BUFFER_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE, VALUE_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
 import { gl } from "./gl";
 import { DEVICE_TYPE, MAX_RENDER_TARGETS } from "../graphics/device-caps";
 import { COLOR_MASK } from "../graphics/pipelinestate-desc";
+import { GetValueSize } from "../graphics-accessories/graphics-accessories";
+
+
+function PrimitiveTopologyToGLTopology(primitiveTopology) {
+    let glTopology;
+    switch(primitiveTopology) {
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_UNDEFINED:
+            glTopology = undefined;
+            break;
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+            glTopology = gl.TRIANGLES;
+            break;
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+            glTopology = gl.TRIANGLE_STRIP;
+            break;
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_POINT_LIST:
+            glTopology = gl.POINTS;
+            break;
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_LINE_LIST:
+            glTopology = gl.LINES;
+            break;
+        case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_LINE_STRIP:
+            glTopology = gl.LINE_STRIP;
+            break;
+        default:
+            throw 'unexpected primitive topology';
+    }
+    return glTopology;
+}
+
+function TypeToGLType(valueType) {
+    let glType;
+    switch(valueType) {
+        case VALUE_TYPE.VT_UNDEFINED:
+            glType = undefined;
+            break;
+        case VALUE_TYPE.VT_INT8:
+            glType = gl.BYTE;
+            break;
+        case VALUE_TYPE.VT_UINT8:
+            glType = gl.UNSIGNED_BYTE;
+            break;
+        case VALUE_TYPE.VT_INT16:
+            glType = gl.SHORT;
+            break;
+        case VALUE_TYPE.VT_UINT16:
+            glType = gl.UNSIGNED_SHORT;
+            break;
+        case VALUE_TYPE.VT_INT32:
+            glType = gl.INT;
+            break;
+        case VALUE_TYPE.VT_UINT32:
+            glType = gl.UNSIGNED_INT;
+            break;
+        case VALUE_TYPE.VT_FLOAT16:
+            glType = undefined;
+            break;
+        case VALUE_TYPE.VT_FLOAT32:
+            glType = gl.FLOAT;
+            break;
+        default:
+            throw 'unexpected value type';
+    }
+    return glType;
+}
 
 class DeviceContextGL extends DeviceContext {
     constructor(renderDevice, isDeferred) {
@@ -427,6 +492,76 @@ class DeviceContextGL extends DeviceContext {
         const renderDevice = this.render_device;
         const currentNativeGLContext = renderDevice.gl_context.GetCurrentNativeGLContext();
         
+        const pipelineDesc = this.pipelinestate.GetDesc().graphics_pipeline_desc;
+        const VAOCache = this.render_device.GetVAOCache(currentNativeGLContext);
+        const indexBuffer = drawAttribs.is_indexed ? this.index_buffer : null;
+
+        let VAO;
+        if(pipelineDesc.input_layout_desc.num_elements>0 || indexBuffer) {
+            VAO = VAOCache.GetVAO(this.pipelinestate, indexBuffer, this.vertex_streams, this.num_vertex_streams, this.context_state);
+        } else {
+            VAO = VAOCache.GetEmptyVAO();
+        }
+        this.context_state.BindVAO(VAO);
+
+        let glTopology;
+        const topology = pipelineDesc.primitive_topology;
+
+        if(topology >= PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_CONTROL_POINT_PATCHLIST) {
+            throw 'tessellation is not supported';
+        } else {
+            glTopology = PrimitiveTopologyToGLTopology(topology);
+        }
+
+        let indexType;
+        let firstIndexByteOffset;
+
+        if(drawAttribs.is_indexed) {
+            indexType = TypeToGLType(drawAttribs.index_type);
+            if(indexType != gl.UNSIGNED_BYTE && indexType != gl.UNSIGNED_SHORT && indexType != gl.UNSIGNED_INT) {
+                throw 'unsupported index type';
+            }
+            if(!indexBuffer) {
+                throw 'index buffer is not bound to the pipeline';
+            }
+            firstIndexByteOffset = GetValueSize(drawAttribs.index_type) * drawAttribs.start_vertex_or_index_location + this.index_data_start_offset;
+        }
+
+        if(drawAttribs.is_indirect) {
+            console.error('indirect rendering is not supported');
+        } else {
+            if(drawAttribs.num_instances > 1) {
+                if(drawAttribs.is_indexed) {
+                    if(drawAttribs.base_vertex) {
+                        console.error('not support draw elements instanced base vertex');
+                    } else {
+                        if(drawAttribs.start_instance_location) {
+                            console.error('not support draw elements instanced base instance');
+                        } else {
+                            gl.drawElementsInstanced(glTopology, drawAttribs.num_vertices_or_indice, indexType, firstIndexByteOffset, drawAttribs.num_instances);
+                        }
+                    }
+                } else {
+                    if(drawAttribs.start_instance_location) {
+                        console.error('not support draw arrays instanced base instance');
+                    } else {
+                        gl.drawArraysInstanced(glTopology, drawAttribs.start_vertex_or_index_location, drawAttribs.num_vertices_or_indices, drawAttribs.num_instances);
+                    }
+                }
+            } else {
+                if(drawAttribs.is_indexed) {
+                    if(drawAttribs.base_vertex) {
+                        console.error('not supported')
+                    } else {
+                        gl.drawElements(glTopology, drawAttribs.num_vertices_or_indice, indexType, firstIndexByteOffset);
+                    }
+                } else {
+                    gl.drawArrays(glTopology, drawAttribs.start_vertex_or_index_location, drawAttribs.num_vertices_or_indices);
+                }
+            }
+        }
+
+        this.context_state.UnbindVAO();
     }
 }
 

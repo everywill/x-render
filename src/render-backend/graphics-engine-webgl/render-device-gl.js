@@ -23,6 +23,7 @@ class RenderDeviceGL extends RenderDevice {
         this.device_caps.separable_program_supported = false;
         this.gl_context = new GLContext(engineAttribs, this.device_caps);
         this.FBO_cache = new Map();
+        this.VAO_cache = new Map();
     }
 
     InitDeviceLimits() {
@@ -44,6 +45,10 @@ class RenderDeviceGL extends RenderDevice {
 
     GetFBOCache(context) {
         return this.FBO_cache[context];
+    }
+
+    GetVAOCache(context) {
+        return this.VAO_cache[context];
     }
 
     CreateBuffer(bufferDesc, bufferData) {

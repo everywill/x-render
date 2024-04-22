@@ -91,6 +91,8 @@ class VAOCache {
         this.release_queue = [];
     }
 
+    GetEmptyVAO() { return this.empty_vao; }
+
     FindKey(cacheKey) {
         for(let [key, value] of this.cache) {
             if(key.equal(cacheKey)) {
