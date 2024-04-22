@@ -251,6 +251,27 @@ class DeviceContextGL extends DeviceContext {
         }
     }
 
+    SetStencilRef(stencilRef) {
+        if(super.SetStencilRef(stencilRef)) {
+            this.context_state.SetStencilRef(gl.FRONT, stencilRef);
+            this.context_state.SetStencilRef(gl.BACK, stencilRef);
+        }
+    }
+
+    SetBlendFactors(factors) {
+        if(super.SetBlendFactors(factors)) {
+            this.context_state.SetBlendFactors(factors);
+        }
+    }
+
+    SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
+        super.SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags);
+    }
+
+    SetIndexBuffer(indexBuffer, byteOffset) {
+        super.SetIndexBuffer(indexBuffer, byteOffset);
+    }
+
     ResolveResource(msaaTexture, resolvedTexture) {
         if(msaaTexture && resolvedTexture) {
             const desc = msaaTexture.GetDesc();
@@ -305,6 +326,11 @@ class DeviceContextGL extends DeviceContext {
 
     Flush() {
         gl.flush();
+    }
+
+    InvalidateState() {
+        super.InvalidateState();
+        this.context_state.Invalidate();
     }
 
     GraphicStateSave() {
@@ -398,6 +424,28 @@ class DeviceContextGL extends DeviceContext {
             gl.depthRange(vp.min_depth, vp.max_depth);
         } else {
             throw 'not support multople viewports';
+        }
+    }
+
+    SetScissorRects(numRect, rects) {
+        super.SetScissorRects(numRect, rects);
+        if(this.num_scissor_rects == 1) {
+            const rect = this.scissor_rects[0];
+            // Note that OpenGL and DirectX use different origin
+            // of the viewport in window coordinates:
+            //
+            // DirectX (0,0)
+            //     \ ____________
+            //      |            |
+            //      |            |
+            //      |            |
+            //      |            |
+            //      |____________|
+            //     /
+            //  OpenGL (0,0)
+            //
+        } else {
+            console.error('not support multiple scissors');
         }
     }
 
