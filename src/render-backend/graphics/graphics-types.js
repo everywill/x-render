@@ -312,7 +312,15 @@ const TEXTURE_FORMAT = {
     /// three-component block-compression unsigned-normalized-integer sRGB format with 4 to 7 bits per color channel and 0 to 8 bits of alpha.
     TEX_FORMAT_BC7_UNORM_SRGB: 84,  // OpenGL: GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; extension [GL_ARB_texture_compression_bptc] is required
 
-    TEX_FORMAT_NUM_FORMATS: 85
+    // format for openGL
+    TEX_FORMAT_RGB_ETC2_UNORM_BLOCK8: 85,
+    TEX_FORMAT_RGB_ETC2_SRGB_BLOCK8: 86,
+    TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK8: 87,
+    TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK8: 88,
+    TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK16: 89,
+    TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK16: 90,
+
+    TEX_FORMAT_NUM_FORMATS: 91
 };
 
 const COMPONENT_TYPE = {
