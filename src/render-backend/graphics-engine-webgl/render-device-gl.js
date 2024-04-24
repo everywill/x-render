@@ -211,7 +211,7 @@ class RenderDeviceGL extends RenderDevice {
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM_SRGB].supported = supportBPTC;
 
-        this.texture_format_infos[TEXTURE_FORMAT.]
+        // this.texture_format_infos[TEXTURE_FORMAT.astc]
     }
 }
 
