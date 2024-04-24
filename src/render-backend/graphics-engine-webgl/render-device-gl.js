@@ -204,13 +204,14 @@ class RenderDeviceGL extends RenderDevice {
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC5_TYPELESS].supported = supportRGTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC5_UNORM].supported = supportRGTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC5_SNORM].supported = supportRGTC;
-
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC6H_TYPELESS].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC6H_UF16].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC6H_SF16].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_TYPELESS].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM_SRGB].supported = supportBPTC;
+
+        this.texture_format_infos[TEXTURE_FORMAT.]
     }
 }
 
