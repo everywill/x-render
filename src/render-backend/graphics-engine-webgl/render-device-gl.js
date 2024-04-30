@@ -26,6 +26,9 @@ class RenderDeviceGL extends RenderDevice {
         // first in unprefixed WebGL form, and then a second time with "GL_" prefix
         this.extension_strings = gl.getSupportedExtensions(); 
 
+        this.CheckProgramBinarySupported();
+        this.FlagSupportedTexFormats();
+
         this.FBO_cache = new Map();
         this.VAO_cache = new Map();
     }
@@ -211,7 +214,47 @@ class RenderDeviceGL extends RenderDevice {
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM].supported = supportBPTC;
         this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_BC7_UNORM_SRGB].supported = supportBPTC;
 
-        // this.texture_format_infos[TEXTURE_FORMAT.astc]
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGB_ETC2_UNORM_BLOCK8].supported = supportETC2;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGB_ETC2_SRGB_BLOCK8].supported = supportETC2;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ETC2_UNORM_BLOCK8].supported = supportETC2;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK8].supported = supportETC2;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ETC2_UNORM_BLOCK16].supported = supportETC2;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ETC2_SRGB_BLOCK16].supported = supportETC2;
+
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_4X4_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_4X4_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_5X4_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_5X4_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_5X5_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_5X5_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_6X5_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_6X5_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_6X6_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_6X6_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X5_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X5_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X6_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X6_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X8_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_8X8_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X5_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X5_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X6_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X6_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X8_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X8_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X10_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_10X10_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_12X10_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_12X10_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_12X12_UNORM_BLOCK16].supported = isGL330OrAbove || supportASTC;
+        this.texture_format_infos[TEXTURE_FORMAT.TEX_FORMAT_RGBA_ASTC_12X12_SRGB_BLOCK16].supported = isGL330OrAbove || supportASTC;
+    }
+
+    QueryDeviceCaps() {
+        const isGL430OrAbove = deviceCaps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
+                                (deviceCaps.major_version>4 || (deviceCaps.major_version==4 && deviceCaps.minor_version>=3));
+        
     }
 }
 
