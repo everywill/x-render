@@ -214,7 +214,7 @@ function CorrectGLTexFormat(glTexFormat, bindFlags) {
     return glTexFormat;
 }
 
-function TexFormatToGLInternalTexFormat(textureFormat, bindFlags) {
+function TexFormatToGLInternalTexFormat(textureFormat, bindFlags = 0) {
     if(textureFormat>=TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN && textureFormat<TEXTURE_FORMAT.TEX_FORMAT_NUM_FORMATS) {
         let glFormat = FORMAT_GL_INTERNAL_FORMAT_MAP[textureFormat];
         if(bindFlags) {
@@ -976,4 +976,6 @@ class TextureGL extends Texture {
 
 export {
     TextureGL,
+    TexFormatToGLInternalTexFormat,
+    GetNativePixelTransferAttribs,
 }

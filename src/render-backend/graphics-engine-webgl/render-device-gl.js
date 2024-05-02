@@ -1,6 +1,7 @@
+import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-device";
 import { DEVICE_TYPE } from "../graphics/device-caps";
-import { CONTEXT_CREATION_TYPE, TEXTURE_FORMAT } from "../graphics/graphics-types";
+import { COMPONENT_TYPE, CONTEXT_CREATION_TYPE, TEXTURE_FORMAT } from "../graphics/graphics-types";
 import { BufferGL } from "./buffer-gl";
 import { gl } from "./gl";
 import { GLContext } from "./gl-context";
@@ -8,6 +9,7 @@ import { PipelineStateGL } from "./pipeline-state-gl";
 import { ProgramGL } from "./program-gl";
 import { SamplerGL } from "./sampler-gl";
 import { ShaderGL } from "./shader-gl";
+import { GetNativePixelTransferAttribs, TexFormatToGLInternalTexFormat, TextureGL } from "./texture-gl";
 
 class EngineGLAttribs extends EngineCreationAttribs {
     constructor() {
@@ -28,9 +30,15 @@ class RenderDeviceGL extends RenderDevice {
 
         this.CheckProgramBinarySupported();
         this.FlagSupportedTexFormats();
+        this.QueryDeviceCaps();
+
+        const glVendorStr = gl.getParameter(gl.VENDOR);
+        console.info('GPU Vendor: {}', glVendorStr);
 
         this.FBO_cache = new Map();
         this.VAO_cache = new Map();
+
+        this.InitDeviceLimits();
     }
 
     InitDeviceLimits() {
@@ -76,7 +84,10 @@ class RenderDeviceGL extends RenderDevice {
         if(!deviceContext) {
             throw 'immediate device context has been destroyed';
         }
-        const fmtInfo = 
+        const fmtInfo = this.GetTextureFormatInfo(textureDesc.format);
+        
+        const texture = new TextureGL(this, textureDesc, textureData);
+        texture.CreateDefaultViews();
     }
 
     CreateSampler(samplerDesc) {
@@ -87,8 +98,107 @@ class RenderDeviceGL extends RenderDevice {
         return new PipelineStateGL(this, pipelineStateDesc);
     }
 
+    CreateTestGLTexture(contextState, glBingTarget, glTexture, cb) {
+        contextState.BindTexture(-1, glBingTarget, glTexture);
+        cb();
+        const isSuccess = gl.getError() == gl.NO_ERROR;
+        contextState.BindTexture(-1, glBingTarget, undefined);
+        return isSuccess;
+    }
+
     TestTextureFormat(textureFormat) {
-        
+        const formatInfo = this.texture_format_infos[textureFormat];
+        if(!formatInfo.supported) {
+            throw 'texture format is not supported';
+        }
+        const glFormat = TexFormatToGLInternalTexFormat(textureFormat);
+        if(!glFormat) {
+            throw 'incorrect internal GL format';
+        }
+        const deviceContext = this.GetImmediateContext();
+        if(!deviceContext) {
+            throw 'immediate device context has been destroyed';
+        }
+        const contextState = deviceContext.GetContextState();
+
+        const transferAttribs = GetNativePixelTransferAttribs(textureFormat);
+        const fmtAttribs = GetTextureFormatAttribs(textureFormat);
+
+        const testTextureDim = 32;
+        const testTextureDepth = 8;
+
+        const test2DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
+                                            ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) * fmtAttribs.component_size;
+        const test3DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
+                                            ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) *
+                                            testTextureDepth * fmtAttribs.component_size;
+        formatInfo.texture2D_format = false;
+        formatInfo.texture_cube_format = false;
+        const testGLTexture = gl.createTexture();
+        formatInfo.texture2D_format = this.CreateTestGLTexture(contextState, gl.TEXTURE_2D, testGLTexture, () => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
+
+            if(transferAttribs.is_compressed) {
+                gl.compressedTexImage2D(gl.TEXTURE_2D, 0, glFormat, testTextureDim, testTextureDim, 0);
+            } else {
+                gl.texImage2D(gl.TEXTURE_2D, 0, glFormat, testTextureDim, testTextureDim, 0, transferAttribs.pixel_format, transferAttribs.data_type, null);
+            }
+        });
+        // gl.deleteTexture(testGLTexture);
+
+        if(formatInfo.texture2D_format) {
+            const testGLCubeTexture = gl.createTexture();
+            formatInfo.texture_cube_format = this.CreateTestGLTexture(contextState, gl.TEXTURE_CUBE_MAP, testGLCubeTexture, () => {
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAX_LEVEL, 0);
+                for(let i=0; i<6; i++) {
+                    if(transferAttribs.is_compressed) {
+                        gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, glFormat, testTextureDim, testTextureDim, 0);
+                    } else {
+                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, glFormat, testTextureDim, testTextureDim, 0, transferAttribs.pixel_format, transferAttribs.data_type, null);
+                    }
+                }
+            });
+            gl.deleteTexture(testGLCubeTexture);
+
+            const shouldTestDepthAttachment = 
+                formatInfo.component_type == COMPONENT_TYPE.COMPONENT_TYPE_DEPTH ||
+                formatInfo.component_type == COMPONENT_TYPE.COMPONENT_TYPE_DEPTH_STENCIL;
+            const shouldTestColorAttachment = !shouldTestDepthAttachment && formatInfo.component_type != COMPONENT_TYPE.COMPONENT_TYPE_COMPRESSED;
+
+            let newFBO;
+            let currentFramebuffer;
+
+            if(shouldTestDepthAttachment || shouldTestColorAttachment) {
+                currentFramebuffer = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+                newFBO = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER_BINDING, newFBO);
+            }
+
+            if(shouldTestDepthAttachment) {
+                const attachmentPoint = formatInfo.component_type == COMPONENT_TYPE.COMPONENT_TYPE_DEPTH ? gl.DEPTH_ATTACHMENT : gl.DEPTH_STENCIL_ATTACHMENT;
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, testGLTexture, 0);
+                if(gl.getError() == gl.NO_ERROR) {
+                    // create dummy texture2D since some older version 
+                    // do not allow depth only attachment
+                    const colorTexture = gl.createTexture();
+                    const success = this.CreateTestGLTexture(contextState, gl.TEXTURE_2D, colorTexture, () => {
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, testTextureDim, testTextureDim, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                    });
+
+                    if(!success) {
+                        throw 'failed to create dummy render target texture';
+                    }
+                    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+                    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+
+                    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                    formatInfo.depth_renderable = (gl.getError() == gl.NO_ERROR) && status == gl.FRAMEBUFFER_COMPLETE;
+                }
+            } else if(shouldTestColorAttachment) {
+
+            }
+        }
     }
 
     CheckProgramBinarySupported() {
@@ -252,9 +362,18 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     QueryDeviceCaps() {
-        const isGL430OrAbove = deviceCaps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
+        const isGL430OrAbove = this.device_caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
                                 (deviceCaps.major_version>4 || (deviceCaps.major_version==4 && deviceCaps.minor_version>=3));
-        
+        this.device_caps.compute_shader_supported = isGL430OrAbove || this.CheckExtension('ARB_compute_shader');
+        this.device_caps.geometry_shader_supported = isGL430OrAbove || this.CheckExtension('ARB_geometry_shader');
+        this.device_caps.tessellation_supported = isGL430OrAbove || this.CheckExtension('ARB_tessellation_shader');
+
+        this.device_caps.texture_caps.texture2D_copy_supported = isGL430OrAbove || this.CheckExtension('ARB_copy_image');
+        this.device_caps.texture_caps.texture2D_load_store_supported = isGL430OrAbove || this.CheckExtension('ARB_shader_image_load_store');
+        this.device_caps.texture_caps.textureview_supported = isGL430OrAbove || this.CheckExtension('ARB_texture_view');
+
+        this.device_caps.independent_blend_supported = this.device_caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
+                                                        (deviceCaps.major_version>3 || (deviceCaps.major_version==3 && deviceCaps.minor_version>=2));
     }
 }
 

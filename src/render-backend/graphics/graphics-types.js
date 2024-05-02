@@ -430,7 +430,7 @@ class TextureFormatAttribs {
 }
 
 class TextureFormatInfo extends TextureFormatAttribs {
-    constructor(name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight) {
+    constructor({name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight}) {
         super(name, format, componentSize, numComponents, componentType, isTypeless, blockWidth, blockHeight);
         // if this format is supported by the device
         this.supported = false;
