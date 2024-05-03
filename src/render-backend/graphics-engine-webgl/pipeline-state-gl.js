@@ -20,19 +20,20 @@ class PipelineStateGL extends PipelineState {
     GetDepthStencilState() { return this.ds_state; }
     GetRasterizerState() { return this.ra_state; }
 
-    Release() {}
+    Release() {
+        this.render_device.OnDestroyPSO(this);
+    }
 
     LinkGLProgram(isProgramPipelineSupported) {
         if(isProgramPipelineSupported) {
-            // not supported in WebGL
+            console.error('program pipeline not supported in WebGL')
         } else {
-
+            // link really happens in CreateShaderResourceBinding
         }
     }
 
     CreateShaderResourceBinding() {
-        const srb = new ShaderResourceBindingGL(this);
-        return srb;
+        return new ShaderResourceBindingGL(this);
     }
 }
 

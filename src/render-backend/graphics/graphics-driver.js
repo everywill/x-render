@@ -105,6 +105,7 @@ class GraphicsDriver {
     TransitionShaderResources(pipelineState, shaderResourceBinding) {
         this.device_context.TransitionShaderResources(pipelineState, shaderResourceBinding);
     }
+    CommitShaderResources() {}
     SetStencilRef(stencilRef) {
         this.device_context.SetStencilRef(stencilRef);
     }

@@ -35,7 +35,9 @@ class RenderDeviceGL extends RenderDevice {
         const glVendorStr = gl.getParameter(gl.VENDOR);
         console.info('GPU Vendor: {}', glVendorStr);
 
+        // map context to fbo cache
         this.FBO_cache = new Map();
+        // map context to vao cache
         this.VAO_cache = new Map();
 
         this.InitDeviceLimits();
@@ -61,8 +63,26 @@ class RenderDeviceGL extends RenderDevice {
         return this.FBO_cache[context];
     }
 
+    OnReleaseTexture(texture) {
+        for(let [context, fboCache] of this.FBO_cache) {
+            fboCache.OnReleaseTexture(texture);
+        }
+    }
+
     GetVAOCache(context) {
         return this.VAO_cache[context];
+    }
+
+    OnDestroyPSO(pso) {
+        for(let [context, vaoCache] of this.VAO_cache) {
+            vaoCache.OnDestroyPSO(pso);
+        }
+    }
+
+    OnDestroyBuffer(buffer) {
+        for(let [context, vaoCache] of this.VAO_cache) {
+            vaoCache.OnDestroyBuffer(buffer);
+        }
     }
 
     CreateBuffer(bufferDesc, bufferData) {
@@ -88,6 +108,8 @@ class RenderDeviceGL extends RenderDevice {
         
         const texture = new TextureGL(this, textureDesc, textureData);
         texture.CreateDefaultViews();
+
+        return texture;
     }
 
     CreateSampler(samplerDesc) {
@@ -122,16 +144,16 @@ class RenderDeviceGL extends RenderDevice {
         const contextState = deviceContext.GetContextState();
 
         const transferAttribs = GetNativePixelTransferAttribs(textureFormat);
-        const fmtAttribs = GetTextureFormatAttribs(textureFormat);
+        // const fmtAttribs = GetTextureFormatAttribs(textureFormat);
 
         const testTextureDim = 32;
         const testTextureDepth = 8;
 
-        const test2DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
-                                            ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) * fmtAttribs.component_size;
-        const test3DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
-                                            ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) *
-                                            testTextureDepth * fmtAttribs.component_size;
+        // const test2DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
+        //                                     ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) * fmtAttribs.component_size;
+        // const test3DTextureCompressSize = ((testTextureDim + fmtAttribs.block_width-1) / fmtAttribs.block_width) *
+        //                                     ((testTextureDim + fmtAttribs.block_height-1) / fmtAttribs.block_height) *
+        //                                     testTextureDepth * fmtAttribs.component_size;
         formatInfo.texture2D_format = false;
         formatInfo.texture_cube_format = false;
         const testGLTexture = gl.createTexture();
@@ -144,7 +166,6 @@ class RenderDeviceGL extends RenderDevice {
                 gl.texImage2D(gl.TEXTURE_2D, 0, glFormat, testTextureDim, testTextureDim, 0, transferAttribs.pixel_format, transferAttribs.data_type, null);
             }
         });
-        // gl.deleteTexture(testGLTexture);
 
         if(formatInfo.texture2D_format) {
             const testGLCubeTexture = gl.createTexture();
@@ -194,11 +215,49 @@ class RenderDeviceGL extends RenderDevice {
 
                     const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
                     formatInfo.depth_renderable = (gl.getError() == gl.NO_ERROR) && status == gl.FRAMEBUFFER_COMPLETE;
+
+                    gl.deleteTexture(colorTexture);
                 }
             } else if(shouldTestColorAttachment) {
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, testGLTexture, 0);
+                if(gl.getError() == gl.NO_ERROR) {
+                    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 
+                    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                    formatInfo.color_renderable = (gl.getError() == gl.NO_ERROR) && status == gl.FRAMEBUFFER_COMPLETE;
+                }
+            }
+
+            if(shouldTestDepthAttachment || shouldTestColorAttachment) {
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, currentFramebuffer);
             }
         }
+
+        formatInfo.support_multisample = false;
+        if(formatInfo.component_type != COMPONENT_TYPE.COMPONENT_TYPE_COMPRESSED &&
+            this.device_caps.texture_caps.texture2D_multisample_suppored) 
+        {
+            console.error('multiple-sample texture not supported');
+        }
+
+        // test testure 3d
+        formatInfo.texture3D_format = false;
+        if(!(formatInfo.component_type == COMPONENT_TYPE.COMPONENT_TYPE_DEPTH ||
+            formatInfo.component_type == COMPONENT_TYPE.COMPONENT_TYPE_DEPTH_STENCIL))
+        {
+            const testGLTexture = gl.createTexture();
+            formatInfo.texture3D_format = this.CreateTestGLTexture(contextState, gl.TEXTURE_3D, testGLTexture, () => {
+                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, 0);
+                if(transferAttribs.is_compressed) {
+                    gl.compressedTexImage3D(gl.TEXTURE_3D, 0, glFormat, testTextureDim, testTextureDim, testTextureDepth, 0);
+                } else {
+                    gl.texImage3D(gl.TEXTURE_3D, 0, glFormat, testTextureDim, testTextureDim, testTextureDepth, 0, transferAttribs.pixel_format, transferAttribs.data_type, null);
+                }
+            });
+            gl.deleteTexture(testGLTexture);
+        }
+
+        gl.deleteTexture(testGLTexture);
     }
 
     CheckProgramBinarySupported() {

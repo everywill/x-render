@@ -15,6 +15,8 @@ class ShaderResourceBindingGL extends ShaderResourceBinding {
         this.dynamic_program_resources.Clone(this.pipelinestate.GetProgram().GetGLProgram().GetAllResources(), varTypes);
     }
 
+    Release() {}
+
     GetProgramResources(shaderType, pipelineState) {
         return this.dynamic_program_resources;
     }

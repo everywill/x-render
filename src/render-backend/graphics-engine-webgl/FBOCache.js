@@ -39,7 +39,13 @@ class FBOCacheKey {
 
 class FBOCache {
     constructor() {
+        // map cache key to fbo
+        // cache includes render target number/depth stencil/render targets
         this.cache = new Map();
+        // map texture 
+        this.texture_cachekey = new Map();
+        // store fbo waiting for be released in next GetFBO action
+        this.release_queue = [];
     }
 
     FindKey(cacheKey) {
@@ -50,12 +56,44 @@ class FBOCache {
         }
     }
 
+    OnReleaseTexture(texture) {
+        const cacheKeys = this.texture_cachekey.get(texture) || [];
+        const releaseFBOCacheKeys = [];
+        for(let cacheKey of cacheKeys) {
+            const fbo = this.cache.get(cacheKey);
+
+            if(fbo) {
+                this.release_queue.push(fbo);
+                releaseFBOCacheKeys.push(cacheKey);
+            }
+
+            this.cache.delete(cacheKey);
+        }
+        this.texture_cachekey.set(texture, []);
+
+        for(let cacheKey of releaseFBOCacheKeys) {
+            for(let [key, val] of this.texture_cachekey) {
+                const keyIndex = val.indexOf(cacheKey);
+                if(keyIndex != -1) {
+                    val.splice(keyIndex, 1);
+                }
+            }
+        }
+    }
+
     GetFBO(numRenderTargets, renderTargets, depthStencil, contextState) {
         if(numRenderTargets>0 && !renderTargets[numRenderTargets-1]) {
             numRenderTargets--;
         }
         if(numRenderTargets==0 && !depthStencil) {
             throw 'At least one render target or a depth-stencil must be provided';
+        }
+
+        if(this.release_queue.length) {
+            for(let fbo of this.release_queue) {
+                gl.deleteFramebuffer(fbo);
+            }
+            this.release_queue.length = 0;
         }
 
         const key = new FBOCacheKey();
@@ -168,6 +206,24 @@ class FBOCache {
                 throw(`FrameBuffer is incomplete, status: ${status}`);
             }
             this.cache.set(cacheKey, newFBO);
+
+            if(cacheKey.depth_stencil) {
+                const depthStencilTex = cacheKey.depth_stencil;
+                if(!this.texture_cachekey.get(depthStencilTex)) {
+                    this.texture_cachekey.set(depthStencilTex, []);
+                }
+                const cachekeys = this.texture_cachekey.get(depthStencilTex);
+                cachekeys.push(cacheKey);
+            }
+
+            for(let i=0; i<cacheKey.render_targets.length; i++) {
+                const renderTargetTex = cacheKey.render_targets[i];
+                if(!this.texture_cachekey.get(renderTargetTex)) {
+                    this.texture_cachekey.set(renderTargetTex, []);
+                }
+                const cachekeys = this.texture_cachekey.get(renderTargetTex);
+                cachekeys.push(cacheKey);
+            }
 
             return newFBO;
         }

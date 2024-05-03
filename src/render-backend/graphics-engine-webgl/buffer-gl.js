@@ -74,6 +74,7 @@ class BufferGL extends Buffer {
 
     Release() {
         super.Release();
+        this.render_device.OnDestroyBuffer(this);
         gl.deleteBuffer(this.gl_buffer);
     }
 
