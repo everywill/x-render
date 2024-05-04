@@ -1,6 +1,6 @@
 import { PipelineState } from "../graphics-engine/pipelinestate";
 import { DEVICE_TYPE } from "../graphics/device-caps";
-import { GLContextState } from "./context-state-gl";
+import { GLContextState } from "./gl-context-state";
 import { ShaderResourceBindingGL } from "./shader-resource-binding-gl";
 
 class PipelineStateGL extends PipelineState {

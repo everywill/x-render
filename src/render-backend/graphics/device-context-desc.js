@@ -38,7 +38,7 @@ class RenderPassFlag {
     }
 }
 
-class RennderPassAttribs {
+class RenderPassAttribs {
     constructor() {
         this.num_render_targets = 0;
         this.clear_color = [];
@@ -87,6 +87,6 @@ export {
     SET_VERTEX_BUFFERS_FLAGS,
     Viewport,
     Rect,
-    RennderPassAttribs,
+    RenderPassAttribs,
     DrawAttribs,
 }

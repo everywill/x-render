@@ -422,7 +422,7 @@ class RenderDeviceGL extends RenderDevice {
 
     QueryDeviceCaps() {
         const isGL430OrAbove = this.device_caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
-                                (deviceCaps.major_version>4 || (deviceCaps.major_version==4 && deviceCaps.minor_version>=3));
+                                (this.device_caps.major_version>4 || (this.device_caps.major_version==4 && this.device_caps.minor_version>=3));
         this.device_caps.compute_shader_supported = isGL430OrAbove || this.CheckExtension('ARB_compute_shader');
         this.device_caps.geometry_shader_supported = isGL430OrAbove || this.CheckExtension('ARB_geometry_shader');
         this.device_caps.tessellation_supported = isGL430OrAbove || this.CheckExtension('ARB_tessellation_shader');
@@ -432,12 +432,11 @@ class RenderDeviceGL extends RenderDevice {
         this.device_caps.texture_caps.textureview_supported = isGL430OrAbove || this.CheckExtension('ARB_texture_view');
 
         this.device_caps.independent_blend_supported = this.device_caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
-                                                        (deviceCaps.major_version>3 || (deviceCaps.major_version==3 && deviceCaps.minor_version>=2));
+                                                        (this.device_caps.major_version>3 || (this.device_caps.major_version==3 && this.device_caps.minor_version>=2));
     }
 }
 
 export {
-    EngineGLAttribs,
     EngineGLAttribs,
     RenderDeviceGL,
 }

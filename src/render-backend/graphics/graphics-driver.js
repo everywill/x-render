@@ -9,7 +9,7 @@ import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render
 import { CONTEXT_CREATION_TYPE, SwapChainDesc, TEXTURE_FORMAT } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
-import { RennderPassAttribs } from "./device-context-desc";
+import { RenderPassAttribs } from "./device-context-desc";
 
 class GraphicsDriver {
     constructor() {
@@ -58,12 +58,12 @@ class GraphicsDriver {
     CreateSwapChain(swapchainDesc) {
         switch(this.render_device.GetDeviceCaps().dev_type) {
             case DEVICE_TYPE.DEVICE_TYPE_OPENGLES:
-                return new SwapChain();
+                return new SwapchainGL(this.render_device, this.device_context, swapchainDesc);
             case DEVICE_TYPE.DEVICE_TYPE_WEBGPU:
                 // const engineFactory = GetEngineFactoryWebGPU(); 
                 // return engineFactory.CreateSwapChainWebGPU(this.render_device, this.device_context, swapchainDesc);
             default:
-                return new SwapChain();
+                return new SwapChain(this.render_device, this.device_context, swapchainDesc);
         }
     }
     DestroyBuffer(buffer) {
@@ -105,7 +105,9 @@ class GraphicsDriver {
     TransitionShaderResources(pipelineState, shaderResourceBinding) {
         this.device_context.TransitionShaderResources(pipelineState, shaderResourceBinding);
     }
-    CommitShaderResources() {}
+    CommitShaderResources(shaderResourceBinding, flags) {
+        this.device_context.CommitShaderResources(shaderResourceBinding, flags);
+    }
     SetStencilRef(stencilRef) {
         this.device_context.SetStencilRef(stencilRef);
     }
@@ -127,12 +129,14 @@ class GraphicsDriver {
     InvalidateState() {
         this.device_context.InvalidateState();
     }
+
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         this.device_context.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
     }
     EndRenderPass() {
         this.device_context.EndRenderPass();
     }
+    
     Draw(drawAttribs) {
         this.device_context.Draw(drawAttribs);
     }
@@ -294,8 +298,8 @@ class GraphicsDriver {
     GetCurrentBackBufferRTV(swapchain) {
         return swapchain.GetCurrentBackBufferRTV();
     }
-    GetDepthBufferDSV(swapchain) {
-        return swapchain.GetDepthBufferDSV();
+    GetCurrentBackBufferDSV(swapchain) {
+        return swapchain.GetCurrentBackBufferDSV();
     }
     ReadPixels(swapchain) {
         return swapchain.ReadPixels();
@@ -364,22 +368,6 @@ GraphicsDriver.InitAttribs = function(deviceCaps, engineCreationAttribs) {
     return 0;
 }
 
-// function AttachToActiveGLContext(creationAttribs, swapchainDesc, driver) {
-//     const renderDeviceGL = new RenderDeviceGL(creationAttribs);
-//     const deviceContextGL = new DeviceContextGL(renderDeviceGL, false);
-
-//     renderDeviceGL.SetImmediateContext(deviceContextGL);
-//     swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
-//     const swapchain = new SwapchainGL(renderDeviceGL, deviceContextGL, swapchainDesc);
-
-//     deviceContextGL.SetSwapChain(swapchain);
-    
-// }
-
-// function CreateDeviceAndSwapChainGL(creationAttribs, swapChainDesc, driver) {
-
-// }
-
 GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     const driver = new GraphicsDriver();
 
@@ -395,6 +383,7 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
         {
             const creationAttribs = new EngineGLAttribs();
             creationAttribs.device_type = deviceCaps.dev_type;
+            creationAttribs.context_creation_type = contextCreationType;
 
             numDeferredContexts = GraphicsDriver.InitAttribs(deviceCaps, creationAttribs);
             if(numDeferredContexts != 0) {
@@ -402,17 +391,17 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 numDeferredContexts = 0;
             }
 
-            swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+            // swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
 
             if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
                 device = new RenderDeviceGL(creationAttribs);
                 deviceContext = new DeviceContextGL(device, false);
                 device.SetImmediateContext(deviceContext);
 
-                const swapchain = new SwapChain(device, deviceContext, swapchainDesc);
+                const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
 
                 deviceContext.SetSwapChain(swapchain);
-                const renderPassAttribs = new RennderPassAttribs();
+                const renderPassAttribs = new RenderPassAttribs();
                 deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
                 deviceContext.EndRenderPass();
             } else {
@@ -420,10 +409,10 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 deviceContext = new DeviceContextGL(device, false);
                 device.SetImmediateContext(deviceContext);
 
-                const swapchain = new SwapChain(device, deviceContext, swapchainDesc);
+                const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
 
                 deviceContext.SetSwapChain(swapchain);
-                const renderPassAttribs = new RennderPassAttribs();
+                const renderPassAttribs = new RenderPassAttribs();
                 deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
                 deviceContext.EndRenderPass();
             }

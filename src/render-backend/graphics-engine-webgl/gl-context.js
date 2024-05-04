@@ -1,12 +1,21 @@
 import { CONTEXT_CREATION_TYPE } from "../graphics/graphics-types";
 
 let CURRENT_CONTEXT = null;
-function makeContextCurrent(ctx) {
+function MakeContextCurrent(ctx) {
     CURRENT_CONTEXT = ctx;
 }
 
-function getCurrentContext() {
+function GetCurrentContext() {
     return CURRENT_CONTEXT;
+}
+
+let CANVAS = null;
+function SetCanvas(canvas) {
+    CANVAS = canvas;
+}
+
+function GetCanvas() {
+    return CANVAS;
 }
 
 class GLContext {
@@ -19,7 +28,7 @@ class GLContext {
     }
 
     GetCurrentNativeGLContext() {
-        return getCurrentContext();
+        return GetCurrentContext();
     }
 
     InitContext(engineGLAttribs, deviceCaps) {
@@ -82,12 +91,13 @@ class GLContext {
         }
 
         const canvas = document.getElementById('canvas');
+        SetCanvas(canvas);
         this.context = canvas.getContext('webgl2', GLContextAttributes);
-        makeContextCurrent(this.context);
+        MakeContextCurrent(this.context);
     }
 
     AttachContext(engineGLAttribs, deviceCaps) {
-        this.context = getCurrentContext();
+        this.context = GetCurrentContext();
     }
 
     SwapBuffers(syncInterval) { /* do nothing */ }
@@ -95,5 +105,6 @@ class GLContext {
 
 export {
     GLContext,
-    getCurrentContext,
+    GetCurrentContext,
+    GetCanvas,
 }

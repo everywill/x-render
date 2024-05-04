@@ -7,11 +7,11 @@
     "gl-matrix": "^3.4.3"
   },
   "devDependencies": {
-    "esbuild": "^0.15.13"
+    "esbuild": "^0.15.18"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild sandbox/src/index.js --bundle --outdir=./demo && cp -R sandbox/assets demo/"
+    "build": "esbuild test/render-backend/webgl/index.js --bundle --outdir=./demo"
   },
   "repository": {
     "type": "git",

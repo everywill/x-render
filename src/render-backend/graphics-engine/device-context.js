@@ -136,15 +136,15 @@ class DeviceContext {
 
         if(numViewports >= MAX_VIEWPORTS) {
             console.error('number of viewports exceed the limit');
-            this.num_viewports = Math.min(MAX_VIEWPORTS, numViewports);
         }
+        this.num_viewports = Math.min(MAX_VIEWPORTS, numViewports);
 
         const defaultVP = new Viewport();
         defaultVP.width = RTWidth;
         defaultVP.height = RTHeight;
         // if no viewports provided, use default viewport
-        if(this.num_viewports == 1 && !viewports) {
-            viewports = [defaultVP];
+        if(this.num_viewports == 1 && !viewports.length) {
+            viewports.push(defaultVP);
         }
 
         for(let vp=0; vp<this.num_viewports; vp++) {
@@ -180,7 +180,13 @@ class DeviceContext {
 
     // pipelinestate object that was used to create the shader resource binding must be bound
     // if no pipeline state object is bound or the pipeline state object does not match shader resource binding, the method will fail
-    CommitShaderResources(shaderResourceBinding, flags) { return true; }
+    CommitShaderResources(shaderResourceBinding, flags) { 
+        if(!this.pipelinestate) {
+            throw 'no pipeline state is bound to the context';
+        }
+        // todo: check whether shaderResourceBinding is compatible with pipeline state
+        return true; 
+    }
 
     FinishCommandList(commandList) { throw 'implementation needed'; }
 
@@ -208,7 +214,7 @@ class DeviceContext {
             numRenderTargets = 1;
             defaultRTV = this.swapchain.GetCurrentBackBufferRTV();
             renderTargets = [defaultRTV];
-            depthStencil = this.swapchain.GetDepthBufferDSV();
+            depthStencil = this.swapchain.GetCurrentBackBufferDSV();
 
             const swapchainDesc = this.swapchain.GetDesc();
             this.framebuffer_width = swapchainDesc.width;

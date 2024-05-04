@@ -4,7 +4,7 @@ import { BLEND_FACTOR, BLEND_OPERATION, STENCIL_OP } from "../graphics/pipelines
 const canvas = document.createElement('canvas');
 const gl = canvas.getContext('webgl2');
 
-// const gl = getCurrentContext()
+// const gl = GetCurrentContext()
 
 function CompareFuncToGLCompare(func) {
     switch(func) {

@@ -783,7 +783,7 @@ class TextureGL extends Texture {
                     if(subResData.stride != blockBytesInRow) {
                         throw 'compressed data stride must match the size of a row of compressed block';
                     }
-                    gl.compressedTexSubImage2D(CubeMapFaceBindTarget, mipLevel, 
+                    gl.compressedTexSubImage2D(cubemapFaceBindTarget, mipLevel, 
                                                 dstBox.min_x, 
                                                 dstBox.min_y,
                                                 dstBox.max_x-dstBox.min_x, 
@@ -801,7 +801,7 @@ class TextureGL extends Texture {
                     gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
                     gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
 
-                    gl.texSubImage2D(CubeMapFaceBindTarget, mipLevel, 
+                    gl.texSubImage2D(cubemapFaceBindTarget, mipLevel, 
                                     dstBox.min_x, 
                                     dstBox.min_y, 
                                     dstBox.max_x-dstBox.min_x, 

@@ -23,6 +23,7 @@ class ProgramGL extends Program {
             if(!this.shader_binary_supported) {
                 this.LinkProgram();
             } else { 
+                console.warn('shader binary not supported in WebGL');
                 // not supported in WebGL
             }
         }

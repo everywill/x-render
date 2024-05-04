@@ -113,10 +113,6 @@ class DeviceContextGL extends DeviceContext {
     }
 
     BindProgramResources(shaderResourceBinding) {
-        if(!this.pipelinestate) {
-            throw 'no pipeline state is bound';
-        }
-
         const program = this.pipelinestate.GetProgram();
         const nativeProg = program.GetGLProgram();
 
@@ -410,7 +406,7 @@ class DeviceContextGL extends DeviceContext {
             const fbo = fboCache.GetFBO(numRenderTargets, boundRTVs, this.bound_depth_stencil, this.context_state);
             this.context_state.BindFBO(fbo);
         }
-        this.SetViewports(1, null, 0, 0);
+        this.SetViewports(1, [], 0, 0);
     }
 
     SetViewports(numViewports, viewports, RTWidth, RTHeight) {
