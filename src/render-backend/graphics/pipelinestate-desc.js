@@ -164,7 +164,7 @@ class SampleDesc {
 
 class GraphicsPipelineDesc {
     constructor() {
-        this.program = new Program();  // placeholder
+        this.program = null;  // placeholder
         this.blend_state_desc = new BlendStateDesc();
         // 32-bit sample mask that determines which samples get updated
         // in all the active render targets. A sample mask is always applied;
@@ -189,16 +189,19 @@ class GraphicsPipelineDesc {
 
 class ComputePipelineDesc {
     constructor() {
-        this.program = new Program();  // placeholder
+        this.program = null;  // placeholder
     }
 }
 
 class PipelineStateDesc {
-    constructor() {
+    constructor(reversed) {
         this.is_compute_pipeline = false;
         this.graphics_pipeline_desc = new GraphicsPipelineDesc();
         this.compute_pipeline_desc = new ComputePipelineDesc();
         // this.SRB_allocation_granularity = 1;
+
+        this.graphics_pipeline_desc.depth_stencil_state_desc.depth_func = reversed ?
+            COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER_EQUAL : COMPARISON_FUNCTION.COMPARISON_FUNC_LESS_EQUAL;
     }
 }
 

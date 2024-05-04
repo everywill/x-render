@@ -391,31 +391,33 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 numDeferredContexts = 0;
             }
 
-            // swapchainDesc.default_depth_value = renderDeviceGL.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+            
 
-            if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
+            // if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
+            //     device = new RenderDeviceGL(creationAttribs);
+            //     deviceContext = new DeviceContextGL(device, false);
+            //     device.SetImmediateContext(deviceContext);
+
+            //     const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
+
+            //     deviceContext.SetSwapChain(swapchain);
+            //     const renderPassAttribs = new RenderPassAttribs();
+            //     deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
+            //     deviceContext.EndRenderPass();
+            // } else {
                 device = new RenderDeviceGL(creationAttribs);
                 deviceContext = new DeviceContextGL(device, false);
                 device.SetImmediateContext(deviceContext);
 
-                const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
+                swapchainDesc.default_depth_value = device.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+
+                const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc); 
 
                 deviceContext.SetSwapChain(swapchain);
                 const renderPassAttribs = new RenderPassAttribs();
                 deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
                 deviceContext.EndRenderPass();
-            } else {
-                device = new RenderDeviceGL(creationAttribs);
-                deviceContext = new DeviceContextGL(device, false);
-                device.SetImmediateContext(deviceContext);
-
-                const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
-
-                deviceContext.SetSwapChain(swapchain);
-                const renderPassAttribs = new RenderPassAttribs();
-                deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
-                deviceContext.EndRenderPass();
-            }
+            // }
             
         }
         break;

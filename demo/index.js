@@ -1,104 +1,4 @@
 (() => {
-  // src/render-backend/graphics-engine/swapchain.js
-  var SwapChain = class {
-    constructor(renderDevice2, deviceContext, swapchainDesc) {
-      this.render_device = renderDevice2;
-      this.device_context = deviceContext;
-      this.swap_chain_desc = swapchainDesc;
-    }
-    Release() {
-      throw "need implement";
-    }
-    Present(syncInterval) {
-      throw "implementation needed";
-    }
-    GetDesc() {
-      return this.swap_chain_desc;
-    }
-    Resize(newWidth, newHeight) {
-      if (newWidth != 0 && newHeight != 0 && this.swap_chain_desc.width != newWidth && this.swap_chain_desc.height != newHeight) {
-        this.swap_chain_desc.width = newWidth;
-        this.swap_chain_desc.height = newHeight;
-        return true;
-      }
-      return false;
-    }
-    GetCurrentBackBufferRTV() {
-      throw "implementation needed";
-    }
-    GetCurrentBackBufferDSV() {
-      throw "implementation needed";
-    }
-    ReadPixels() {
-      throw "implementation needed";
-    }
-  };
-
-  // src/render-backend/graphics/device-caps.js
-  var MAX_BUFFER_SLOTS = 32;
-  var MAX_RENDER_TARGETS = 8;
-  var MAX_VIEWPORTS = 16;
-  var DEVICE_TYPE = {
-    DEVICE_TYPE_UNDEFINED: 0,
-    DEVICE_TYPE_OPENGLES: 1,
-    DEVICE_TYPE_WEBGPU: 2
-  };
-  var SamplerCaps = class {
-    constructor() {
-      this.border_sampling_mode_supported = true;
-      this.anisotropic_filtering_supported = true;
-      this.lod_bias_supported = true;
-    }
-  };
-  var TextureCaps = class {
-    constructor() {
-      this.texture1D_supported = true;
-      this.texture1D_array_supported = true;
-      this.texture2D_multisample_suppored = true;
-      this.texture2D_multisample_array_suppored = true;
-      this.texture2D_copy_supported = false;
-      this.texture2D_load_store_supported = false;
-      this.textureview_supported = true;
-      this.texture_level_parameter_supported = false;
-      this.cubemap_array_supported = false;
-    }
-  };
-  var ResourceLimitCaps = class {
-    constructor() {
-      this.max_texture_size_1D = 0;
-      this.max_texture_size_2D = 0;
-      this.max_texture_size_3D = 0;
-      this.max_texture_size_cube = 0;
-      this.max_texture_array_layers = 0;
-      this.max_msaa_sample_count = 0;
-    }
-  };
-  var DeviceCaps = class {
-    constructor() {
-      this.dev_type = DEVICE_TYPE.DEVICE_TYPE_UNDEFINED;
-      this.major_version = 0;
-      this.minor_version = 0;
-      this.separable_program_supported = false;
-      this.indirect_rendering_supported = true;
-      this.wireframe_fill_supported = false;
-      this.multithread_resource_creation_supported = false;
-      this.compute_shader_supported = true;
-      this.geometry_shader_supported = true;
-      this.tessellation_supported = true;
-      this.depth_clamp_supported = true;
-      this.shader_binary_supported = false;
-      this.independent_blend_supported = true;
-      this.reversedz_perspective = false;
-      this.multisample_rendertexture_supported = false;
-      this.sampler_caps = new SamplerCaps();
-      this.texture_caps = new TextureCaps();
-      this.limit_caps = new ResourceLimitCaps();
-    }
-    IsGLDevice() {
-      return this.dev_type == DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
-    }
-  };
-
   // src/render-backend/graphics/graphics-types.js
   var CONTEXT_CREATION_TYPE = {
     ATTACH: 0,
@@ -590,6 +490,405 @@
     }
     return VIEW_FORMATS[textureFormat][viewType];
   }
+
+  // src/render-backend/graphics/shader-desc.js
+  var SHADER_TYPE = {
+    SHADER_TYPE_UNKNOWN: 0,
+    SHADER_TYPE_VERTEX: 1,
+    SHADER_TYPE_PIXEL: 2,
+    SHADER_TYPE_GEOMETRY: 4,
+    SHADER_TYPE_HULL: 8,
+    SHADER_TYPE_DOMAIN: 16,
+    SHADER_TYPE_COMPUTE: 32
+  };
+  var SHADER_RESOURCE_VARIABLE_TYPE = {
+    SHADER_RESOURCE_VARIABLE_TYPE_STATIC: 0,
+    SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE: 1,
+    SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC: 2,
+    SHADER_RESOURCE_VARIABLE_TYPE_NUM_TYPES: 3
+  };
+
+  // src/render-backend/graphics-engine/program.js
+  var Program = class {
+    constructor(renderDevice2, programDesc) {
+      this.render_device = renderDevice2;
+      this.desc = programDesc;
+      this.num_shaders = 0;
+      this.shaders = [];
+      if (this.desc.p_cs) {
+        if (this.desc.p_vs || this.desc.p_ps || this.desc.p_gs || this.desc.p_hs || this.desc.p_ds) {
+          console.warn("compute shader provided, no other shader will take effect");
+        }
+        this.p_cs = this.desc.p_cs;
+        this.shaders[0] = this.p_cs;
+        this.num_shaders = 1;
+        if (this.p_cs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_COMPUTE) {
+          throw "not a shader of COMPUTE type";
+        }
+      } else {
+        if (this.desc.p_vs) {
+          this.p_vs = this.desc.p_vs;
+          this.shaders[this.num_shaders++] = this.p_vs;
+          if (this.p_vs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_VERTEX) {
+            throw "not a shader of VERTEX type";
+          }
+        }
+        if (this.desc.p_ps) {
+          this.p_ps = this.desc.p_ps;
+          this.shaders[this.num_shaders++] = this.p_ps;
+          if (this.p_ps.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_PIXEL) {
+            throw "not a shader of PIXEL type";
+          }
+        }
+        if (this.desc.p_gs) {
+          this.p_gs = this.desc.p_gs;
+          this.shaders[this.num_shaders++] = this.p_gs;
+          if (this.p_gs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_GEOMETRY) {
+            throw "not a shader of GEOMETRY type";
+          }
+        }
+        if (this.desc.p_hs) {
+          this.p_hs = this.desc.p_hs;
+          this.shaders[this.num_shaders++] = this.p_hs;
+          if (this.p_hs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_HULL) {
+            throw "not a shader of HULL type";
+          }
+        }
+        if (this.desc.p_ds) {
+          this.p_ds = this.desc.p_ds;
+          this.shaders[this.num_shaders++] = this.p_ds;
+          if (this.p_ds.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_DOMAIN) {
+            throw "not a shader of DOMAIN type";
+          }
+        }
+      }
+    }
+    GetDesc() {
+      return this.desc;
+    }
+    GetNumShaders() {
+      return this.num_shaders;
+    }
+    Release() {
+      throw "need implement";
+    }
+    GetShader(index) {
+      return this.shaders[index];
+    }
+    GetVS() {
+      return this.p_vs;
+    }
+    GetPS() {
+      return this.p_ps;
+    }
+    GetGS() {
+      return this.p_gs;
+    }
+    GetHS() {
+      return this.p_hs;
+    }
+    GetDS() {
+      return this.p_ds;
+    }
+    GetCS() {
+      return this.p_cs;
+    }
+    GetVSShaderReflection() {
+      throw "implementation needed";
+    }
+    GetPSShaderReflection() {
+      throw "implementation needed";
+    }
+    GetGSShaderReflection() {
+      throw "implementation needed";
+    }
+    GetHSShaderReflection() {
+      throw "implementation needed";
+    }
+    GetDSShaderReflection() {
+      throw "implementation needed";
+    }
+    GetCSShaderReflection() {
+      throw "implementation needed";
+    }
+  };
+
+  // src/render-backend/graphics/device-caps.js
+  var MAX_BUFFER_SLOTS = 32;
+  var MAX_RENDER_TARGETS = 8;
+  var MAX_VIEWPORTS = 16;
+  var DEVICE_TYPE = {
+    DEVICE_TYPE_UNDEFINED: 0,
+    DEVICE_TYPE_OPENGLES: 1,
+    DEVICE_TYPE_WEBGPU: 2
+  };
+  var SamplerCaps = class {
+    constructor() {
+      this.border_sampling_mode_supported = true;
+      this.anisotropic_filtering_supported = true;
+      this.lod_bias_supported = true;
+    }
+  };
+  var TextureCaps = class {
+    constructor() {
+      this.texture1D_supported = true;
+      this.texture1D_array_supported = true;
+      this.texture2D_multisample_suppored = true;
+      this.texture2D_multisample_array_suppored = true;
+      this.texture2D_copy_supported = false;
+      this.texture2D_load_store_supported = false;
+      this.textureview_supported = true;
+      this.texture_level_parameter_supported = false;
+      this.cubemap_array_supported = false;
+    }
+  };
+  var ResourceLimitCaps = class {
+    constructor() {
+      this.max_texture_size_1D = 0;
+      this.max_texture_size_2D = 0;
+      this.max_texture_size_3D = 0;
+      this.max_texture_size_cube = 0;
+      this.max_texture_array_layers = 0;
+      this.max_msaa_sample_count = 0;
+    }
+  };
+  var DeviceCaps = class {
+    constructor() {
+      this.dev_type = DEVICE_TYPE.DEVICE_TYPE_UNDEFINED;
+      this.major_version = 0;
+      this.minor_version = 0;
+      this.separable_program_supported = false;
+      this.indirect_rendering_supported = true;
+      this.wireframe_fill_supported = false;
+      this.multithread_resource_creation_supported = false;
+      this.compute_shader_supported = true;
+      this.geometry_shader_supported = true;
+      this.tessellation_supported = true;
+      this.depth_clamp_supported = true;
+      this.shader_binary_supported = false;
+      this.independent_blend_supported = true;
+      this.reversedz_perspective = false;
+      this.multisample_rendertexture_supported = false;
+      this.sampler_caps = new SamplerCaps();
+      this.texture_caps = new TextureCaps();
+      this.limit_caps = new ResourceLimitCaps();
+    }
+    IsGLDevice() {
+      return this.dev_type == DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
+    }
+  };
+
+  // src/render-backend/graphics/input-layout.js
+  var INPUT_ELEMENT_FREQUENCY = {
+    INPUT_ELEMENT_FREQUENCY_UNDEFINED: 0,
+    INPUT_ELEMENT_FREQUENCY_PER_VERTEX: 1,
+    INPUT_ELEMENT_FREQUENCY_PER_INSTANCE: 2,
+    INPUT_ELEMENT_FREQUENCY_NUM_FREQUENCIES: 3
+  };
+  var LayoutElement = class {
+    constructor(semanticIndex = 0, bufferSlot = 0, numComponents = 1, valueType = VALUE_TYPE2.VT_FLOAT32, isNormalized = false, relativeOffset = 0, stride = 0, frequency = INPUT_ELEMENT_FREQUENCY.INPUT_ELEMENT_FREQUENCY_PER_VERTEX, instanceDataStepRate = 0) {
+      this.semantic_index = semanticIndex;
+      this.buffer_slot = bufferSlot;
+      this.num_components = numComponents;
+      this.value_type = valueType;
+      this.is_normalized = isNormalized;
+      this.relative_offset = relativeOffset;
+      this.stride = stride;
+      this.frequency = frequency;
+      this.instance_data_step_rate = instanceDataStepRate;
+    }
+  };
+  var InputLayoutDesc = class {
+    constructor() {
+      this.layout_elements = [];
+      this.num_elements = 0;
+    }
+  };
+
+  // src/render-backend/graphics/pipelinestate-desc.js
+  var FILL_MODE = {
+    FILL_MODE_UNDEFINED: 0,
+    FILL_MODE_WIREFRAME: 1,
+    FILL_MODE_SOLID: 2,
+    FILL_MODE_NUM_MODES: 3
+  };
+  var CULL_MODE = {
+    CULL_MODE_UNDEFINED: 0,
+    CULL_MODE_NONE: 1,
+    CULL_MODE_FRONT: 2,
+    CULL_MODE_BACK: 3,
+    CULL_MODE_NUM_MODES: 4
+  };
+  var RasterizerStateDesc = class {
+    constructor() {
+      this.fill_mode = FILL_MODE.FILL_MODE_SOLID;
+      this.cull_mode = CULL_MODE.CULL_MODE_BACK;
+      this.front_counter_clock_wise = false;
+      this.depth_clip_enable = true;
+      this.scissor_enable = false;
+      this.depth_bias = 0;
+      this.slope_scaled_depth_bias = 0;
+      this.depth_bias_clamp = 0;
+    }
+  };
+  var BLEND_FACTOR = {
+    BLEND_FACTOR_UNDEFINED: 0,
+    BLEND_FACTOR_ZERO: 1,
+    BLEND_FACTOR_ONE: 2,
+    BLEND_FACTOR_SRC_COLOR: 3,
+    BLEND_FACTOR_INV_SRC_COLOR: 4,
+    BLEND_FACTOR_SRC_ALPHA: 5,
+    BLEND_FACTOR_INV_SRC_ALPHA: 6,
+    BLEND_FACTOR_DEST_ALPHA: 7,
+    BLEND_FACTOR_INV_DEST_ALPHA: 8,
+    BLEND_FACTOR_DEST_COLOR: 9,
+    BLEND_FACTOR_INV_DEST_COLOR: 10,
+    BLEND_FACTOR_SRC_ALPHA_SAT: 11,
+    BLEND_FACTOR_BLEND_FACTOR: 12,
+    BLEND_FACTOR_INV_BLEND_FACTOR: 13,
+    BLEND_FACTOR_SRC1_COLOR: 14,
+    BLEND_FACTOR_INV_SRC1_COLOR: 15,
+    BLEND_FACTOR_SRC1_ALPHA: 16,
+    BLEND_FACTOR_INV_SRC1_ALPHA: 17,
+    BLEND_FACTOR_NUM_FACTORS: 18
+  };
+  var BLEND_OPERATION = {
+    BLEND_OPERATION_UNDEFINED: 0,
+    BLEND_OPERATION_ADD: 1,
+    BLEND_OPERATION_SUBTRACT: 2,
+    BLEND_OPERATION_REV_SUBTRACT: 3,
+    BLEND_OPERATION_MIN: 4,
+    BLEND_OPERATION_MAX: 5,
+    BLEND_OPERATION_NUM_OPERATIONS: 6
+  };
+  var COLOR_MASK = {
+    COLOR_MASK_NONE: 0,
+    COLOR_MASK_RED: 1,
+    COLOR_MASK_GREEN: 2,
+    COLOR_MASK_BLUE: 4,
+    COLOR_MASK_ALPHA: 8,
+    COLOR_MASK_RGB: 7,
+    COLOR_MASK_ALL: 15
+  };
+  var RenderTargetBlendDesc = class {
+    constructor() {
+      this.blend_enable = false;
+      this.src_blend = BLEND_FACTOR.BLEND_FACTOR_ONE;
+      this.dest_blend = BLEND_FACTOR.BLEND_FACTOR_ZERO;
+      this.blend_op = BLEND_OPERATION.BLEND_OPERATION_ADD;
+      this.src_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ONE;
+      this.dest_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ZERO;
+      this.blend_op_alpha = BLEND_OPERATION.BLEND_OPERATION_ADD;
+      this.color_mask = COLOR_MASK.COLOR_MASK_ALL;
+    }
+  };
+  var BlendStateDesc = class {
+    constructor() {
+      this.alpha_to_coverage_enable = false;
+      this.independent_blend_enable = false;
+      this.render_targets = [];
+      for (let i = 0; i < MAX_RENDER_TARGETS; i++) {
+        this.render_targets.push(new RenderTargetBlendDesc());
+      }
+    }
+  };
+  var STENCIL_OP = {
+    STENCIL_OP_UNDEFINED: 0,
+    STENCIL_OP_KEEP: 1,
+    STENCIL_OP_ZERO: 2,
+    STENCIL_OP_REPLACE: 3,
+    STENCIL_OP_INCR_SAT: 4,
+    STENCIL_OP_DECR_SAT: 5,
+    STENCIL_OP_INVERT: 6,
+    STENCIL_OP_INCR_WRAP: 7,
+    STENCIL_OP_DECR_WRAP: 8,
+    STENCIL_OP_NUM_OPS: 9
+  };
+  var StencilOpDesc = class {
+    constructor() {
+      this.stencil_fail_op = STENCIL_OP.STENCIL_OP_KEEP;
+      this.stencil_depth_fail_op = STENCIL_OP.STENCIL_OP_KEEP;
+      this.stencil_pass_op = STENCIL_OP.STENCIL_OP_KEEP;
+      this.stencil_func = COMPARISON_FUNCTION.COMPARISON_FUNC_ALWAYS;
+    }
+  };
+  var DepthStencilStateDesc = class {
+    constructor() {
+      this.depth_enable = true;
+      this.depth_write_enable = true;
+      this.depth_func = COMPARISON_FUNCTION.COMPARISON_FUNC_LESS;
+      this.stencil_enable = false;
+      this.stencil_read_mask = 255;
+      this.stencil_write_mask = 255;
+      this.front_face = new StencilOpDesc();
+      this.back_face = new StencilOpDesc();
+    }
+  };
+  var GraphicsPipelineDesc = class {
+    constructor() {
+      this.program = null;
+      this.blend_state_desc = new BlendStateDesc();
+      this.sample_mask = 4294967295;
+      this.rasterizer_state_desc = new RasterizerStateDesc();
+      this.depth_stencil_state_desc = new DepthStencilStateDesc();
+      this.input_layout_desc = new InputLayoutDesc();
+      this.enable_primitive_restart = false;
+      this.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      this.num_viewports = 1;
+      this.num_render_targets = 0;
+      this.RTV_formats = [];
+      this.DSV_format = TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN;
+      this.nodeMask = 0;
+    }
+  };
+  var ComputePipelineDesc = class {
+    constructor() {
+      this.program = null;
+    }
+  };
+  var PipelineStateDesc = class {
+    constructor(reversed) {
+      this.is_compute_pipeline = false;
+      this.graphics_pipeline_desc = new GraphicsPipelineDesc();
+      this.compute_pipeline_desc = new ComputePipelineDesc();
+      this.graphics_pipeline_desc.depth_stencil_state_desc.depth_func = reversed ? COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER_EQUAL : COMPARISON_FUNCTION.COMPARISON_FUNC_LESS_EQUAL;
+    }
+  };
+
+  // src/render-backend/graphics-engine/swapchain.js
+  var SwapChain = class {
+    constructor(renderDevice2, deviceContext, swapchainDesc) {
+      this.render_device = renderDevice2;
+      this.device_context = deviceContext;
+      this.swap_chain_desc = swapchainDesc;
+    }
+    Release() {
+      throw "need implement";
+    }
+    Present(syncInterval) {
+      throw "implementation needed";
+    }
+    GetDesc() {
+      return this.swap_chain_desc;
+    }
+    Resize(newWidth, newHeight) {
+      if (newWidth != 0 && newHeight != 0 && this.swap_chain_desc.width != newWidth && this.swap_chain_desc.height != newHeight) {
+        this.swap_chain_desc.width = newWidth;
+        this.swap_chain_desc.height = newHeight;
+        return true;
+      }
+      return false;
+    }
+    GetCurrentBackBufferRTV() {
+      throw "implementation needed";
+    }
+    GetCurrentBackBufferDSV() {
+      throw "implementation needed";
+    }
+    ReadPixels() {
+      throw "implementation needed";
+    }
+  };
 
   // src/render-backend/graphics/buffer-desc.js
   var BUFFER_MODE = {
@@ -1517,200 +1816,6 @@
     }
     Release() {
     }
-  };
-
-  // src/render-backend/graphics/shader-desc.js
-  var SHADER_TYPE = {
-    SHADER_TYPE_UNKNOWN: 0,
-    SHADER_TYPE_VERTEX: 1,
-    SHADER_TYPE_PIXEL: 2,
-    SHADER_TYPE_GEOMETRY: 4,
-    SHADER_TYPE_HULL: 8,
-    SHADER_TYPE_DOMAIN: 16,
-    SHADER_TYPE_COMPUTE: 32
-  };
-  var SHADER_RESOURCE_VARIABLE_TYPE = {
-    SHADER_RESOURCE_VARIABLE_TYPE_STATIC: 0,
-    SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE: 1,
-    SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC: 2,
-    SHADER_RESOURCE_VARIABLE_TYPE_NUM_TYPES: 3
-  };
-
-  // src/render-backend/graphics-engine/program.js
-  var Program = class {
-    constructor(renderDevice2, programDesc) {
-      this.render_device = renderDevice2;
-      this.desc = programDesc;
-      this.num_shaders = 0;
-      this.shaders = [];
-      if (this.desc.p_cs) {
-        if (this.desc.p_vs || this.desc.p_ps || this.desc.p_gs || this.desc.p_hs || this.desc.p_ds) {
-          console.warn("compute shader provided, no other shader will take effect");
-        }
-        this.p_cs = this.desc.p_cs;
-        this.shaders[0] = this.p_cs;
-        this.num_shaders = 1;
-        if (this.p_cs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_COMPUTE) {
-          throw "not a shader of COMPUTE type";
-        }
-      } else {
-        if (this.desc.p_vs) {
-          this.p_vs = this.desc.p_vs;
-          this.shaders[this.num_shaders++] = this.p_vs;
-          if (this.p_vs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_VERTEX) {
-            throw "not a shader of VERTEX type";
-          }
-        }
-        if (this.desc.p_ps) {
-          this.p_ps = this.desc.p_ps;
-          this.shaders[this.num_shaders++] = this.p_ps;
-          if (this.p_ps.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_PIXEL) {
-            throw "not a shader of PIXEL type";
-          }
-        }
-        if (this.desc.p_gs) {
-          this.p_gs = this.desc.p_gs;
-          this.shaders[this.num_shaders++] = this.p_gs;
-          if (this.p_gs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_GEOMETRY) {
-            throw "not a shader of GEOMETRY type";
-          }
-        }
-        if (this.desc.p_hs) {
-          this.p_hs = this.desc.p_hs;
-          this.shaders[this.num_shaders++] = this.p_hs;
-          if (this.p_hs.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_HULL) {
-            throw "not a shader of HULL type";
-          }
-        }
-        if (this.desc.p_ds) {
-          this.p_ds = this.desc.p_ds;
-          this.shaders[this.num_shaders++] = this.p_ds;
-          if (this.p_ds.GetDesc().shader_type != SHADER_TYPE.SHADER_TYPE_DOMAIN) {
-            throw "not a shader of DOMAIN type";
-          }
-        }
-      }
-    }
-    GetDesc() {
-      return this.desc;
-    }
-    GetNumShaders() {
-      return this.num_shaders;
-    }
-    Release() {
-      throw "need implement";
-    }
-    GetShader(index) {
-      return this.shaders[index];
-    }
-    GetVS() {
-      return this.p_vs;
-    }
-    GetPS() {
-      return this.p_ps;
-    }
-    GetGS() {
-      return this.p_gs;
-    }
-    GetHS() {
-      return this.p_hs;
-    }
-    GetDS() {
-      return this.p_ds;
-    }
-    GetCS() {
-      return this.p_cs;
-    }
-    GetVSShaderReflection() {
-      throw "implementation needed";
-    }
-    GetPSShaderReflection() {
-      throw "implementation needed";
-    }
-    GetGSShaderReflection() {
-      throw "implementation needed";
-    }
-    GetHSShaderReflection() {
-      throw "implementation needed";
-    }
-    GetDSShaderReflection() {
-      throw "implementation needed";
-    }
-    GetCSShaderReflection() {
-      throw "implementation needed";
-    }
-  };
-
-  // src/render-backend/graphics/pipelinestate-desc.js
-  var CULL_MODE = {
-    CULL_MODE_UNDEFINED: 0,
-    CULL_MODE_NONE: 1,
-    CULL_MODE_FRONT: 2,
-    CULL_MODE_BACK: 3,
-    CULL_MODE_NUM_MODES: 4
-  };
-  var BLEND_FACTOR = {
-    BLEND_FACTOR_UNDEFINED: 0,
-    BLEND_FACTOR_ZERO: 1,
-    BLEND_FACTOR_ONE: 2,
-    BLEND_FACTOR_SRC_COLOR: 3,
-    BLEND_FACTOR_INV_SRC_COLOR: 4,
-    BLEND_FACTOR_SRC_ALPHA: 5,
-    BLEND_FACTOR_INV_SRC_ALPHA: 6,
-    BLEND_FACTOR_DEST_ALPHA: 7,
-    BLEND_FACTOR_INV_DEST_ALPHA: 8,
-    BLEND_FACTOR_DEST_COLOR: 9,
-    BLEND_FACTOR_INV_DEST_COLOR: 10,
-    BLEND_FACTOR_SRC_ALPHA_SAT: 11,
-    BLEND_FACTOR_BLEND_FACTOR: 12,
-    BLEND_FACTOR_INV_BLEND_FACTOR: 13,
-    BLEND_FACTOR_SRC1_COLOR: 14,
-    BLEND_FACTOR_INV_SRC1_COLOR: 15,
-    BLEND_FACTOR_SRC1_ALPHA: 16,
-    BLEND_FACTOR_INV_SRC1_ALPHA: 17,
-    BLEND_FACTOR_NUM_FACTORS: 18
-  };
-  var BLEND_OPERATION = {
-    BLEND_OPERATION_UNDEFINED: 0,
-    BLEND_OPERATION_ADD: 1,
-    BLEND_OPERATION_SUBTRACT: 2,
-    BLEND_OPERATION_REV_SUBTRACT: 3,
-    BLEND_OPERATION_MIN: 4,
-    BLEND_OPERATION_MAX: 5,
-    BLEND_OPERATION_NUM_OPERATIONS: 6
-  };
-  var COLOR_MASK = {
-    COLOR_MASK_NONE: 0,
-    COLOR_MASK_RED: 1,
-    COLOR_MASK_GREEN: 2,
-    COLOR_MASK_BLUE: 4,
-    COLOR_MASK_ALPHA: 8,
-    COLOR_MASK_RGB: 7,
-    COLOR_MASK_ALL: 15
-  };
-  var RenderTargetBlendDesc = class {
-    constructor() {
-      this.blend_enable = false;
-      this.src_blend = BLEND_FACTOR.BLEND_FACTOR_ONE;
-      this.dest_blend = BLEND_FACTOR.BLEND_FACTOR_ZERO;
-      this.blend_op = BLEND_OPERATION.BLEND_OPERATION_ADD;
-      this.src_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ONE;
-      this.dest_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ZERO;
-      this.blend_op_alpha = BLEND_OPERATION.BLEND_OPERATION_ADD;
-      this.color_mask = COLOR_MASK.COLOR_MASK_ALL;
-    }
-  };
-  var STENCIL_OP = {
-    STENCIL_OP_UNDEFINED: 0,
-    STENCIL_OP_KEEP: 1,
-    STENCIL_OP_ZERO: 2,
-    STENCIL_OP_REPLACE: 3,
-    STENCIL_OP_INCR_SAT: 4,
-    STENCIL_OP_DECR_SAT: 5,
-    STENCIL_OP_INVERT: 6,
-    STENCIL_OP_INCR_WRAP: 7,
-    STENCIL_OP_DECR_WRAP: 8,
-    STENCIL_OP_NUM_OPS: 9
   };
 
   // src/render-backend/graphics-engine-webgl/gl.js
@@ -6386,7 +6491,7 @@
     return 0;
   };
   GraphicsDriver.Create = function(deviceCaps2, contextCreationType) {
-    const driver = new GraphicsDriver();
+    const driver2 = new GraphicsDriver();
     let numDeferredContexts = 0;
     const contexts = [];
     let device = null;
@@ -6404,25 +6509,15 @@
             console.warn("deferred contexts are not supported in OpenGL mode");
             numDeferredContexts = 0;
           }
-          if (contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
-            device = new RenderDeviceGL(creationAttribs);
-            deviceContext = new DeviceContextGL(device, false);
-            device.SetImmediateContext(deviceContext);
-            const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
-            deviceContext.SetSwapChain(swapchain);
-            const renderPassAttribs = new RenderPassAttribs();
-            deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
-            deviceContext.EndRenderPass();
-          } else {
-            device = new RenderDeviceGL(creationAttribs);
-            deviceContext = new DeviceContextGL(device, false);
-            device.SetImmediateContext(deviceContext);
-            const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
-            deviceContext.SetSwapChain(swapchain);
-            const renderPassAttribs = new RenderPassAttribs();
-            deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
-            deviceContext.EndRenderPass();
-          }
+          device = new RenderDeviceGL(creationAttribs);
+          deviceContext = new DeviceContextGL(device, false);
+          device.SetImmediateContext(deviceContext);
+          swapchainDesc.default_depth_value = device.GetDeviceCaps().reversedz_perspective ? 0 : 1;
+          const swapchain = new SwapchainGL(device, deviceContext, swapchainDesc);
+          deviceContext.SetSwapChain(swapchain);
+          const renderPassAttribs = new RenderPassAttribs();
+          deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
+          deviceContext.EndRenderPass();
         }
         break;
       case DEVICE_TYPE.DEVICE_TYPE_WEBGPU:
@@ -6430,13 +6525,22 @@
       default:
         throw "unknown device type";
     }
-    driver.render_device = device;
-    driver.device_context = contexts[0];
-    return driver;
+    driver2.render_device = device;
+    driver2.device_context = contexts[0];
+    return driver2;
   };
 
   // test/render-backend/webgl/index.js
   var deviceCaps = new DeviceCaps();
   deviceCaps.dev_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
-  GraphicsDriver.Create(deviceCaps, CONTEXT_CREATION_TYPE.CREATE);
+  var driver = GraphicsDriver.Create(deviceCaps, CONTEXT_CREATION_TYPE.CREATE);
+  var psoDesc = new PipelineStateDesc(deviceCaps.reversedz_perspective);
+  psoDesc.is_compute_pipeline = false;
+  psoDesc.graphics_pipeline_desc.num_render_targets = 1;
+  psoDesc.graphics_pipeline_desc.RTV_formats[0] = TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN;
+  psoDesc.graphics_pipeline_desc.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  psoDesc.graphics_pipeline_desc.rasterizer_state_desc.cull_mode = CULL_MODE.CULL_MODE_NONE;
+  psoDesc.graphics_pipeline_desc.input_layout_desc.num_elements = 2;
+  psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements[0] = new LayoutElement(0, 0, 3, VALUE_TYPE2.VT_FLOAT32);
+  psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements[1] = new LayoutElement(1, 0, 2, VALUE_TYPE2.VT_FLOAT32);
 })();
