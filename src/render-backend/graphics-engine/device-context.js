@@ -59,6 +59,7 @@ class DeviceContext {
     ResolveResource(msaaTexture, resolvedTexture) { throw 'implementation needed'; }
 
     SetSwapChain(swapchain) { this.swapchain = swapchain; }
+    GetSwapChain() { return this.swapchain; }
 
     SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
         if(startSlot >= MAX_BUFFER_SLOTS) {

@@ -1,13 +1,18 @@
 import { BLEND_FACTOR, CULL_MODE, PipelineStateDesc, RenderTargetBlendDesc } from '../../../src/render-backend/graphics/pipelinestate-desc';
 import { GraphicsDriver } from '../../../src/render-backend/graphics/graphics-driver';
 import { DEVICE_TYPE, DeviceCaps } from '../../../src/render-backend/graphics/device-caps';
-import { CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
+import { CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, SwapChainDesc, TEXTURE_FORMAT, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
 import { LayoutElement } from '../../../src/render-backend/graphics/input-layout';
+import { Program } from '../../../src/render-backend/graphics-engine/program';
+import { ProgramDesc } from '../../../src/render-backend/graphics/program-desc';
+import { ShaderCreationAttribs } from '../../../src/render-backend/graphics/shader-desc';
 
 const deviceCaps = new DeviceCaps();
 deviceCaps.dev_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
 
 const driver = GraphicsDriver.Create(deviceCaps, CONTEXT_CREATION_TYPE.CREATE);
+
+const swapchainDesc = driver.GetSwapchainDesc(driver.GetSwapChain());
 
 const psoDesc = new PipelineStateDesc(deviceCaps.reversedz_perspective);
 psoDesc.is_compute_pipeline = false;
@@ -27,4 +32,11 @@ blendDesc.src_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ONE;
 blendDesc.dest_blend = BLEND_FACTOR.BLEND_FACTOR_ZERO;
 blendDesc.dest_blend_alpha = BLEND_FACTOR.BLEND_FACTOR_ZERO;
 
-psoDesc.graphics_pipeline_desc.blend_state_desc.render_targets[0] = new RenderTargetBlendDesc();
+psoDesc.graphics_pipeline_desc.DSV_format = swapchainDesc.depth_buffer_format;
+psoDesc.graphics_pipeline_desc.depth_stencil_state_desc.depth_enable = true;
+
+const vShaderDesc = new ShaderCreationAttribs();
+// const programDesc = new ProgramDesc({})
+
+// psoDesc.graphics_pipeline_desc.program = 
+

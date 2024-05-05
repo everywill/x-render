@@ -34,19 +34,19 @@ class ShaderReflection {
 }
 
 class ProgramDesc {
-    constructor() {
+    constructor({pCS=null, pVS=null, pPS=null, pGS=null, pHS=null, pDS=null}) {
         // compute shader
-        this.p_cs = null;
+        this.p_cs = pCS;
         // vertex shader
-        this.p_vs = null;
+        this.p_vs = pVS;
         // pixel shader
-        this.p_ps = null;
+        this.p_ps = pPS;
         // geometry shader
-        this.p_gs = null;
+        this.p_gs = pGS;
         // hull shader
-        this.p_hs = null;
+        this.p_hs = pHS;
         // domain shader
-        this.p_ds = null;
+        this.p_ds = pDS;
     }
 }
 

@@ -152,6 +152,7 @@ class GraphicsDriver {
     SetSwapChain(swapchain) {
         this.device_context.SetSwapChain(swapchain);
     }
+    GetSwapChain() { return this.device_context.GetSwapChain(); }
 
     // buffer method
     GetBufferDesc(buffer) {
@@ -372,7 +373,6 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
     const driver = new GraphicsDriver();
 
     let numDeferredContexts = 0;
-    const contexts = [];
     let device = null;
     let deviceContext = null;
     let swapchainDesc = new SwapChainDesc();
@@ -390,8 +390,6 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 console.warn('deferred contexts are not supported in OpenGL mode');
                 numDeferredContexts = 0;
             }
-
-            
 
             // if(contextCreationType == CONTEXT_CREATION_TYPE.ATTACH) {
             //     device = new RenderDeviceGL(creationAttribs);
@@ -427,7 +425,7 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
             throw 'unknown device type';
     }
     driver.render_device = device;
-    driver.device_context = contexts[0];
+    driver.device_context = deviceContext;
 
     return driver;
 }
