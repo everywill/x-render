@@ -416,7 +416,6 @@ GraphicsDriver.Create = function(deviceCaps, contextCreationType) {
                 deviceContext.BeginRenderPass(0, null, null, renderPassAttribs);
                 deviceContext.EndRenderPass();
             // }
-            
         }
         break;
         case DEVICE_TYPE.DEVICE_TYPE_WEBGPU:

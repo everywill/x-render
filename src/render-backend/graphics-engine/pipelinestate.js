@@ -17,8 +17,8 @@ class PipelineState {
         // stride must be defined
         let bDefineAllStride = true;
 
-        for(let elem=0; elem<this.desc.input_layout_desc.layout_elements.length; elem++) {
-            const inputElem = this.desc.input_layout_desc.layout_elements[elem];
+        for(let elem=0; elem<this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements.length; elem++) {
+            const inputElem = this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements[elem];
             bAutoCalcLayout &= inputElem.relative_offset == 0;
             bDefineAllStride &= inputElem.stride != 0
         }
@@ -28,8 +28,8 @@ class PipelineState {
         }
 
         const tightStrides = [];
-        for(let elem=0; elem<this.desc.input_layout_desc.layout_elements.length; elem++) {
-            const inputElem = this.desc.input_layout_desc.layout_elements[elem];
+        for(let elem=0; elem<this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements.length; elem++) {
+            const inputElem = this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements[elem];
             if(inputElem.value_type >= VALUE_TYPE.VT_FLOAT16) {
                 inputElem.is_normalized = false;
             }
@@ -51,14 +51,14 @@ class PipelineState {
                 if(this.strides[bufferSlot] != inputElem.stride) {
                     console.warn('inconsistent strides specified for buffer slot');
                 }
-                this.strides[bufferSlot] = inputElem.stride;
             }
+            this.strides[bufferSlot] = inputElem.stride;
 
             tightStrides[bufferSlot] += GetValueSize(inputElem.value_type) * inputElem.num_components;
         }
 
-        for(let elem=0; elem<this.desc.input_layout_desc.layout_elements.length; elem++) {
-            const inputElem = this.desc.input_layout_desc.layout_elements[elem];
+        for(let elem=0; elem<this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements.length; elem++) {
+            const inputElem = this.desc.graphics_pipeline_desc.input_layout_desc.layout_elements[elem];
             const bufferSlot = inputElem.buffer_slot;
             if(this.strides[bufferSlot] < tightStrides[bufferSlot]) {
                 throw `stride(${bufferSlot}) explicitly specified is smaller than the total size of elements`;

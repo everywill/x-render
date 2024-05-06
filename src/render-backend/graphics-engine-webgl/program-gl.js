@@ -40,7 +40,7 @@ class ProgramGL extends Program {
         for(let i=0; i<this.num_shaders; i++) {
             const currShader = this.GetShader(i);
             currShader.CompileShader();
-            gl.attachShader(this.gl_program.native_handle, currShader);
+            gl.attachShader(this.gl_program.native_handle, currShader.gl_shader);
         }
         gl.linkProgram(this.gl_program.native_handle);
     }

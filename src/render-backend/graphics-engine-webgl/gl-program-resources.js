@@ -381,24 +381,24 @@ class GLProgramResources {
 
         for(let info of srcResources.scale_uniform_info) {
             if(varTypes.indexOf(info.var_type) != -1) {
-                this.scale_uniform_info.puush(new ScaleUniformInfo(info.name, info.array_size, info.var_type, info.uniform_location, info.scale_size, info.data_type));
+                this.scale_uniform_info.push(new ScaleUniformInfo(info.name, info.array_size, info.var_type, info.uniform_location, info.scale_size, info.data_type));
             }
         }
-
-        InitVariables();
+ 
+        this.InitVariables();
     }
 
     InitVariables() {
         // after all program resources are loaded, we can populate shader variable map
-        for(let info of srcResources.uniform_blocks) {
+        for(let info of this.uniform_blocks) {
             this.variable_map.set(info.name, new GLShaderVariable(info));
         }
 
-        for(let info of srcResources.samplers) {
+        for(let info of this.samplers) {
             this.variable_map.set(info.name, new GLShaderVariable(info));
         }
 
-        for(let info of srcResources.scale_uniform_info) {
+        for(let info of this.scale_uniform_info) {
             this.variable_map.set(info.name, new GLShaderVariable(info));
         }
     }
