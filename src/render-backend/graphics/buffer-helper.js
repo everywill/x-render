@@ -62,17 +62,25 @@ function CreateStaticIndexBuffer(renderDevice, byteSize, data) {
     return renderDevice.CreateBuffer(bufferDesc, bufferData);
 }
 
-function CreateDynamicIndexBuffer(render_device, byteSize, data, gpuWriteable) {
+function CreateDynamicIndexBuffer(renderDevice, byteSize, data) {
     const bufferDesc = new BufferDesc();
     bufferDesc.usage = USAGE.USAGE_DYNAMIC;
-    bufferDesc.bind_flags = gpuWriteable ?
-                            BIND_FLAGS.BIND_INDEX_BUFFER | BIND_FLAGS.BIND_UNORDERED_ACCESS :
-                            BIND_FLAGS.BIND_INDEX_BUFFER;
+    bufferDesc.bind_flags = BIND_FLAGS.BIND_INDEX_BUFFER;
     bufferDesc.size = byteSize;
     const bufferData = new BufferData();
     bufferData.data = data;
     bufferData.size = byteSize;
     return renderDevice.CreateBuffer(bufferDesc, bufferData);
+}
+
+function CreateUniformBuffer(renderDevice, byteSize, usage = USAGE.USAGE_DEFAULT, bindFlag = BIND_FLAGS.BIND_UNIFORM_BUFFER, cpuAccessFlas = CPU_ACCESS_FLAGS.CPU_ACCESS_NONE) {
+    const CBDesc = new BufferDesc()
+    CBDesc.size = byteSize;
+    CBDesc.usage = usage;
+    CBDesc.bind_flags = bindFlag;
+    CBDesc.cpu_access_flags = cpuAccessFlas;
+    const data = new BufferData();
+    return renderDevice.CreateBuffer(CBDesc, data);
 }
 
 // function CreateStructBuffer() {
@@ -87,4 +95,5 @@ export {
     CreateDefaultIndexBuffer,
     CreateStaticIndexBuffer,
     CreateDynamicIndexBuffer,
+    CreateUniformBuffer,
 }

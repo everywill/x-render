@@ -72,3 +72,30 @@ psoDesc.graphics_pipeline_desc.depth_stencil_state_desc.back_face.stencil_func =
 const pso = driver.CreatePipelineState(psoDesc);
 const srb = driver.CreateShaderResourceBinding(pso);
 
+// for non-slice9 images, only use a rectangle
+        //      3---2
+        //      |  /|
+        //      | / |
+        //      |/  |
+        //      0---1
+        // for slice9 images, use 9 rectangles
+        //      4---15--14--13
+        //      |  /|  /|  /|
+        //      | / | / | / |
+        //      |/  |/  |/  |
+        //      5---3---2---12
+        //      |  /|  /|  /|
+        //      | / | / | / |
+        //      |/  |/  |/  |
+        //      6---0---1---11
+        //      |  /|  /|  /|
+        //      | / | / | / |
+        //      |/  |/  |/  |
+        //      7---8---9---10
+
+const uniformBuffer = driver.CreateDefaultVertexBuffer()
+
+const spriteVertex = driver
+
+
+

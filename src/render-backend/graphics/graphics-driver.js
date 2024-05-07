@@ -3,10 +3,11 @@ import { DEVICE_TYPE } from "./device-caps";
 import { 
     CreateDefaultVertexBuffer, CreateStaticVertexBuffer, CreateDynamicVertexBuffer,
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
+    CreateUniformBuffer,
 } from "./buffer-helper";
 import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
-import { CONTEXT_CREATION_TYPE, SwapChainDesc, TEXTURE_FORMAT } from "./graphics-types";
+import { BIND_FLAGS, CONTEXT_CREATION_TYPE, CPU_ACCESS_FLAGS, SwapChainDesc, TEXTURE_FORMAT, USAGE } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
 import { RenderPassAttribs } from "./device-context-desc";
@@ -323,32 +324,26 @@ class GraphicsDriver {
         this.device_context.GraphicStateRestore();
         return true;
     }
-    CreateDefaultVertexBuffer(byteSize, data, gpuWriteable) {
+    CreateDefaultVertexBuffer(byteSize, data, gpuWriteable = false) {
        return CreateDefaultVertexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
     CreateStaticVertexBuffer(byteSize, data) {
         return CreateStaticVertexBuffer(this.render_device, byteSize, data);
     }
-    CreateDynamicVertexBuffer(byteSize, data, gpuWriteable) {
+    CreateDynamicVertexBuffer(byteSize, data, gpuWriteable = false) {
         return CreateDynamicVertexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
-    CreateDefaultIndexBuffer(byteSize, data, gpuWriteable) {
+    CreateDefaultIndexBuffer(byteSize, data, gpuWriteable = false) {
         return CreateDefaultIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
     }
     CreateStaticIndexBuffer(byteSize, data) {
         return CreateStaticIndexBuffer(this.render_device, byteSize, data);
     }
-    CreateDynamicIndexBuffer(byteSize, data, gpuWriteable) {
-        return CreateDynamicIndexBuffer(this.render_device, byteSize, data, gpuWriteable);
+    CreateDynamicIndexBuffer(byteSize, data) {
+        return CreateDynamicIndexBuffer(this.render_device, byteSize, data);
     }
-    CreateUniformBuffer(byteSize, usage, bindFlag, cpuAccessFlas) {
-        const CBDesc = new BufferDesc()
-        CBDesc.size = byteSize;
-        CBDesc.usage = usage;
-        CBDesc.bind_flags = bindFlag;
-        CBDesc.cpu_access_flags = cpuAccessFlas;
-        const data = new ArrayBuffer();
-        return this.render_device.CreateBuffer(CBDesc, data);
+    CreateUniformBuffer(byteSize, usage = USAGE.USAGE_DEFAULT, bindFlag = BIND_FLAGS.BIND_UNIFORM_BUFFER, cpuAccessFlas = CPU_ACCESS_FLAGS.CPU_ACCESS_NONE) {
+        return CreateUniformBuffer(this.render_device, byteSize, usage, bindFlag, cpuAccessFlas);
     }
 }
 
