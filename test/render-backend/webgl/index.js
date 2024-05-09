@@ -1,11 +1,13 @@
 import { BLEND_FACTOR, CULL_MODE, PipelineStateDesc } from '../../../src/render-backend/graphics/pipelinestate-desc';
 import { GraphicsDriver } from '../../../src/render-backend/graphics/graphics-driver';
 import { DEVICE_TYPE, DeviceCaps } from '../../../src/render-backend/graphics/device-caps';
-import { COMPARISON_FUNCTION, CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
+import { BIND_FLAGS, COMPARISON_FUNCTION, CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, RESOURCE_DIMENSION, TEXTURE_FORMAT, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
 import { LayoutElement } from '../../../src/render-backend/graphics/input-layout';
 import { ProgramDesc } from '../../../src/render-backend/graphics/program-desc';
 import { SHADER_RESOURCE_VARIABLE_TYPE, SHADER_TYPE, ShaderCreationAttribs } from '../../../src/render-backend/graphics/shader-desc';
 import { vShader_source, pShader_source } from './shader_sources';
+import { RenderPassAttribs } from '../../../src/render-backend/graphics/device-context-desc';
+import { TextureData, TextureDesc } from '../../../src/render-backend/graphics/texture-desc';
 
 const deviceCaps = new DeviceCaps();
 deviceCaps.dev_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
@@ -23,8 +25,8 @@ psoDesc.graphics_pipeline_desc.RTV_formats[0] = TEXTURE_FORMAT.TEX_FORMAT_UNKNOW
 psoDesc.graphics_pipeline_desc.primitive_topology = PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 psoDesc.graphics_pipeline_desc.rasterizer_state_desc.cull_mode = CULL_MODE.CULL_MODE_NONE;
 psoDesc.graphics_pipeline_desc.input_layout_desc.num_elements = 2;
-const elem1 = new LayoutElement(0, 0, 3, VALUE_TYPE.VT_FLOAT32);
-const elem2 = new LayoutElement(1, 0, 2, VALUE_TYPE.VT_FLOAT32);
+const elem1 = new LayoutElement(0, 0, 3, VALUE_TYPE.VT_FLOAT32);  // position
+const elem2 = new LayoutElement(1, 0, 2, VALUE_TYPE.VT_FLOAT32);  // uc
 elem1.stride = 3 * 4 + 2 * 4;
 elem2.stride = 3 * 4 + 2 * 4;
 psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements[0] = elem1;
@@ -73,29 +75,100 @@ const pso = driver.CreatePipelineState(psoDesc);
 const srb = driver.CreateShaderResourceBinding(pso);
 
 // for non-slice9 images, only use a rectangle
-        //      3---2
-        //      |  /|
-        //      | / |
-        //      |/  |
-        //      0---1
-        // for slice9 images, use 9 rectangles
-        //      4---15--14--13
-        //      |  /|  /|  /|
-        //      | / | / | / |
-        //      |/  |/  |/  |
-        //      5---3---2---12
-        //      |  /|  /|  /|
-        //      | / | / | / |
-        //      |/  |/  |/  |
-        //      6---0---1---11
-        //      |  /|  /|  /|
-        //      | / | / | / |
-        //      |/  |/  |/  |
-        //      7---8---9---10
+//      3---2
+//      |  /|
+//      | / |
+//      |/  |
+//      0---1
+// for slice9 images, use 9 rectangles
+//      4---15--14--13
+//      |  /|  /|  /|
+//      | / | / | / |
+//      |/  |/  |/  |
+//      5---3---2---12
+//      |  /|  /|  /|
+//      | / | / | / |
+//      |/  |/  |/  |
+//      6---0---1---11
+//      |  /|  /|  /|
+//      | / | / | / |
+//      |/  |/  |/  |
+//      7---8---9---10
 
-const uniformBuffer = driver.CreateDefaultVertexBuffer()
+// struct Uniforms
+// {
+//     float bDepth3D;
+//     float holder0;
+//     float holder1;
+//     float holder2;
+// } m_uniforms;
+const uniformBuffer = driver.CreateUniformBuffer(16);
 
-const spriteVertex = driver
+// struct SpriteVertexData
+// {
+//     float3 pos;
+//     float2 uv;
+// };
+
+// 16 SpriteVertexData 
+const vertexBuffer = driver.CreateDefaultVertexBuffer(16 * 20, null);
+
+const data = new Uint16Array([
+    0, 1, 2, 0, 2, 3,
+    5, 3, 15, 5, 15, 4,
+    3, 2, 14, 3, 14, 15,
+    2, 12, 13, 2, 13, 14,
+    6, 0, 3, 6, 3, 5,
+    1, 11, 12, 1, 12, 2,
+    7, 8, 0, 7, 0, 6,
+    8, 9, 1, 8, 1, 0,
+    9, 10, 11, 9, 11, 1
+]);
+const indexBuffer = driver.CreateStaticIndexBuffer(2 * 54, data);
+
+// whether is Depth3D
+const uniform = new Float32Array([0,0,0,0])
+driver.UpdateBufferData(uniformBuffer, 0, 16, uniform);
+
+const positions = [
+    new Float32Array([-0.5, -0.5, 0]),
+    new Float32Array([0.5, -0.5, 0]),
+    new Float32Array([0.5, 0.5, 0]),
+    new Float32Array([-0.5, 0.5, 0])
+];
+
+const uvs = [
+    new Float32Array([0, 0]),
+    new Float32Array([1, 0]),
+    new Float32Array([1, 1]),
+    new Float32Array([0, 1])
+]
+
+const vertexData = new Float32Array(5*4);
+for(let i=0; i<4; i++) {
+    vertexData[i] = positions[i][0];
+    vertexData[i+1] = positions[i][1];
+    vertexData[i+2] = positions[i][2];
+    vertexData[i+3] = uvs[i][0];
+    vertexData[i+4] = uvs[i][1];
+}
+
+driver.UpdateBufferData(vertexBuffer, 0, 16*20, vertexData);
+
+const RTTextureDesc = new TextureDesc();
+RTTextureDesc.type = RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D;
+RTTextureDesc.width = 200;
+RTTextureDesc.height = 200;
+RTTextureDesc.format = TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM;
+RTTextureDesc.bind_flags = BIND_FLAGS.BIND_RENDER_TARGET;
+
+const textureData = new TextureData()
+const RTTexture = driver.CreateTexture(RTTextureDesc, textureData);
+
+const rpattribs = new RenderPassAttribs();
+rpattribs.num_render_targets = 1;
+
+// driver.BeginRenderPass()
 
 
 

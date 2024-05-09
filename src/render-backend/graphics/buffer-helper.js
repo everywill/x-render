@@ -83,11 +83,6 @@ function CreateUniformBuffer(renderDevice, byteSize, usage = USAGE.USAGE_DEFAULT
     return renderDevice.CreateBuffer(CBDesc, data);
 }
 
-// function CreateStructBuffer() {
-//     const bufferDesc = new BufferDesc();
-//     bufferDesc.size = 
-// }
-
 export {
     CreateDefaultVertexBuffer,
     CreateStaticVertexBuffer,

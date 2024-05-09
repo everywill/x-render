@@ -131,7 +131,8 @@ class GraphicsDriver {
         this.device_context.InvalidateState();
     }
 
-    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
+    BeginRenderPass(renderTargets, depthStencil, renderPassAttribs) {
+        const numRenderTargets = renderPassAttribs.num_render_targets;
         this.device_context.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
     }
     EndRenderPass() {

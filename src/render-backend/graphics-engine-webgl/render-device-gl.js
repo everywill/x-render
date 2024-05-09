@@ -33,7 +33,7 @@ class RenderDeviceGL extends RenderDevice {
         this.QueryDeviceCaps();
 
         const glVendorStr = gl.getParameter(gl.VENDOR);
-        console.info('GPU Vendor: {}', glVendorStr);
+        console.info('GPU Vendor:', glVendorStr);
 
         // map context to fbo cache
         this.FBO_cache = new Map();

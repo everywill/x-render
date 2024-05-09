@@ -52,7 +52,7 @@ class BufferGL extends Buffer {
         }
         const target = GetBufferBindTarget(bufferDesc);
         gl.bindBuffer(target, this.gl_buffer);
-        if(!bufferData.data && bufferData.size<bufferDesc.size) {
+        if(bufferData.data && bufferData.size<bufferDesc.size) {
             throw 'data is not null and data size is not consistent with buffer size'
         }
         let dataSize = bufferDesc.size;
@@ -63,11 +63,12 @@ class BufferGL extends Buffer {
         }
 
         if(data && dataSize) {
-            gl.bufferData(target, data, this.gl_usage_hint, 0, dataSize);
+            // slice dataSize portion if data 
+            gl.bufferData(target, data, this.gl_usage_hint);
         } else {
             gl.bufferData(target, dataSize, this.gl_usage_hint);
         }
-        gl.bindBuffer(target, 0);
+        gl.bindBuffer(target, null);
     }
 
     GetGLBuffer() { return this.gl_buffer; }
@@ -81,12 +82,13 @@ class BufferGL extends Buffer {
     UpdateData(deviceContext, offset, size, data) {
         super.UpdateData(deviceContext, offset, size, data);
         // todo: bufferMemoryBarrier
-        const target = GetBufferBindTarget(bufferDesc);
+        const target = GetBufferBindTarget(this.desc);
         gl.bindBuffer(target, this.gl_buffer);
         if(size) {
-            gl.bufferSubData(target, offset, size, data);
+            // todo: slice data to provided size
+            gl.bufferSubData(target, offset, data);
         }
-        gl.bindBuffer(target, 0);
+        gl.bindBuffer(target, null);
     }
 
     CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size) {
@@ -95,8 +97,8 @@ class BufferGL extends Buffer {
         gl.bindBuffer(gl.COPY_WRITE_BUFFER, this.gl_buffer);
         gl.bindBuffer(gl.COPY_READ_BUFFER, srcBuffer.gl_buffer);
         gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, srcOffset, dstOffset, size);
-        gl.bindBuffer(gl.COPY_WRITE_BUFFER, 0);
-        gl.bindBuffer(gl.COPY_READ_BUFFER, 0);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, null);
     }
 
     Map(deviceContext, mapType, mapFlags, mappedData) {

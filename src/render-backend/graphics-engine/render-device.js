@@ -70,7 +70,7 @@ class RenderDevice {
             throw 'texture format out of range';
         }
         const textureFormatInfo = this.texture_format_infos[textureFormat];
-        if(textureFormat.format != textureFormat) {
+        if(textureFormatInfo.format != textureFormat) {
             throw 'texture format check fail'
         }
         if(!this.texture_format_init_flags[textureFormat]) {
