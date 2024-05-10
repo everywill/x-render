@@ -1,9 +1,10 @@
 import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 import { GLProgramResources } from "./gl-program-resources";
 
 class GLProgram {
     constructor() {
+        const gl = GetCurrentContext();
         this.all_resources = new GLProgramResources();
         this.const_resources = new GLProgramResources();
         this.shader_reflection = null;
@@ -25,6 +26,7 @@ class GLProgram {
 
     Release() {
         if(this.valid) {
+            const gl = GetCurrentContext();
             gl.deleteProgram(this.native_handle);
             this.valid = false;
         }

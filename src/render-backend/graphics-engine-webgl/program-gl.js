@@ -2,7 +2,7 @@ import { Program } from "../graphics-engine/program";
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
 import { GLProgram } from "./gl-program";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class ProgramGL extends Program {
     constructor(renderDevice, programDesc) {
@@ -29,13 +29,17 @@ class ProgramGL extends Program {
         }
     }
 
-    GetGLProgram() { return this.gl_program; }
+    GetGLProgram() { 
+        this.CheckLinkStateAndReflection();
+        return this.gl_program; 
+    }
 
     Release() {
         this.gl_program.Release();
     }
 
     LinkProgram() {
+        const gl = GetCurrentContext();
         this.gl_program = new GLProgram();
         for(let i=0; i<this.num_shaders; i++) {
             const currShader = this.GetShader(i);
@@ -50,6 +54,7 @@ class ProgramGL extends Program {
     }
 
     LinkFailed() {
+        const gl = GetCurrentContext();
         const info = gl.getProgramInfoLog();
         console.error('failed to link program');
         console.error(info);
@@ -58,6 +63,7 @@ class ProgramGL extends Program {
 
     CheckLinkStateAndReflection() {
         if(!this.checked_link_status) {
+            const gl = GetCurrentContext();
             this.checked_link_status = true;
 
             for(let i=0; i<this.num_shaders; i++) {
@@ -105,7 +111,7 @@ class ProgramGL extends Program {
     }
 
     GetVSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_vs) {
             return null;
         }
@@ -116,7 +122,7 @@ class ProgramGL extends Program {
     }
 
     GetPSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_ps) {
             return null;
         }
@@ -127,7 +133,7 @@ class ProgramGL extends Program {
     }
 
     GetGSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_gs) {
             return null;
         }
@@ -138,7 +144,7 @@ class ProgramGL extends Program {
     }
 
     GetHSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_hs) {
             return null;
         }
@@ -149,7 +155,7 @@ class ProgramGL extends Program {
     }
 
     GetDSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_ds) {
             return null;
         }
@@ -160,7 +166,7 @@ class ProgramGL extends Program {
     }
 
     GetCSShaderReflection() {
-        CheckLinkStateAndReflection();
+        this.CheckLinkStateAndReflection();
         if(!this.p_cs) {
             return null;
         }

@@ -1,11 +1,9 @@
-import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-device";
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { COMPONENT_TYPE, CONTEXT_CREATION_TYPE, TEXTURE_FORMAT } from "../graphics/graphics-types";
 import { VAOCache } from "./VAOCache";
 import { BufferGL } from "./buffer-gl";
-import { gl } from "./gl";
-import { GLContext } from "./gl-context";
+import { GLContext, GetCurrentContext } from "./gl-context";
 import { PipelineStateGL } from "./pipeline-state-gl";
 import { ProgramGL } from "./program-gl";
 import { SamplerGL } from "./sampler-gl";
@@ -25,6 +23,7 @@ class RenderDeviceGL extends RenderDevice {
         super(engineAttribs.custom_device_caps, 0);
         this.gl_context = new GLContext(engineAttribs, this.device_caps);
         this.device_caps.separable_program_supported = false;
+        const gl = GetCurrentContext();
         // each extension is duplicated
         // first in unprefixed WebGL form, and then a second time with "GL_" prefix
         this.extension_strings = gl.getSupportedExtensions(); 
@@ -45,6 +44,7 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     InitDeviceLimits() {
+        const gl = GetCurrentContext();
         // msaa samples
         this.device_caps.limit_caps.max_msaa_sample_count = gl.getParameter(gl.MAX_SAMPLES);
         
@@ -125,6 +125,7 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     CreateTestGLTexture(contextState, glBingTarget, glTexture, cb) {
+        const gl = GetCurrentContext();
         contextState.BindTexture(-1, glBingTarget, glTexture);
         cb();
         const isSuccess = gl.getError() == gl.NO_ERROR;
@@ -133,6 +134,7 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     TestTextureFormat(textureFormat) {
+        const gl = GetCurrentContext();
         const formatInfo = this.texture_format_infos[textureFormat];
         if(!formatInfo.supported) {
             throw 'texture format is not supported';
@@ -278,6 +280,7 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     FlagSupportedTexFormats() {
+        const gl = GetCurrentContext();
         const deviceCaps = this.device_caps;
         const isGL330OrAbove = deviceCaps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES &&
                                 (deviceCaps.major_version>=4 || (deviceCaps.major_version==3 && deviceCaps.minor_version>=3));

@@ -1,5 +1,5 @@
 import { DEVICE_TYPE } from "../graphics/device-caps"
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class AppGLState {
     constructor(renderDevice) {
@@ -45,6 +45,7 @@ class AppGLState {
     }
 
     Save() {
+        const gl = GetCurrentContext();
         this.unpack_row_length = gl.getParameter(gl.UNPACK_ROW_LENGTH);
         this.draw_fbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
         this.read_fbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
@@ -90,6 +91,7 @@ class AppGLState {
     }
 
     Restore() {
+        const gl = GetCurrentContext();
         for(let i=0; i<this.MAX_SAMPLER_TEXTURE_NUM; i++) {
             gl.activeTexture(gl.TEXTURE0+i);
             gl.bindSampler(i, this.bind_sampler[i]);
@@ -128,6 +130,7 @@ class AppGLState {
     }
 
     EnableState(isEnable, cap) {
+        const gl = GetCurrentContext();
         if(isEnable) {
             gl.enable(cap);
         } else {

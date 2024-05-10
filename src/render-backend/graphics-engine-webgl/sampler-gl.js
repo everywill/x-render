@@ -1,8 +1,10 @@
 import { Sampler } from "../graphics-engine/sampler";
 import { FILTER_TYPE, TEXTURE_ADDRESS_MODE } from "../graphics/graphics-types";
-import { CompareFuncToGLCompare, gl } from "./gl";
+import { CompareFuncToGLCompare } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 function AddressModeToGLAddressMode(mode) {
+    const gl = GetCurrentContext();
     switch(mode) {
         case TEXTURE_ADDRESS_MODE.TEXTURE_ADDRESS_WRAP:
             return gl.REPEAT;
@@ -20,6 +22,7 @@ function AddressModeToGLAddressMode(mode) {
 class SamplerGL extends Sampler {
     constructor(renderDevice, samplerDesc) {
         super(renderDevice, samplerDesc);
+        const gl = GetCurrentContext();
         this.gl_sampler = gl.createSampler();
         const samCaps = this.render_device.GetDeviceCaps().sampler_caps;
 
@@ -159,6 +162,7 @@ class SamplerGL extends Sampler {
     GetGLSampler() { return this.gl_sampler; }
 
     Release() { 
+        const gl = GetCurrentContext();
         gl.deleteSampler(this.gl_sampler);
     }
 }

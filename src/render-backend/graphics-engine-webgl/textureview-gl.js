@@ -1,10 +1,11 @@
 import { TextureView } from "../graphics-engine/textureview";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class TextureViewGL extends TextureView {
     constructor(renderDevice, viewDesc, texture, createGLViewTex) {
         super(renderDevice, viewDesc, texture);
         if(createGLViewTex) {
+            const gl = GetCurrentContext();
             this.view_gl_texture = gl.createTexture();
         }
         this.view_texture_bind_target = undefined;
@@ -22,7 +23,7 @@ class TextureViewGL extends TextureView {
         if(this.view_texture_bind_target) {
             return this.view_texture_bind_target; 
         } else {
-            return this.GetTexture().GetBindTarget();
+            return this.texture.GetBindTarget();
         } 
     }
 
@@ -33,6 +34,7 @@ class TextureViewGL extends TextureView {
     }
 
     GenerateMips(deviceContext) {
+        const gl = GetCurrentContext();
         const contextState = deviceContext.GetContextState
         const bindTarget = this.GetBindTarget();
         // bind to the last unit

@@ -2,14 +2,14 @@ import { DeviceContext } from "../graphics-engine/device-context";
 import { MISC_TEXTURE_FLAGS, PRIMITIVE_TOPOLOGY, TARGET_BUFFER_FLAGS, TEXTURE_VIEW_TYPE, UNIFORM_TYPE, VALUE_TYPE } from "../graphics/graphics-types";
 import { AppGLState } from "./app-gl-state";
 import { GLContextState } from "./gl-context-state";
-import { gl } from "./gl";
 import { DEVICE_TYPE, MAX_RENDER_TARGETS } from "../graphics/device-caps";
 import { COLOR_MASK } from "../graphics/pipelinestate-desc";
 import { GetValueSize } from "../graphics-accessories/graphics-accessories";
-
+import { GetCurrentContext } from "./gl-context";
 
 function PrimitiveTopologyToGLTopology(primitiveTopology) {
     let glTopology;
+    const gl = GetCurrentContext();
     switch(primitiveTopology) {
         case PRIMITIVE_TOPOLOGY.PRIMITIVE_TOPOLOGY_UNDEFINED:
             glTopology = undefined;
@@ -37,6 +37,7 @@ function PrimitiveTopologyToGLTopology(primitiveTopology) {
 
 function TypeToGLType(valueType) {
     let glType;
+    const gl = GetCurrentContext();
     switch(valueType) {
         case VALUE_TYPE.VT_UNDEFINED:
             glType = undefined;
@@ -113,6 +114,7 @@ class DeviceContextGL extends DeviceContext {
     }
 
     BindProgramResources(shaderResourceBinding) {
+        const gl = GetCurrentContext();
         const program = this.pipelinestate.GetProgram();
         let glProgram = program.GetGLProgram();
 
@@ -160,7 +162,7 @@ class DeviceContextGL extends DeviceContext {
                 const samplers = progResources.GetSamplers();
                 for(let index=0; index<samplers.length; index++) {
                     const sampler = samplers[index];
-                    for(let arrayIndex=0; arrayIndex<item.array_size; arrayIndex++) {
+                    for(let arrayIndex=0; arrayIndex<sampler.array_size; arrayIndex++) {
                         const texView = sampler.resources[arrayIndex];
                         if(texView) {
                             this.context_state.BindTexture(textureIndex, texView.GetBindTarget(), texView.GetTexture());
@@ -176,7 +178,7 @@ class DeviceContextGL extends DeviceContext {
                         }
 
                         if(samplerToUse) {
-                            this.context_state.BindSampler(textureIndex, sampler.GetGLSampler());
+                            this.context_state.BindSampler(textureIndex, samplerToUse.GetGLSampler());
                         }
 
                         gl.uniform1i(sampler.location, textureIndex);
@@ -249,6 +251,7 @@ class DeviceContextGL extends DeviceContext {
 
     SetStencilRef(stencilRef) {
         if(super.SetStencilRef(stencilRef)) {
+            const gl = GetCurrentContext();
             this.context_state.SetStencilRef(gl.FRONT, stencilRef);
             this.context_state.SetStencilRef(gl.BACK, stencilRef);
         }
@@ -270,6 +273,7 @@ class DeviceContextGL extends DeviceContext {
 
     ResolveResource(msaaTexture, resolvedTexture) {
         if(msaaTexture && resolvedTexture) {
+            const gl = GetCurrentContext();
             const desc = msaaTexture.GetDesc();
             msaaTexture.SetResolveFlag(true);
             const renderDevice = this.render_device;
@@ -295,6 +299,7 @@ class DeviceContextGL extends DeviceContext {
     ResolveResource(msaaTexture) {
         const desc = msaaTexture.GetDesc();
         if(msaaTexture && desc.misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE) {
+            const gl = GetCurrentContext();
             const currentNativeGLContext = this.render_device.gl_context.GetCurrentNativeGLContext();
             const fboCache = this.render_device.GetFBOCache(currentNativeGLContext);
 
@@ -321,6 +326,7 @@ class DeviceContextGL extends DeviceContext {
     }
 
     Flush() {
+        const gl = GetCurrentContext();
         gl.flush();
     }
 
@@ -357,14 +363,15 @@ class DeviceContextGL extends DeviceContext {
             const caps = this.render_device.GetDeviceCaps();
             const clearFlag = this.render_pass_attribs.flags.clear;
             const discardStartFlag = this.render_pass_attribs.flags.discard_start;
-            if(caps.dev_type ==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
+            if(caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
                 const attachmentArray = [];
-                this.GetAttachments(attachmentArray, discardStartFlag);
-                if(attachmentArray.length) {
-                    gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
-                }
+                // this.GetAttachments(attachmentArray, discardStartFlag);
+                // if(attachmentArray.length) {
+                //     const gl = GetCurrentContext();
+                //     gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
+                // }
             } else {
-                this.ClearWithRasterPipe(targetBuffers & ~clearFlag);
+                this.ClearWithRasterPipe(discardStartFlag & ~clearFlag);
             }
             if(clearFlag) {
                 this.ClearWithRasterPipe(clearFlag);
@@ -423,6 +430,7 @@ class DeviceContextGL extends DeviceContext {
             const width = vp.width;
             const height = vp.height;
 
+            const gl = GetCurrentContext();
             gl.viewport(bottomLeftX, bottomLeftY, width, height);
             gl.depthRange(vp.min_depth, vp.max_depth);
         } else {
@@ -433,6 +441,7 @@ class DeviceContextGL extends DeviceContext {
     SetScissorRects(numRect, rects) {
         super.SetScissorRects(numRect, rects);
         if(this.num_scissor_rects == 1) {
+            const gl = GetCurrentContext();
             const rect = this.scissor_rects[0];
             // Note that OpenGL and DirectX use different origin
             // of the viewport in window coordinates:
@@ -456,6 +465,7 @@ class DeviceContextGL extends DeviceContext {
     }
 
     GetAttachments(attachmentArray, targetBuffers) {
+        const gl = GetCurrentContext();
         if(targetBuffers & TARGET_BUFFER_FLAGS.COLOR0) {
             attachmentArray.push(this.is_default_framebuffer_bound ? gl.COLOR : gl.COLOR_ATTACHMENT0);
         }
@@ -489,6 +499,7 @@ class DeviceContextGL extends DeviceContext {
     }
 
     ClearWithRasterPipe(clearFlags) {
+        const gl = GetCurrentContext();
         const depthWriteEnabled = this.context_state.GetDepthWriteEnable();
         const scissorTestEnabled = this.context_state.GetScissorTestEnable();
         if(!depthWriteEnabled) {
@@ -537,6 +548,7 @@ class DeviceContextGL extends DeviceContext {
             const attachmentArray = [];
             this.GetAttachments(attachmentArray, discardEndFlag);
             if(attachmentArray.length) {
+                const gl = GetCurrentContext();
                 gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
             }
         }
@@ -544,6 +556,7 @@ class DeviceContextGL extends DeviceContext {
 
     Draw(drawAttribs) {
         super.Draw(drawAttribs);
+        const gl = GetCurrentContext();
         const renderDevice = this.render_device;
         const currentNativeGLContext = renderDevice.gl_context.GetCurrentNativeGLContext();
         
