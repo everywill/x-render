@@ -2,7 +2,7 @@ import { GetShaderVariableTypeByName, ShaderVariable } from "../graphics-engine/
 import { UNIFORM_TYPE } from "../graphics/graphics-types";
 import { CBufferReflection, ElementReflection, ShaderReflection } from "../graphics/program-desc";
 import { SHADER_RESOURCE_VARIABLE_TYPE } from "../graphics/shader-desc";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class GLProgramVariable {
     constructor(name, size, varType) {
@@ -57,6 +57,7 @@ class GlobalScaleUniform {
 }
 
 function GetUniformType(glDataType) {
+    const gl = GetCurrentContext();
     switch(glDataType) {
         case gl.FLOAT:
             return UNIFORM_TYPE.FLOAT;
@@ -231,8 +232,9 @@ class GLProgramResources {
     GetScaleUniforms() { return this.scale_uniform_info; }
 
     LoadUniforms(renderDevice, glProgram, defaultVariableType, variableDescs, staticSamplers) {
+        const gl = GetCurrentContext();
         let result = new ShaderReflection();
-        if(glProgram = null) {
+        if(glProgram == null) {
             throw 'GL program is null';
         }
         let numActiveUniforms = 0;

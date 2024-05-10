@@ -1,8 +1,9 @@
 import { Shader } from "../graphics-engine/shader";
 import { SHADER_TYPE } from "../graphics/shader-desc";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 function GetGLShaderType(shaderType) {
+    const gl = GetCurrentContext();
     switch(shaderType) {
         case SHADER_TYPE.SHADER_TYPE_VERTEX:
             return gl.VERTEX_SHADER;
@@ -25,6 +26,7 @@ class ShaderGL extends Shader {
     }
 
     Release() {
+        const gl = GetCurrentContext();
         if(this.gl_program) {
             gl.deleteProgram(this.gl_program);
         }
@@ -36,6 +38,8 @@ class ShaderGL extends Shader {
     CompileShader() {
         if(!this.is_shader_compiled) {
             this.is_shader_compiled = true;
+
+            const gl = GetCurrentContext();
 
             const glShaderType = GetGLShaderType(this.desc.shader_type);
             const shader = gl.createShader(glShaderType);
@@ -79,11 +83,13 @@ class ShaderGL extends Shader {
         if(this.has_checked_compiled_status || !this.gl_shader) {
             return;
         }
+        const gl = GetCurrentContext();
         this.has_checked_compiled_status = true;
 
         const compiled = gl.getShaderParameter(this.gl_shader, gl.COMPILE_STATUS);
-        console.error('Failed to compile shader file:');
+        
         if(!compiled) {
+            console.error('Failed to compile shader file:');
             const info = gl.getShaderInfoLog(this.gl_shader);
             console.error(info);
         }

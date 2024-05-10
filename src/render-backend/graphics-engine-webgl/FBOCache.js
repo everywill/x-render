@@ -1,6 +1,6 @@
 import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
 import { TEXTURE_FORMAT } from "../graphics/graphics-types";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class FBOCacheKey {
     constructor() {
@@ -82,6 +82,7 @@ class FBOCache {
     }
 
     GetFBO(numRenderTargets, renderTargets, depthStencil, contextState) {
+        const gl = GetCurrentContext();
         if(numRenderTargets>0 && !renderTargets[numRenderTargets-1]) {
             numRenderTargets--;
         }

@@ -1,7 +1,8 @@
 import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
 import { COLOR_MASK, CULL_MODE, RenderTargetBlendDesc } from "../graphics/pipelinestate-desc";
 import { AppGLState } from "./app-gl-state";
-import { BlendFactorToGLBlend, BlendOperation2GLBlendOp, CompareFuncToGLCompare, StencilOpToGLStencilOp, gl } from "./gl";
+import { BlendFactorToGLBlend, BlendOperation2GLBlendOp, CompareFuncToGLCompare, StencilOpToGLStencilOp } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 class ContextCaps {
     constructor() {
@@ -16,6 +17,7 @@ class ContextCaps {
 
 class StencilOpState {
     constructor() {
+        const gl = GetCurrentContext();
         this.func = gl.ALWAYS;
         this.stencil_fail_op = gl.KEEP;
         this.stencil_depth_fail_op = gl.KEEP;
@@ -25,6 +27,7 @@ class StencilOpState {
 
 class DepthStencilGLState {
     constructor() {
+        const gl = GetCurrentContext();
         this.depth_enable_state = true;
         this.depth_writes_enable_state = true;
         this.depth_cmp_func = gl.ALWAYS;
@@ -78,6 +81,7 @@ class GLContextState {
     num_patch_vertices = -1;
     primitive_restart = false;
     constructor(renderDevice) {
+        const gl = GetCurrentContext();
         this.render_device = renderDevice;
         this.caps = new ContextCaps();
         const deviceCaps = this.render_device.GetDeviceCaps();
@@ -108,6 +112,7 @@ class GLContextState {
     GetContextCaps() { return this.caps; }
 
     SetCurrentGLState(renderDevice) {
+        const gl = GetCurrentContext();
         const appGLState = new AppGLState(renderDevice);
         appGLState.Save();
         this.Invalidate();
@@ -133,6 +138,7 @@ class GLContextState {
     }
 
     Invalidate() {
+        const gl = GetCurrentContext();
         // reset gl context state
         gl.useProgram(null);
         gl.bindVertexArray(null);
@@ -158,6 +164,7 @@ class GLContextState {
 
     SetDepthStencilState(depthStencilState, stencilRef) {
         if(this.DS_state != depthStencilState) {
+            const gl = GetCurrentContext();
             if(depthStencilState.depth_enable_state) {
                 gl.enable(gl.DEPTH_TEST);
             } else {
@@ -184,6 +191,7 @@ class GLContextState {
 
     SetRasterizerState(rasterizerState) {
         if(this.RS_state != rasterizerState) {
+            const gl = GetCurrentContext();
             if(rasterizerState.cull_mode == CULL_MODE.CULL_MODE_NONE) {
                 gl.disable(gl.CULL_FACE);
             } else {
@@ -216,6 +224,7 @@ class GLContextState {
 
     SetProgram(glProgram) {
         if(this.gl_prog != glProgram) {
+            const gl = GetCurrentContext();
             gl.useProgram(glProgram.native_handle);
             this.gl_prog = glProgram;
         }
@@ -223,18 +232,21 @@ class GLContextState {
 
     BindVAO(vao) {
         if(this.vao != vao) {
+            const gl = GetCurrentContext();
             gl.bindVertexArray(vao);
             this.vao = vao;
         }
     }
 
     UnbindVAO() {
+        const gl = GetCurrentContext();
         gl.bindVertexArray(null);
         this.vao = null;
     }
 
     BindFBO(fbo) {
         if(this.fbo != fbo) {
+            const gl = GetCurrentContext();
             gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
             gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
             this.fbo = fbo;
@@ -249,6 +261,7 @@ class GLContextState {
             throw 'Texture unit is out of range';
         }
         if(this.active_texture != index) {
+            const gl = GetCurrentContext();
             gl.activeTexture(gl.TEXTURE0 + index);
             this.active_texture = index;
         }
@@ -260,6 +273,7 @@ class GLContextState {
         index = this.SetActiveTexture(index);
 
         if(this.bound_textures[index] != texture) {
+            const gl = GetCurrentContext();
             gl.bindTexture(bindTarget, texture);
             this.bound_textures[index] = texture;
         }
@@ -267,6 +281,7 @@ class GLContextState {
 
     BindRenderBuffer(renderBuffer) {
         if(this.render_buffer != renderBuffer) {
+            const gl = GetCurrentContext();
             gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
             this.render_buffer = renderBuffer;
         }
@@ -278,6 +293,7 @@ class GLContextState {
 
     BindSampler(index, sampler) {
         if(this.bound_samplers[index] != sampler) {
+            const gl = GetCurrentContext();
             gl.bindSampler(index, sampler);
             this.bound_samplers[index] = sampler;
         }
@@ -292,11 +308,13 @@ class GLContextState {
     }
 
     SetStencilRef(glFace, ref) {
+        const gl = GetCurrentContext();
         const faceStencilOp = this.DS_state.stencil_op_states[glFace == gl.FRONT ? 0 : 1];
         gl.stencilFuncSeparate(glFace, faceStencilOp.func, ref, faceStencilOp.stencil_read_mask);
     }
 
     SetBlendFactors(blendFactors) {
+        const gl = GetCurrentContext();
         gl.blendColor(blendFactors[0], blendFactors[1], blendFactors[2], blendFactors[3]);
     }
 
@@ -319,6 +337,7 @@ class GLContextState {
                     console.error('independent color mask not supported');
                 }
             } else {
+                const gl = GetCurrentContext();
                 // gl.colorMask sets the mask for ALL draw buffers
                 gl.colorMask(writeMask & COLOR_MASK.COLOR_MASK_RED ? true : false,
                             writeMask & COLOR_MASK.COLOR_MASK_GREEN ? true : false,
@@ -343,6 +362,7 @@ class GLContextState {
     }
 
     SetBlendState(blendStateDesc, sampleMask) {
+        const gl = GetCurrentContext();
         if(sampleMask != 0xffffffff) {
             throw 'sample mask is not supported in WebGL';
         }

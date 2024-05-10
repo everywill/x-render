@@ -1,9 +1,11 @@
 import { Buffer, CorrectBufferViewDesc } from "../graphics-engine/buffer";
 import { BIND_FLAGS, CPU_ACCESS_FLAGS, MAP_TYPE, USAGE } from "../graphics/graphics-types";
 import { BufferViewGL } from "./bufferview-gl";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
+
 
 function UsageToGLUsage(usage) {
+    const gl = GetCurrentContext();
     switch(usage) {
         case USAGE.USAGE_STATIC:
             return gl.STATIC_DRAW;
@@ -21,6 +23,7 @@ function UsageToGLUsage(usage) {
 }
 
 function GetBufferBindTarget(bufferDesc) {
+    const gl = GetCurrentContext();
     let target = gl.ARRAY_BUFFER;
     // let target = 0x8892;  GL_ARRAY_BUFFER
     if(bufferDesc.bind_flags == BIND_FLAGS.BIND_VERTEX_BUFFER) {
@@ -44,6 +47,7 @@ function GetBufferBindTarget(bufferDesc) {
 class BufferGL extends Buffer {
     constructor(renderDevice, bufferDesc, bufferData, glHandle = null) {
         super(renderDevice, bufferDesc);
+        const gl = GetCurrentContext();
         this.map_target = 0;
         this.gl_usage_hint = UsageToGLUsage(bufferDesc.usage);
         this.gl_buffer = gl.createBuffer();
@@ -75,12 +79,14 @@ class BufferGL extends Buffer {
 
     Release() {
         super.Release();
+        const gl = GetCurrentContext();
         this.render_device.OnDestroyBuffer(this);
         gl.deleteBuffer(this.gl_buffer);
     }
 
     UpdateData(deviceContext, offset, size, data) {
         super.UpdateData(deviceContext, offset, size, data);
+        const gl = GetCurrentContext();
         // todo: bufferMemoryBarrier
         const target = GetBufferBindTarget(this.desc);
         gl.bindBuffer(target, this.gl_buffer);
@@ -93,6 +99,7 @@ class BufferGL extends Buffer {
 
     CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size) {
         super.CopyData(deviceContext, srcBuffer, srcOffset, dstOffset, size);
+        const gl = GetCurrentContext();
         // todo: bufferMemoryBarrier
         gl.bindBuffer(gl.COPY_WRITE_BUFFER, this.gl_buffer);
         gl.bindBuffer(gl.COPY_READ_BUFFER, srcBuffer.gl_buffer);

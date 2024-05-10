@@ -2,10 +2,11 @@ import { GetValueSize } from "../graphics-accessories/graphics-accessories";
 import { MAX_BUFFER_SLOTS } from "../graphics/device-caps";
 import { VALUE_TYPE } from "../graphics/graphics-types";
 import { INPUT_ELEMENT_FREQUENCY } from "../graphics/input-layout";
-import { gl } from "./gl";
+import { GetCurrentContext } from "./gl-context";
 
 // map input element value type to vao type
 function GetVAOType(inputElementType) {
+    const gl = GetCurrentContext();
     let vao_type;
     switch(inputElementType) {
         case VALUE_TYPE.VT_INT8:
@@ -81,6 +82,7 @@ class VAOCacheKey {
 
 class VAOCache {
     constructor() {
+        const gl = GetCurrentContext();
         this.empty_vao = gl.createVertexArray();
         // VAOCacheKey to VAO
         this.cache = new Map();
@@ -141,6 +143,7 @@ class VAOCache {
     }
 
     GetVAO(pipelineState, indexBuffer, vertexStreams, numVertexSteams, glContextState) {
+        const gl = GetCurrentContext();
         if(this.release_queue.length) {
             for(let i=0; i<this.release_queue.length; i++) {
                 gl.deleteVertexArray(this.release_queue[i]);

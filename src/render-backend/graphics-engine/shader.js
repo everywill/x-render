@@ -54,8 +54,8 @@ class Shader {
         this.static_samplers_desc = [];
         for(let i=0; i<this.desc.static_sampler_desc.length; i++) {
             this.static_samplers_desc.push(this.desc.static_sampler_desc[i]);
-            if(this.static_samplers_desc[i].sampler_name) {
-                throw 'sampler name nnot provided';
+            if(!this.static_samplers_desc[i].sampler_name) {
+                throw 'sampler name not provided';
             }
         }
         this.shader_reflection = new ShaderReflection();
