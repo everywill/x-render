@@ -363,15 +363,15 @@ class DeviceContextGL extends DeviceContext {
             const caps = this.render_device.GetDeviceCaps();
             const clearFlag = this.render_pass_attribs.flags.clear;
             const discardStartFlag = this.render_pass_attribs.flags.discard_start;
-            if(caps.dev_type ==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
+            if(caps.dev_type==DEVICE_TYPE.DEVICE_TYPE_OPENGLES && caps.major_version>=3) {
                 const attachmentArray = [];
-                this.GetAttachments(attachmentArray, discardStartFlag);
-                if(attachmentArray.length) {
-                    const gl = GetCurrentContext();
-                    gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
-                }
+                // this.GetAttachments(attachmentArray, discardStartFlag);
+                // if(attachmentArray.length) {
+                //     const gl = GetCurrentContext();
+                //     gl.invalidateFramebuffer(gl.FRAMEBUFFER, attachmentArray);
+                // }
             } else {
-                this.ClearWithRasterPipe(targetBuffers & ~clearFlag);
+                this.ClearWithRasterPipe(discardStartFlag & ~clearFlag);
             }
             if(clearFlag) {
                 this.ClearWithRasterPipe(clearFlag);

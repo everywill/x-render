@@ -8,6 +8,7 @@ import { SHADER_RESOURCE_VARIABLE_TYPE, SHADER_TYPE, ShaderCreationAttribs, Shad
 import { vShader_source, pShader_source } from './shader_sources';
 import { COMMIT_SHADER_RESOURCES_FLAGS, DrawAttribs, RenderPassAttribs, SET_VERTEX_BUFFERS_FLAGS } from '../../../src/render-backend/graphics/device-context-desc';
 import { TextureData, TextureDesc, TextureSubResData } from '../../../src/render-backend/graphics/texture-desc';
+import { GetCurrentContext } from '../../../src/render-backend/graphics-engine-webgl/gl-context';
 
 const deviceCaps = new DeviceCaps();
 deviceCaps.dev_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
@@ -29,6 +30,7 @@ const elem1 = new LayoutElement(0, 0, 3, VALUE_TYPE.VT_FLOAT32);  // position
 const elem2 = new LayoutElement(1, 0, 2, VALUE_TYPE.VT_FLOAT32);  // uc
 elem1.stride = 3 * 4 + 2 * 4;
 elem2.stride = 3 * 4 + 2 * 4;
+elem2.relative_offset = 3 * 4;
 psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements[0] = elem1;
 psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements[1] = elem2;
 psoDesc.graphics_pipeline_desc.input_layout_desc.layout_elements
@@ -119,7 +121,7 @@ const uniformBuffer = driver.CreateUniformBuffer(16);
 // };
 
 // 16 SpriteVertexData 
-const vertexBuffer = driver.CreateDefaultVertexBuffer(16 * 20, null);
+const vertexBuffer = driver.CreateDefaultVertexBuffer(4*5*4, null);
 
 const data = new Uint16Array([
     0, 1, 2, 0, 2, 3,
@@ -154,14 +156,14 @@ const uvs = [
 
 const vertexData = new Float32Array(5*4);
 for(let i=0; i<4; i++) {
-    vertexData[i] = positions[i][0];
-    vertexData[i+1] = positions[i][1];
-    vertexData[i+2] = positions[i][2];
-    vertexData[i+3] = uvs[i][0];
-    vertexData[i+4] = uvs[i][1];
+    vertexData[i*5] = positions[i][0];
+    vertexData[i*5+1] = positions[i][1];
+    vertexData[i*5+2] = positions[i][2];
+    vertexData[i*5+3] = uvs[i][0];
+    vertexData[i*5+4] = uvs[i][1];
 }
 
-driver.UpdateBufferData(vertexBuffer, 0, 16*20, vertexData);
+driver.UpdateBufferData(vertexBuffer, 0, 4*5*4, vertexData);
 
 const texDesc = new TextureDesc();
 texDesc.type = RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D;
@@ -178,6 +180,9 @@ const tex = driver.CreateTexture(texDesc, texData);
 
 const rpattribs = new RenderPassAttribs();
 rpattribs.num_render_targets = 1;
+rpattribs.flags.clear = 1;
+// rpattribs.flags.discard_end
+rpattribs.clear_color = [1, 0, 0, 1];
 
 function render() {
     driver.BeginRenderPass([], null, rpattribs);
@@ -187,7 +192,7 @@ function render() {
     // driver.SetShaderVariableWithBuffer(srb, SHADER_TYPE.SHADER_TYPE_VERTEX, 'ViewUniforms', )
     driver.SetShaderVariableWithTextureView(srb, SHADER_TYPE.SHADER_TYPE_PIXEL, 'tex_sprite', tex.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE));
     driver.CommitShaderResources(srb, COMMIT_SHADER_RESOURCES_FLAGS.COMMIT_SHADER_RESOURCES_FLAG_TRANSITION_RESOURCES);
-    driver.SetVertexBuffers(0, 1, [vertexBuffer], 0, SET_VERTEX_BUFFERS_FLAGS.SET_VERTEX_BUFFERS_FLAG_RESET);
+    driver.SetVertexBuffers(0, 1, [vertexBuffer], [0], SET_VERTEX_BUFFERS_FLAGS.SET_VERTEX_BUFFERS_FLAG_RESET);
     driver.SetIndexBuffer(indexBuffer, 0);
 
     const attribs = new DrawAttribs();
@@ -199,19 +204,19 @@ function render() {
     driver.EndRenderPass();
 }
 
+render()
+
+window.gl = GetCurrentContext();
+
 
 // for(let i=0; i<100; i++) {
 //     render();
 // }
 
-let times = 100;
+// let times = 100;
 let id = setInterval(() => {
-    // if(times>0) {
+    
         render();
-    //     times--;
-    // } else {
-    //     clearInterval(id);
-    // }
     
 }, 40);
 
