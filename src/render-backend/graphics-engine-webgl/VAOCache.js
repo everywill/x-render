@@ -71,7 +71,7 @@ class VAOCacheKey {
             return false;
         }
         for(let i=0; i<this.num_used_slots; i++) {
-            if(!this.streams[i].equal(cacheKey.stream[i])) {
+            if(!this.streams[i].equal(cacheKey.streams[i])) {
                 return false;
             }
         }
@@ -153,7 +153,7 @@ class VAOCache {
             vertexBuffers[i] = null;
         }
 
-        const inputLayoutDesc = pipelineState.GetDesc().graphics_pipeline_desc.nput_layout_desc;
+        const inputLayoutDesc = pipelineState.GetDesc().graphics_pipeline_desc.input_layout_desc;
         const inputElements = inputLayoutDesc.layout_elements;
         const numElements = inputLayoutDesc.num_elements;
 
@@ -177,9 +177,8 @@ class VAOCache {
 
             const currentStream = vertexStreams[buffSlot];
             const stride = strides[buffSlot];
-            const currentBuffer = vertexBuffers[buffSlot];
+            let currentBuffer = vertexBuffers[buffSlot];
             const currentSteamAttribInKey = vaoCacheKey.streams[buffSlot];
-            currentBuffer
             if(!currentBuffer) {
                 currentBuffer = currentStream.buffer;
 
@@ -208,7 +207,7 @@ class VAOCache {
             }
         }
 
-        const cacheKey = this.FindKey(key);
+        const cacheKey = this.FindKey(vaoCacheKey);
 
         if(cacheKey) {
             return this.cache.get(cacheKey);
@@ -228,7 +227,7 @@ class VAOCache {
                     throw 'vertex buffer is null';
                 }
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, currentBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, currentBuffer.gl_buffer);
                 const dataStartOffset = currentStream.offset + elem.relative_offset;
 
                 const isNormalized = elem.is_normalized;
@@ -262,7 +261,7 @@ class VAOCache {
             }
 
             if(indexBuffer) {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.gl_buffer);
             }
 
             this.cache.set(vaoCacheKey, newVAO);
@@ -274,7 +273,7 @@ class VAOCache {
             let val = this.pso_to_key.get(pipelineState);
             val.push(newVAO);
 
-            if(this.buffer_to_key.get(indexBuffer)) {
+            if(!this.buffer_to_key.get(indexBuffer)) {
                 this.buffer_to_key.set(indexBuffer, []);
             }
 
@@ -284,7 +283,7 @@ class VAOCache {
             for(let i=0; i<vaoCacheKey.num_used_slots; i++) {
                 const buffer = vaoCacheKey.streams[i].buffer;
                 if(buffer) {
-                    if(this.buffer_to_key.get(buffer)) {
+                    if(!this.buffer_to_key.get(buffer)) {
                         this.buffer_to_key.set(buffer, []);
                     }
         

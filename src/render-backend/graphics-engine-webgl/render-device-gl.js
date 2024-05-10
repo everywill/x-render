@@ -2,6 +2,7 @@ import { GetTextureFormatAttribs } from "../graphics-accessories/graphics-access
 import { EngineCreationAttribs, RenderDevice } from "../graphics-engine/render-device";
 import { DEVICE_TYPE } from "../graphics/device-caps";
 import { COMPONENT_TYPE, CONTEXT_CREATION_TYPE, TEXTURE_FORMAT } from "../graphics/graphics-types";
+import { VAOCache } from "./VAOCache";
 import { BufferGL } from "./buffer-gl";
 import { gl } from "./gl";
 import { GLContext } from "./gl-context";
@@ -70,6 +71,9 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     GetVAOCache(context) {
+        if(!this.VAO_cache[context]) {
+            this.VAO_cache[context] = new VAOCache();
+        }
         return this.VAO_cache[context];
     }
 
@@ -192,7 +196,7 @@ class RenderDeviceGL extends RenderDevice {
             if(shouldTestDepthAttachment || shouldTestColorAttachment) {
                 currentFramebuffer = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
                 newFBO = gl.createFramebuffer();
-                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER_BINDING, newFBO);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, newFBO);
             }
 
             if(shouldTestDepthAttachment) {

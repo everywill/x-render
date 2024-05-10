@@ -43,6 +43,13 @@ class ShaderGL extends Shader {
 
             gl.compileShader(shader);
 
+            const message = gl.getShaderInfoLog(shader);
+
+            if (message.length > 0) {
+            /* message may be an error or a warning */
+                throw message;
+            }
+
             const deviceCaps = this.render_device.GetDeviceCaps();
             if(deviceCaps.shader_binary_supported) {
                 // not supported in WebGL

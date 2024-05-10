@@ -1,13 +1,13 @@
 import { BLEND_FACTOR, CULL_MODE, PipelineStateDesc } from '../../../src/render-backend/graphics/pipelinestate-desc';
 import { GraphicsDriver } from '../../../src/render-backend/graphics/graphics-driver';
 import { DEVICE_TYPE, DeviceCaps } from '../../../src/render-backend/graphics/device-caps';
-import { BIND_FLAGS, COMPARISON_FUNCTION, CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, RESOURCE_DIMENSION, TEXTURE_FORMAT, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
+import { BIND_FLAGS, COMPARISON_FUNCTION, CONTEXT_CREATION_TYPE, PRIMITIVE_TOPOLOGY, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, USAGE, VALUE_TYPE } from '../../../src/render-backend/graphics/graphics-types';
 import { LayoutElement } from '../../../src/render-backend/graphics/input-layout';
 import { ProgramDesc } from '../../../src/render-backend/graphics/program-desc';
 import { SHADER_RESOURCE_VARIABLE_TYPE, SHADER_TYPE, ShaderCreationAttribs } from '../../../src/render-backend/graphics/shader-desc';
 import { vShader_source, pShader_source } from './shader_sources';
-import { RenderPassAttribs } from '../../../src/render-backend/graphics/device-context-desc';
-import { TextureData, TextureDesc } from '../../../src/render-backend/graphics/texture-desc';
+import { COMMIT_SHADER_RESOURCES_FLAGS, DrawAttribs, RenderPassAttribs, SET_VERTEX_BUFFERS_FLAGS } from '../../../src/render-backend/graphics/device-context-desc';
+import { TextureData, TextureDesc, TextureSubResData } from '../../../src/render-backend/graphics/texture-desc';
 
 const deviceCaps = new DeviceCaps();
 deviceCaps.dev_type = DEVICE_TYPE.DEVICE_TYPE_OPENGLES;
@@ -155,20 +155,69 @@ for(let i=0; i<4; i++) {
 
 driver.UpdateBufferData(vertexBuffer, 0, 16*20, vertexData);
 
-const RTTextureDesc = new TextureDesc();
-RTTextureDesc.type = RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D;
-RTTextureDesc.width = 200;
-RTTextureDesc.height = 200;
-RTTextureDesc.format = TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM;
-RTTextureDesc.bind_flags = BIND_FLAGS.BIND_RENDER_TARGET;
+const texDesc = new TextureDesc();
+texDesc.type = RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D;
+texDesc.usage = USAGE.USAGE_STATIC;
+texDesc.width = 1;
+texDesc.height = 1;
+texDesc.format = TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UINT;
+texDesc.bind_flags = BIND_FLAGS.BIND_SHADER_RESOURCE;
 
-const textureData = new TextureData()
-const RTTexture = driver.CreateTexture(RTTextureDesc, textureData);
+const texData = new TextureData();
+const pixelData = new Uint8Array([255, 0, 0, 255]);
+texData.sub_resources[0] = new TextureSubResData(pixelData);
+const tex = driver.CreateTexture(texDesc, texData);
 
 const rpattribs = new RenderPassAttribs();
 rpattribs.num_render_targets = 1;
 
-// driver.BeginRenderPass()
+function render() {
+    driver.BeginRenderPass([], null, rpattribs);
+    driver.SetViewports(1, [], 0, 0);
+    driver.SetPipelineState(pso);
+    driver.SetShaderVariableWithBuffer(srb, SHADER_TYPE.SHADER_TYPE_VERTEX, 'Uniforms', uniformBuffer);
+    // driver.SetShaderVariableWithBuffer(srb, SHADER_TYPE.SHADER_TYPE_VERTEX, 'ViewUniforms', )
+    driver.SetShaderVariableWithTextureView(srb, SHADER_TYPE.SHADER_TYPE_PIXEL, 'tex_sprite', tex.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_SHADER_RESOURCE));
+    driver.CommitShaderResources(srb, COMMIT_SHADER_RESOURCES_FLAGS.COMMIT_SHADER_RESOURCES_FLAG_TRANSITION_RESOURCES);
+    driver.SetVertexBuffers(0, 1, [vertexBuffer], 0, SET_VERTEX_BUFFERS_FLAGS.SET_VERTEX_BUFFERS_FLAG_RESET);
+    driver.SetIndexBuffer(indexBuffer, 0);
+
+    const attribs = new DrawAttribs();
+    attribs.num_vertices_or_indices = 6;
+    attribs.is_indexed = true;
+    attribs.index_type = VALUE_TYPE.VT_UINT16;
+
+    driver.Draw(attribs);
+    driver.EndRenderPass();
+}
+
+
+// for(let i=0; i<100; i++) {
+//     render();
+// }
+
+let times = 100;
+let id = setInterval(() => {
+    if(times>0) {
+        render();
+        times--;
+    } else {
+        clearInterval(id);
+    }
+    
+}, 40);
+
+// setTimeout(() => {
+//     render()
+//     console.log('rendered');
+// }, 5000)
+
+
+
+// render();
+// driver.Draw(attribs);
+
+
 
 
 

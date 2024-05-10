@@ -114,13 +114,13 @@ class DeviceContextGL extends DeviceContext {
 
     BindProgramResources(shaderResourceBinding) {
         const program = this.pipelinestate.GetProgram();
-        const nativeProg = program.GetGLProgram();
+        let glProgram = program.GetGLProgram();
 
-        if(!nativeProg) {
+        if(!glProgram) {
             throw 'no program/program pipeline is set for the draw call';
         }
 
-        this.context_state.SetProgram(nativeProg);
+        this.context_state.SetProgram(glProgram);
 
         const deviceCaps = this.render_device.GetDeviceCaps();
         const programPipelineSupported = deviceCaps.separable_program_supported;
@@ -133,11 +133,11 @@ class DeviceContextGL extends DeviceContext {
 
         for(let i=0; i<numPrograms; i++) {
             const shader = program.GetShader(i);
-            const glProgram = programPipelineSupported ? shader.gl_program : nativeProg;
+            glProgram = programPipelineSupported ? shader.gl_program : glProgram;
             const dynamicResources = shaderResourceBinding ? shaderResourceBinding.GetProgramResources(shader.GetDesc().shader_type, this.pipelinestate) : null;
 
-            for(let j=0; j<dynamicResources ? 2 : 1; j++) {
-                const progResources = j ? dynamicResources : glProgram.GetConstantResource;
+            for(let j=0; j<(dynamicResources ? 2 : 1); j++) {
+                const progResources = j ? dynamicResources : glProgram.GetConstantResources();
 
                 const programHandle = glProgram.native_handle;
 
@@ -528,6 +528,7 @@ class DeviceContextGL extends DeviceContext {
     }
 
     EndRenderPass() {
+        super.EndRenderPass();
         const caps = this.render_device.GetDeviceCaps();
         const clearFlag = this.render_pass_attribs.flags.clear;
         const discardEndFlag = this.render_pass_attribs.flags.discard_end;
@@ -592,7 +593,7 @@ class DeviceContextGL extends DeviceContext {
                         if(drawAttribs.start_instance_location) {
                             console.error('not support draw elements instanced base instance');
                         } else {
-                            gl.drawElementsInstanced(glTopology, drawAttribs.num_vertices_or_indice, indexType, firstIndexByteOffset, drawAttribs.num_instances);
+                            gl.drawElementsInstanced(glTopology, drawAttribs.num_vertices_or_indices, indexType, firstIndexByteOffset, drawAttribs.num_instances);
                         }
                     }
                 } else {
@@ -607,7 +608,7 @@ class DeviceContextGL extends DeviceContext {
                     if(drawAttribs.base_vertex) {
                         console.error('not supported')
                     } else {
-                        gl.drawElements(glTopology, drawAttribs.num_vertices_or_indice, indexType, firstIndexByteOffset);
+                        gl.drawElements(glTopology, drawAttribs.num_vertices_or_indices, indexType, firstIndexByteOffset);
                     }
                 } else {
                     gl.drawArrays(glTopology, drawAttribs.start_vertex_or_index_location, drawAttribs.num_vertices_or_indices);

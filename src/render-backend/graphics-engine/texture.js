@@ -311,7 +311,7 @@ class Texture {
             maxDim = Math.max(desc.width, desc.height, desc.array_size_or_depth);
         }
 
-        if(maxDim >= (1 << desc.mip_levels)) {
+        if(maxDim < (1 << (desc.mip_levels-1))) {
             console.error('Incorrect number of Mip levels');
         }
 
@@ -339,7 +339,7 @@ class Texture {
     }
 
     ValidateUpdateDataParams(textureDesc, mipLevel, slice, dstBox, subResData) {
-        if(!(subResData.data ^ subResData.srcBuffer)) 
+        if(!(!!subResData.data ^ !!subResData.srcBuffer)) 
     {
             throw 'Either CPU memory or GPU buffer must be provided, exclusively';
         }

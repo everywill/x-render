@@ -43,6 +43,10 @@ class ProgramGL extends Program {
             gl.attachShader(this.gl_program.native_handle, currShader.gl_shader);
         }
         gl.linkProgram(this.gl_program.native_handle);
+        if (!gl.getProgramParameter(this.gl_program.native_handle, gl.LINK_STATUS)) {
+            const info = gl.getProgramInfoLog(this.gl_program.native_handle);
+            throw `Could not compile WebGL program. \n${info}`;
+          }
     }
 
     LinkFailed() {

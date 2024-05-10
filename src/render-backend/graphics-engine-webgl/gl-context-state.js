@@ -216,7 +216,7 @@ class GLContextState {
 
     SetProgram(glProgram) {
         if(this.gl_prog != glProgram) {
-            gl.useProgram(glProgram);
+            gl.useProgram(glProgram.native_handle);
             this.gl_prog = glProgram;
         }
     }
@@ -330,7 +330,6 @@ class GLContextState {
             }
             this.independent_write_mask = isIndependent;
         } 
-        gl.colorMask()
     }
 
     GetColorWriteMask(renderTargetIndex) {

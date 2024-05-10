@@ -6,6 +6,18 @@ const SET_VERTEX_BUFFERS_FLAGS = {
     SET_VERTEX_BUFFERS_FLAG_RESET: 1,
 };
 
+const COMMIT_SHADER_RESOURCES_FLAGS = {
+    // If this flag is specified when IDeviceContext::CommitShaderResources() is called,
+    // the engine will transition all shader resources to the correct state.
+    COMMIT_SHADER_RESOURCES_FLAG_TRANSITION_RESOURCES: 1,
+
+    // The flag is used in debug and development builds to verify
+    // that all resources are transitioned to correct states when
+    // COMMIT_SHADER_RESOURCES_FLAG_TRANSITION_RESOURCES flag is not set.
+    // No resource state validation is performed in release build.
+    COMMIT_SHADER_RESOURCES_FLAG_VERIFY_STATES: 2,
+};
+
 class Viewport {
     constructor() {
         this.top_left_x = 0;
@@ -85,6 +97,7 @@ class DrawAttribs {
 
 export {
     SET_VERTEX_BUFFERS_FLAGS,
+    COMMIT_SHADER_RESOURCES_FLAGS,
     Viewport,
     Rect,
     RenderPassAttribs,

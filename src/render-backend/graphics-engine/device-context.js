@@ -71,7 +71,7 @@ class DeviceContext {
         }
         if(flags & SET_VERTEX_BUFFERS_FLAGS.SET_VERTEX_BUFFERS_FLAG_RESET) {
             for(let i=0; i<this.num_vertex_streams; i++) {
-                this.vertex_streams = new VertexStreamInfo();
+                this.vertex_streams[i] = new VertexStreamInfo();
             }
             this.num_vertex_streams = 0;
         }
@@ -227,7 +227,11 @@ class DeviceContext {
         if(!this.render_device.GetDeviceCaps().multisample_rendertexture_supported) {
             for(let i=0; i<this.num_bind_render_targets; i++) {
                 // const texture = this.bound_RT_textures[i];
-                const texture = this.bound_render_targets[i].GetTexture();
+                const RTView = this.bound_render_targets[i];
+                let texture;
+                if(RTView) {
+                    texture = RTView.GetTexture();
+                }
                 if(texture && texture.GetDesc().misc_flag & MISC_TEXTURE_FLAGS.MISC_TEXTURE_FLAG_RESOLVE && !texture.GetResolveFlag()) {
                     this.pre_render_targets_to_resolve[this.num_targets_to_resolve++] = texture.GetDefaultView(TEXTURE_VIEW_TYPE.TEXTURE_VIEW_RENDER_TARGET);
                 }
@@ -330,7 +334,7 @@ class DeviceContext {
         if(!this.pipelinestate) {
             throw 'no pipelinestate is bound';
         }
-        if(!this.pipelinestate.GetDesc().is_compute_pipeline) {
+        if(this.pipelinestate.GetDesc().is_compute_pipeline) {
             throw 'no graphics pipelinestate is bound';
         }
     }
