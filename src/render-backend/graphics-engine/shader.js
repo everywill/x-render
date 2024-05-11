@@ -1,5 +1,4 @@
 import { ShaderReflection } from "../graphics/program-desc";
-// import { ShaderVariableDesc, StaticSamplerDesc } from "../graphics/shader-desc";
 
 class ShaderVariable {
     // set the variable to the given value
