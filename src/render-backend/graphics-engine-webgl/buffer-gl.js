@@ -3,22 +3,17 @@ import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "../graphics/graphics-types"
 import { BufferViewGL } from "./bufferview-gl";
 import { GetCurrentContext } from "./gl-context";
 
-
 function UsageToGLUsage(usage) {
     const gl = GetCurrentContext();
     switch(usage) {
         case USAGE.USAGE_STATIC:
             return gl.STATIC_DRAW;
-            return 0x88E4;  // GL_STATIC_DRAW
         case USAGE.USAGE_DEFAULT:
             return gl.DYNAMIC_DRAW;
-            return 0x88E8;  // GL_DYNAMIC_DRAW
         case USAGE.USAGE_DYNAMIC:
             return gl.STREAM_DRAW;
-            return 0x88E0;  // GL_STREAM_DRAW
         case USAGE.USAGE_STAGING:
             return gl.DYNAMIC_READ;
-            return 0x88E9;  // GL_DYNAMIC_READ
     }
 }
 
