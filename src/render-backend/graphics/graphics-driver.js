@@ -5,9 +5,8 @@ import {
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
     CreateUniformBuffer,
 } from "./buffer-helper";
-import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
-import { BIND_FLAGS, CONTEXT_CREATION_TYPE, CPU_ACCESS_FLAGS, SwapChainDesc, TEXTURE_FORMAT, USAGE } from "./graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, SwapChainDesc, TEXTURE_FORMAT, USAGE } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
 import { RenderPassAttribs } from "./device-context-desc";

@@ -1,4 +1,3 @@
-import { GetValueSize } from "../graphics-accessories/graphics-accessories";
 import { MAX_BUFFER_SLOTS } from "../graphics/device-caps";
 import { VALUE_TYPE } from "../graphics/graphics-types";
 import { INPUT_ELEMENT_FREQUENCY } from "../graphics/input-layout";

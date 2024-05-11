@@ -1,5 +1,5 @@
 import { Buffer, CorrectBufferViewDesc } from "../graphics-engine/buffer";
-import { BIND_FLAGS, CPU_ACCESS_FLAGS, MAP_TYPE, USAGE } from "../graphics/graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "../graphics/graphics-types";
 import { BufferViewGL } from "./bufferview-gl";
 import { GetCurrentContext } from "./gl-context";
 

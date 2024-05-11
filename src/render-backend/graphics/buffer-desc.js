@@ -1,4 +1,4 @@
-import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE, VALUE_TYPE } from "./graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "./graphics-types";
 
 // used in buffer creation
 const BUFFER_MODE = {
