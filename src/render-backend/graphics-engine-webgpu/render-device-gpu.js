@@ -9,7 +9,10 @@ import { TextureGPU } from "./texture-gpu";
 class RenderDeviceGPU extends RenderDevice {
     constructor(engineAttribs) {
         super(engineAttribs.custom_device_caps, 0);
+        this.gpu_device = null;
     }
+
+    GetWebGPUDevice() { return this.gpu_device; }
 
     CheckProgramBinarySupported() {
         this.device_caps.shader_binary_supported = false;

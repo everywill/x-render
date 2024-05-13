@@ -3,7 +3,10 @@ import { Buffer, CorrectBufferViewDesc } from "../graphics-engine/buffer";
 class BufferGPU extends Buffer {
     constructor(renderDevice, bufferDesc, bufferData) {
         super(renderDevice, bufferDesc);
+        
     }
+
+    GetNativeHandle() { return this.gpu_buffer; }
 
     Release() {
         super.Release();

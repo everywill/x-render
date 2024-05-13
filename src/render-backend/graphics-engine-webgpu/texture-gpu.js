@@ -16,9 +16,9 @@ FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGB32_SINT] = '';
 
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_TYPELESS] = 'rgba16float';
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_FLOAT] = 'rgba16float';
-// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_UNORM] = gl.RGBA16F;  not supported in WebGL
+// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_UNORM] = gl.RGBA16F;  not supported
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_UINT] = 'rgba16uint';
-// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_SNORM] = gl.RGBA16_SNORM;  not supported in WebGL
+// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_SNORM] = gl.RGBA16_SNORM;  not supported
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGBA16_SINT] = 'rgba16sint';
 
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG32_TYPELESS] = 'rg32float';
@@ -68,9 +68,9 @@ FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_SINT] = 'rg8sint';
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_TYPELESS] = 'r16float';
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_FLOAT] = 'r16float';
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_D16_UNORM] = 'depth16unorm';
-// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_UNORM] = gl.R16;  not supported in WebGL
+// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_UNORM] = gl.R16;  not supported
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_UINT] = 'r16uint';
-// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_SNORM] = gl.R16_SNORM;  not supported in WebGL
+// FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_SNORM] = gl.R16_SNORM;  not supported
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_SINT] = 'r16sint';
 
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R8_TYPELESS] = 'r8unorm';
@@ -83,22 +83,21 @@ ORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_D32_FLOAT] = 'depth32floa
 
 FORMAT_GPU_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RGB9E5_SHAREDEXP] = 'rgb9e5ufloat';
 
-function CorrectGPUTexFormat(gpuTexFormat, bindFlags) {
-    if(bindFlags & BIND_FLAGS.BIND_DEPTH_STENCILL) {
-        if(gpuTexFormat == gl.R32F) {
-            glTexFormat = gl.DEPTH_COMPONENT32F;
-        }
-        // r16 => depth_component16
-    }
-    return glTexFormat;
-}
+// function CorrectGPUTexFormat(gpuTexFormat, bindFlags) {
+//     if(bindFlags & BIND_FLAGS.BIND_DEPTH_STENCILL) {
+//         if(gpuTexFormat == gl.R32F) {
+//             glTexFormat = gl.DEPTH_COMPONENT32F;
+//         }
+//     }
+//     return glTexFormat;
+// }
 
 function TexFormatToGPUInternalTexFormat(textureFormat, bindFlags = 0) {
     if(textureFormat>=TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN && textureFormat<TEXTURE_FORMAT.TEX_FORMAT_NUM_FORMATS) {
         let gpuFormat = FORMAT_GPU_INTERNAL_FORMAT_MAP[textureFormat];
-        if(bindFlags) {
-            gpuFormat = CorrectGLTexFormat(gpuFormat, bindFlags);
-        }
+        // if(bindFlags) {
+        //     gpuFormat = CorrectGPUTexFormat(gpuFormat, bindFlags);
+        // }
         return gpuFormat;
     } else {
         throw 'Texture format is out of range';
@@ -108,6 +107,29 @@ function TexFormatToGPUInternalTexFormat(textureFormat, bindFlags = 0) {
 class TextureGPU extends Texture {
     constructor(renderDevice, textureDesc, textureData) {
         super(renderDevice, textureDesc);
+
+        this.gpu_tex_format = TexFormatToGPUInternalTexFormat(this.desc.format, this.desc.bind_flags);
+
+        switch(this.desc.type) {
+
+        }
+    }
+    Release() {
+        if(this.gpu_texture) {
+            this.gpu_texture.destroy();
+            this.gpu_texture = null;
+        }
+    }
+
+    CreateViewInternal(viewDesc) {}
+
+    UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
+        super.UpdateData(deviceContext, mipLevel, slice, dstBox, subResData);
+    }
+
+    CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
+        dstMipLevel, dstSlice, dstX, dstY, dstZ) {
+            
     }
 }
 

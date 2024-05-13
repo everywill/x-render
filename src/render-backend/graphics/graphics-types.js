@@ -476,7 +476,7 @@ const BIND_FLAGS = {
     // bind a buffer as source buffer for indirect draw commands
     BIND_INDIRECT_DRAW_ARGS: 256,
     // BIND_INPUT_ATTACHMENT, BIND_RAY_TRACING, BIND_SHADING_RATE,
-    BIND_FLAG_LAST: 10,
+    BIND_FLAG_LAST: 257,
 };
 
 // describe usage of a buffer or a texture

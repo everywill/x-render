@@ -51,6 +51,7 @@ class ShaderDesc {
 class ShaderCreationAttribs {
     constructor() {
         this.source = '';
+        this.entry = '';
         this.shader_desc = new ShaderDesc();
     }
 }

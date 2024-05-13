@@ -1,4 +1,4 @@
-import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE } from "../graphics/graphics-types";
+import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, USAGE } from "../graphics/graphics-types";
 import { ComputeMipLevelsCount, GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { TextureViewDesc } from "../graphics/textureview-desc";
 
@@ -261,6 +261,9 @@ class Texture {
     }
 
     UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
+        if(this.desc.usage != USAGE.USAGE_DEFAULT) {
+            throw 'only default usage resiurces can be updated with UpdateData';
+        }
         this.ValidateUpdateDataParams(this.desc, mipLevel, slice, dstBox, subResData);
     }
 
