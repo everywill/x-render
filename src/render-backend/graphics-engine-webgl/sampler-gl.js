@@ -122,7 +122,7 @@ class SamplerGL extends Sampler {
             throw 'incosistent anisotropy filter setting';
         }
         if(minComparison != magComparison) {
-            throw 'incosistent comprison filter setting'
+            throw 'incosistent comprison filter setting';
         }
 
         gl.samplerParameteri(this.gl_sampler, gl.TEXTURE_MAG_FILTER, glMagFilter);
