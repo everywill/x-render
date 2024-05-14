@@ -128,9 +128,15 @@ class TextureGPU extends Texture {
     }
 
     CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
-        dstMipLevel, dstSlice, dstX, dstY, dstZ) {
-            
+        dstMipLevel, dstSlice, dstX, dstY, dstZ) 
+    {    
+        super.CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
+            dstMipLevel, dstSlice, dstX, dstY, dstZ);
     }
+
+    ReadPixelsInternal(deviceContext, pixels, isHDR) { }
+
+    ReadPixels(deviceContext, pixels) { }
 }
 
 export {

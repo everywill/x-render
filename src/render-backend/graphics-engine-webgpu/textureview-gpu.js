@@ -8,6 +8,10 @@ class TextureViewGPU extends TextureView {
     }
 
     GetNativeHandle() { return this.gpu_texture_view; }
+
+    Release() {}
+
+    GenerateMips(deviceContext) {}
 }
 
 export {

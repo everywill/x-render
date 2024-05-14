@@ -5,6 +5,8 @@ class SamplerGPU extends Sampler {
         super(renderDevice, samplerDesc);
         const samCaps = this.render_device.GetDeviceCaps().sampler_caps;
     }
+
+    Release() { }
 }
 
 export {

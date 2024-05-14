@@ -103,6 +103,14 @@ class CommandEncoder {
     SetIndexBuffer(indexBuffer, byteOffset) {
         
     }
+
+    CopyBufferToBuffer(srcBuffer, srcOffset, dstBuffer, dstOffset, size) {
+        this.command_encoder.copyBufferToBuffer(
+            srcBuffer.GetNativeHandle(), srcOffset,
+            dstBuffer.GetNativeHandle(), dstOffset,
+            size
+        );
+    }
 }
 
 export {

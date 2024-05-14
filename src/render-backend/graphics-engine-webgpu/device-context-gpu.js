@@ -42,6 +42,20 @@ class DeviceContextGPU extends DeviceContext {
         super.SetIndexBuffer(indexBuffer, byteOffset);
     }
 
+    ResolveResourceTo(msaaTexture, resolvedTexture) { }
+
+    ResolveResource(msaaTexture) { }
+
+    FinishCommandList(commandList) { }
+
+    ExecuteCommandList(commandList) { }
+
+    Flush() { }
+
+    SetViewports(numViewports, viewports, RTWidth, RTHeight) { }
+
+    SetScissorRects(numRect, rects) { }
+
     EndRenderPass() {
         super.EndRenderPass();
         this.gpu_command_encoder.EndRenderPass();
@@ -49,6 +63,36 @@ class DeviceContextGPU extends DeviceContext {
 
     Draw(drawAttribs) {
         super.Draw(drawAttribs);
+    }
+
+    UpdateBufferRegion(buffer, offset, size, data) {
+        const gpuDevice = this.render_device.GetWebGPUDevice();
+        const gpuBuffer = buffer.GetNativeHandle();
+        // a safe fallback. generally a fairly efficient path, and in some cases the most efficient path
+        gpuDevice.queue.writeBuffer(gpuBuffer, offset, data, 0, size);
+        // or use a staging buffer ring
+    }
+
+    CopyBufferRegion(srcBuffer, srcOffset, dstBuffer, dstOffset, size) {
+        this.gpu_command_encoder.CopyBufferToBuffer(srcBuffer, srcOffset, dstBuffer, dstOffset, size);
+    }
+
+    CopyTextureRegion(srcTexture, srcMipLevel, srcSlice, srcBox, 
+        dstMipLevel, dstSlice, dstX, dstY, dstZ) 
+    {
+        const source = {
+            aspect: 'all',
+            mipLevel: srcMipLevel,
+        };
+
+        const dest = {
+            aspect: 'all',
+            mipLevel: dstMipLevel,
+        };
+
+        const copySize = {
+
+        };
     }
 }
 

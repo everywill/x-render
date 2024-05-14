@@ -4,6 +4,10 @@ class ShaderResourceBindingGPU extends ShaderResourceBinding {
     constructor(pipelineState) {
         super(pipelineState);
     }
+
+    Release() {}
+
+    GetVariable(shaderType, name) {}
 }
 
 export {

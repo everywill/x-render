@@ -933,6 +933,15 @@ class TextureGL extends Texture {
         
         if(this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) {
             // this.render_device.GetImmediateContext()
+            const gl = GetCurrentContext();
+            const fbo = gl.createFramebuffer();
+            this.render_device.GetImmediateContext().GetContextState().BindFBO(fbo);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, 
+                srcTexture.GetGLTexture(), srcMipLevel);
+
+            this.render_device.GetImmediateContext().GetContextState().BindTexture(0, GL_TEXTURE_2D, this.GetGLTexture());
+            gl.copyTexSubImage2D(gl.TEXTURE_2D, dstMipLevel, dstX, dstY, srcBox.min_x, srcBox.min_y, 
+                                    srcBox.max_x-srcBox.min_x, srcBox.max_y-srcBox.min_y);
         } else {
             throw 'WebGL texture copy not supported';
         }
@@ -1009,7 +1018,7 @@ class TextureGL extends Texture {
         }
     }
 
-    ReadPixels(deviceContext, pixels, isHDR) { 
+    ReadPixelsInternal(deviceContext, pixels, isHDR) { 
         if(isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA32_FLOAT)) {
             console.error('Read Pixels only support 2D Texture, HDR Texture only support RGBA32F');
             return;
@@ -1058,7 +1067,7 @@ class TextureGL extends Texture {
         }
     }
 
-    ReadPixels(deviceContext, pixels) {
+    ReadPixelsInternal(deviceContext, pixels) {
         if(pixels instanceof Float32Array) {
             return this.ReadPixels(deviceContext, pixels, true);
         } else {

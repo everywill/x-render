@@ -40,7 +40,7 @@ function GetBufferBindTarget(bufferDesc) {
 }
 
 class BufferGL extends Buffer {
-    constructor(renderDevice, bufferDesc, bufferData, glHandle = null) {
+    constructor(renderDevice, bufferDesc, bufferData) {
         super(renderDevice, bufferDesc);
         const gl = GetCurrentContext();
         this.map_target = 0;
@@ -103,8 +103,8 @@ class BufferGL extends Buffer {
         gl.bindBuffer(gl.COPY_READ_BUFFER, null);
     }
 
-    Map(deviceContext, mapType, mapFlags, mappedData) {
-        super.Map(deviceContext, mapType, mapFlags, mappedData);
+    Map(deviceContext, mapType, mapFlags) {
+        super.Map(deviceContext, mapType, mapFlags);
         // Map and Unmap are not supported in WebGL
         // emscripten mock this by bufferSubData when and only when access is MAP_WRITE|INVALIDATE_BUFFER
         throw 'not suppoerted in WebGL';

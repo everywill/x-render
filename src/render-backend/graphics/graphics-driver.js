@@ -51,7 +51,7 @@ class GraphicsDriver {
             const desc = msaaTexture.GetDesc();
             const outDesc = resolvedTexture.GetDesc();
             if(desc.sample_count>1 && desc.width==outDesc.width && desc.height==outDesc.height && desc.format==outDesc.format) {
-                this.render_device.GetImmediateContext().ResolveResource(msaaTexture, resolvedTexture);
+                this.render_device.GetImmediateContext().ResolveResourceTo(msaaTexture, resolvedTexture);
             }
         }
     }
@@ -165,8 +165,8 @@ class GraphicsDriver {
     CopyBufferData(dstBuffer, srcBuffer, srcOffset, dstOffset, size) {
         dstBuffer.CopyData(this.device_context, srcBuffer, srcOffset, dstOffset, size);
     }
-    Map(buffer, mapType, mapFlags, mappedData) {
-        buffer.Map(this.device_context, mapType, mapFlags, mappedData);
+    Map(buffer, mapType, mapFlags) {
+        buffer.Map(this.device_context, mapType, mapFlags);
     }
     Unmap(buffer, mapType, mapFlags) {
         buffer.Unmap(this.device_context, mapType, mapFlags);

@@ -1,4 +1,4 @@
-import { BUFFER_VIEW_TYPE } from "./graphics-types";
+import { BUFFER_VIEW_TYPE, VALUE_TYPE } from "./graphics-types";
 
 class BufferFormat {
     constructor() {
