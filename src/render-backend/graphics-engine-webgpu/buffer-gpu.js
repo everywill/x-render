@@ -54,7 +54,7 @@ class BufferGPU extends Buffer {
             dataSize = bufferData.size;
         }
 
-        const device = his.render_device.GetWebGPUDevice();
+        const device = this.render_device.GetWebGPUDevice();
         const usage = GetBufferUsage(bufferDesc);
 
         if(data && dataSize) {
@@ -94,7 +94,10 @@ class BufferGPU extends Buffer {
     Release() {
         super.Release();
         // this.render_device.OnDestroyBuffer(this);
-        this.gpu_buffer.destroy();
+        if(this.gpu_buffer) {
+            this.gpu_buffer.destroy();
+            this.gpu_buffer = null;
+        }
     }
 
     UpdateData(deviceContext, offset, size, data) {

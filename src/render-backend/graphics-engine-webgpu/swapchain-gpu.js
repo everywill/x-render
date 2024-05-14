@@ -9,13 +9,15 @@ class SwapchainGPU extends SwapChain {
 
     Present(syncInterval) {}
 
-    Resize(newWidth, newHeight) {}
+    Resize(newWidth, newHeight) {
+        if(super.Resize(newWidth, newHeight)) {
+            
+        }
+    }
 
     GetCurrentBackBufferRTV() { }
 
     GetCurrentBackBufferDSV() { }
-
-    ReadPixels() { }
 
     ReadPixels() { }
 }

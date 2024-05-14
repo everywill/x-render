@@ -352,7 +352,7 @@ class TextureGL extends Texture {
         this.bind_target = gl.TEXTURE_2D;
         this.PBOs = [];  
         this.current_PBO = null;
-        this.fences = [];
+        // this.fences = [];
 
         if(this.desc.sample_count<=1) {
             this.gl_texture = gl.createTexture();
@@ -1020,11 +1020,10 @@ class TextureGL extends Texture {
 
     ReadPixelsInternal(deviceContext, pixels, isHDR) { 
         if(isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA32_FLOAT)) {
-            console.error('Read Pixels only support 2D Texture, HDR Texture only support RGBA32F');
-            return;
+            throw 'Read Pixels only support 2D Texture, HDR Texture only support RGBA32F';
         }
         if(!isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM)) {
-            console.error('Read Pixels only support 2D Texture, 8bit Texture only support RGBA8');
+            throw 'Read Pixels only support 2D Texture, 8bit Texture only support RGBA8';
         }
         const gl = GetCurrentContext();
         const fbo = gl.createFramebuffer();
@@ -1067,11 +1066,11 @@ class TextureGL extends Texture {
         }
     }
 
-    ReadPixelsInternal(deviceContext, pixels) {
+    ReadPixels(deviceContext, pixels) {
         if(pixels instanceof Float32Array) {
-            return this.ReadPixels(deviceContext, pixels, true);
+            return this.ReadPixelsInternal(deviceContext, pixels, true);
         } else {
-            return this.ReadPixels(deviceContext, pixels, false);
+            return this.ReadPixelsInternal(deviceContext, pixels, false);
         }
     }
 } 

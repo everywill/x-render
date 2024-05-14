@@ -1,4 +1,6 @@
 import { Texture } from "../graphics-engine/texture";
+import { BIND_FLAGS, RESOURCE_DIMENSION, USAGE } from "../graphics/graphics-types";
+import { TextureViewGPU } from "./textureview-gpu";
 
 const FORMAT_GPU_INTERNAL_FORMAT_MAP = {};
 
@@ -108,12 +110,62 @@ class TextureGPU extends Texture {
     constructor(renderDevice, textureDesc, textureData) {
         super(renderDevice, textureDesc);
 
-        this.gpu_tex_format = TexFormatToGPUInternalTexFormat(this.desc.format, this.desc.bind_flags);
+        if(!this.gpu_tex_format) {
+            throw 'unsupported texture format';
+        }
+        if(this.desc.usage==USAGE.USAGE_STATIC && !textureData.sub_resources.length) {
+            throw 'static texture must be initialized with data at creation time';
+        }
+
+        const device = this.render_device.GetWebGPUDevice();
+        const descriptor = {};
+        descriptor.format = TexFormatToGPUInternalTexFormat(this.desc.format, this.desc.bind_flags);
+        descriptor.mipLevelCount = this.desc.mip_levels;
+        if(this.desc.sample_count > 1) {
+            console.warn('multisample texture count only support 4 samples');
+            descriptor.sampleCount = 4;
+        } else {
+            descriptor.sampleCount = 1;
+        }
+        descriptor.size = {
+            width: this.desc.width,
+            height: this.desc.height,
+            depthOrArrayLayers: this.desc.array_size_or_depth,
+        };
+
+        descriptor.usage = 0;
+        if(this.desc.bind_flags&(BIND_FLAGS.BIND_RENDER_TARGET|BIND_FLAGS.BIND_DEPTH_STENCILL)) {
+            descriptor.usage |= GPUTextureUsage.RENDER_ATTACHMENT;
+        }
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_UNORDERED_ACCESS) {
+            descriptor.usage |= GPUTextureUsage.STORAGE_BINDING;
+        }
+        if(this.desc.bind_flags & BIND_FLAGS.BIND_SHADER_RESOURCE) {
+            descriptor.usage |= GPUTextureUsage.TEXTURE_BINDING;
+        }
 
         switch(this.desc.type) {
-
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_1D:
+                descriptor.dimension = '1d';
+                break;
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D:
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D_ARRAY:
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE:
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_CUBE_ARRAY:
+                descriptor.dimension = '2d';
+                break;
+            case RESOURCE_DIMENSION.RESOURCE_DIM_TEX_3D:
+                descriptor.dimension = '3d';
+                break;
+            default:
+                throw 'texture dimension not supported';
         }
+
+        this.gpu_texture = device.createTexture(descriptor);
     }
+
+    GetNativeHandle() { return this.gpu_texture; }
+
     Release() {
         if(this.gpu_texture) {
             this.gpu_texture.destroy();
@@ -121,10 +173,14 @@ class TextureGPU extends Texture {
         }
     }
 
-    CreateViewInternal(viewDesc) {}
+    CreateViewInternal(viewDesc) {
+        this.CorrectTextureViewDesc(viewDesc);
+        return new TextureViewGPU(this.render_device, viewDesc, this);
+    }
 
     UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
         super.UpdateData(deviceContext, mipLevel, slice, dstBox, subResData);
+        deviceContext.UpdateTextureRegion(this, mipLevel, slice, dstBox, subResData);
     }
 
     CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
@@ -132,11 +188,28 @@ class TextureGPU extends Texture {
     {    
         super.CopyData(deviceContext, srcTexture, srcMipLevel, srcSlice, srcBox, 
             dstMipLevel, dstSlice, dstX, dstY, dstZ);
+        
+        deviceContext.CopyTextureRegion(srcTexture, srcMipLevel, srcSlice, srcBox, 
+                this, dstMipLevel, dstSlice, dstX, dstY, dstZ);
     }
 
-    ReadPixelsInternal(deviceContext, pixels, isHDR) { }
+    ReadPixels(deviceContext, pixels, isHDR) {
+        if(isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA32_FLOAT)) {
+            throw 'Read Pixels only support 2D Texture, HDR Texture only support RGBA32F';
+        }
+        if(!isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM)) {
+            throw 'Read Pixels only support 2D Texture, 8bit Texture only support RGBA8';
+        }
+        // todo: 
+    }
 
-    ReadPixels(deviceContext, pixels) { }
+    ReadPixelsInternal(deviceContext, pixels) {
+        if(pixels instanceof Float32Array) {
+            return this.ReadPixelsInternal(deviceContext, pixels, true);
+        } else {
+            return this.ReadPixelsInternal(deviceContext, pixels, false);
+        }
+    }
 }
 
 export {

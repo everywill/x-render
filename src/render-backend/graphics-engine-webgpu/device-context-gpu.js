@@ -78,21 +78,83 @@ class DeviceContextGPU extends DeviceContext {
     }
 
     CopyTextureRegion(srcTexture, srcMipLevel, srcSlice, srcBox, 
-        dstMipLevel, dstSlice, dstX, dstY, dstZ) 
+                        dstTexture, dstMipLevel, dstSlice, dstX, dstY, dstZ) 
     {
         const source = {
             aspect: 'all',
             mipLevel: srcMipLevel,
+            origin: [srcBox.min_x, srcBox.min_y, srcBox.min_z],
+            texture: srcTexture.GetNativeHandle(),
         };
 
         const dest = {
             aspect: 'all',
             mipLevel: dstMipLevel,
+            origin: [dstX, dstY, dstZ],
+            texture: dstTexture.GetNativeHandle(),
         };
 
         const copySize = {
-
+            width: srcBox.max_x - srcBox.min_x,
+            height: srcBox.max_y - srcBox.min_y,
+            depthOrArrayLayers: srcBox.max_z - srcBox.min_z,
         };
+
+        this.gpu_command_encoder.copyTextureToTexture(source, dest, copySize);
+    }
+
+    UpdateTextureRegion(texture, mipLevel, slice, dstBox, subResData) {
+        if(subResData.data) {
+            // provided by CPU memory
+            const destination = {
+                aspect: 'all',
+                mipLevel,
+                origin: {
+                    x: dstBox.min_x,
+                    y: dstBox.min_y,
+                    z: dstBox.min_z,
+                },
+                texture: texture.GetNativeHandle(),
+            };
+            const data = subResData.data;
+            const dataLayout = {
+                bytesPerRow: subResData.stride,
+                rowsPerImage: subResData.depth_stride / subResData.stride,
+            };
+            const size = {
+                width: dstBox.max_x - dstBox.min_x,
+                height: dstBox.max_y - dstBox.min_y,
+                depthOrArrayLayers: dstBox.max_z - dstBox.min_x,
+            }
+
+            const gpuDevice = this.render_device.GetWebGPUDevice();
+            gpuDevice.queue.writeTexture(destination, data, dataLayout, size);
+        } else {
+            // provided by GPU memory
+            const source = {
+                buffer: subResData.src_buffer.GetNativeHandle(),
+                bytesPerRow: subResData.stride,
+                rowsPerImage: subResData.depth_stride / subResData.stride,
+            };
+
+            const destination = {
+                aspect: 'all',
+                mipLevel,
+                origin: {
+                    x: dstBox.min_x,
+                    y: dstBox.min_y,
+                    z: dstBox.min_z,
+                },
+                texture: texture.GetNativeHandle(),
+            };
+
+            const copySize = {
+                width: dstBox.max_x - dstBox.min_x,
+                height: dstBox.max_y - dstBox.min_y,
+                depthOrArrayLayers: dstBox.max_z - dstBox.min_x,
+            };
+            this.gpu_command_encoder.copyBufferToTexture(source, destination, copySize);
+        }
     }
 }
 

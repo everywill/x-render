@@ -196,7 +196,7 @@ class GraphicsDriver {
     CopyTextureData(dstTexture, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ) {
         return dstTexture.CopyData(this.device_context, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ);
     }
-    ReadPixels(texture) {
+    ReadPixelsFromTexture(texture) {
         return texture.ReadPixels(this.device_context);
     }
 
@@ -303,7 +303,7 @@ class GraphicsDriver {
     GetCurrentBackBufferDSV(swapchain) {
         return swapchain.GetCurrentBackBufferDSV();
     }
-    ReadPixels(swapchain) {
+    ReadPixelsFromSwapchain(swapchain) {
         return swapchain.ReadPixels();
     }
 
