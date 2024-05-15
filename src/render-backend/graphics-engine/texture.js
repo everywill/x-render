@@ -261,9 +261,6 @@ class Texture {
     }
 
     UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
-        if(this.desc.usage != USAGE.USAGE_DEFAULT) {
-            throw 'only default usage resiurces can be updated with UpdateData';
-        }
         this.ValidateUpdateDataParams(this.desc, mipLevel, slice, dstBox, subResData);
     }
 

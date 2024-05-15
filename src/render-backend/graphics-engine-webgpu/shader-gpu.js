@@ -6,6 +6,8 @@ class ShaderGPU extends Shader {
         this.SetupShader(shaderCreationAttribs);
     }
 
+    GetNativeHandle() { return this.gpu_shader_module; }
+
     Release() {
         this.gpu_shader_module = null;
     }
@@ -20,9 +22,9 @@ class ShaderGPU extends Shader {
             // providing hints does not guarantee improved shader compilation performance on all browsers/systems.
             compilationHints: [{
                 entryPoint: entry,
-                // layout: 
+                // layout: GPUPipelineLayout | 'auto'
             }],
-        })
+        });
     }
 }
 

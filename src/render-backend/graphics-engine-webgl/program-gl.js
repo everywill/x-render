@@ -16,7 +16,7 @@ class ProgramGL extends Program {
             throw 'device caps is not initialzed';
         }
 
-        this.separable_program_supported = deviceCaps.eparable_program_supported;
+        this.separable_program_supported = deviceCaps.separable_program_supported;
         this.shader_binary_supported = deviceCaps.shader_binary_supported;
 
         if(!this.separable_program_supported) {

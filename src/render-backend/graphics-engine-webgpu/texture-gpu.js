@@ -180,6 +180,9 @@ class TextureGPU extends Texture {
 
     UpdateData(deviceContext, mipLevel, slice, dstBox, subResData) {
         super.UpdateData(deviceContext, mipLevel, slice, dstBox, subResData);
+        if(this.desc.usage != USAGE.USAGE_DEFAULT) {
+            throw 'only default usage textures can be updated with UpdateData';
+        }
         deviceContext.UpdateTextureRegion(this, mipLevel, slice, dstBox, subResData);
     }
 
