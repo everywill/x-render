@@ -104,10 +104,10 @@ class RenderDeviceGL extends RenderDevice {
     }
 
     CreateTexture(textureDesc, textureData) {
-        const deviceContext = this.GetImmediateContext();
-        if(!deviceContext) {
-            throw 'immediate device context has been destroyed';
-        }
+        // const deviceContext = this.GetImmediateContext();
+        // if(!deviceContext) {
+        //     throw 'immediate device context has been destroyed';
+        // }
         const fmtInfo = this.GetTextureFormatInfo(textureDesc.format);
         
         const texture = new TextureGL(this, textureDesc, textureData);

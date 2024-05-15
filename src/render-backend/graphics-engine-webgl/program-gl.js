@@ -16,7 +16,7 @@ class ProgramGL extends Program {
             throw 'device caps is not initialzed';
         }
 
-        this.separable_program_supported = deviceCaps.eparable_program_supported;
+        this.separable_program_supported = deviceCaps.separable_program_supported;
         this.shader_binary_supported = deviceCaps.shader_binary_supported;
 
         if(!this.separable_program_supported) {
@@ -47,10 +47,10 @@ class ProgramGL extends Program {
             gl.attachShader(this.gl_program.native_handle, currShader.gl_shader);
         }
         gl.linkProgram(this.gl_program.native_handle);
-        if (!gl.getProgramParameter(this.gl_program.native_handle, gl.LINK_STATUS)) {
-            const info = gl.getProgramInfoLog(this.gl_program.native_handle);
-            throw `Could not compile WebGL program. \n${info}`;
-          }
+        // if (!gl.getProgramParameter(this.gl_program.native_handle, gl.LINK_STATUS)) {
+        //     const info = gl.getProgramInfoLog(this.gl_program.native_handle);
+        //     throw `Could not compile WebGL program. \n${info}`;
+        //   }
     }
 
     LinkFailed() {

@@ -53,6 +53,7 @@ class RenderPassFlag {
 class RenderPassAttribs {
     constructor() {
         this.num_render_targets = 0;
+        // clear color for clear each attachment, rgba range [0,1]
         this.clear_color = [];
         this.depth_value = 1;
         this.stencil_value = 0;

@@ -271,7 +271,7 @@ class DeviceContextGL extends DeviceContext {
         super.SetIndexBuffer(indexBuffer, byteOffset);
     }
 
-    ResolveResource(msaaTexture, resolvedTexture) {
+    ResolveResourceTo(msaaTexture, resolvedTexture) {
         if(msaaTexture && resolvedTexture) {
             const gl = GetCurrentContext();
             const desc = msaaTexture.GetDesc();

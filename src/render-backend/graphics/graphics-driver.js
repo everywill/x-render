@@ -5,9 +5,8 @@ import {
     CreateDefaultIndexBuffer, CreateStaticIndexBuffer, CreateDynamicIndexBuffer,
     CreateUniformBuffer,
 } from "./buffer-helper";
-import { BufferDesc } from "./buffer-desc";
 import { EngineGLAttribs, RenderDeviceGL } from "../graphics-engine-webgl/render-device-gl";
-import { BIND_FLAGS, CONTEXT_CREATION_TYPE, CPU_ACCESS_FLAGS, SwapChainDesc, TEXTURE_FORMAT, USAGE } from "./graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, SwapChainDesc, TEXTURE_FORMAT, USAGE } from "./graphics-types";
 import { DeviceContextGL } from "../graphics-engine-webgl/device-context-gl";
 import { SwapchainGL } from "../graphics-engine-webgl/swapchain-gl";
 import { RenderPassAttribs } from "./device-context-desc";
@@ -52,7 +51,7 @@ class GraphicsDriver {
             const desc = msaaTexture.GetDesc();
             const outDesc = resolvedTexture.GetDesc();
             if(desc.sample_count>1 && desc.width==outDesc.width && desc.height==outDesc.height && desc.format==outDesc.format) {
-                this.render_device.GetImmediateContext().ResolveResource(msaaTexture, resolvedTexture);
+                this.render_device.GetImmediateContext().ResolveResourceTo(msaaTexture, resolvedTexture);
             }
         }
     }
@@ -166,8 +165,8 @@ class GraphicsDriver {
     CopyBufferData(dstBuffer, srcBuffer, srcOffset, dstOffset, size) {
         dstBuffer.CopyData(this.device_context, srcBuffer, srcOffset, dstOffset, size);
     }
-    Map(buffer, mapType, mapFlags, mappedData) {
-        buffer.Map(this.device_context, mapType, mapFlags, mappedData);
+    Map(buffer, mapType, mapFlags) {
+        buffer.Map(this.device_context, mapType, mapFlags);
     }
     Unmap(buffer, mapType, mapFlags) {
         buffer.Unmap(this.device_context, mapType, mapFlags);
@@ -197,7 +196,7 @@ class GraphicsDriver {
     CopyTextureData(dstTexture, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ) {
         return dstTexture.CopyData(this.device_context, srcTexture, srcMipLevel, srcSlice, srcBox, dstMipLevel, dstSlice, dstX, dstY, dstZ);
     }
-    ReadPixels(texture) {
+    ReadPixelsFromTexture(texture) {
         return texture.ReadPixels(this.device_context);
     }
 
@@ -304,7 +303,7 @@ class GraphicsDriver {
     GetCurrentBackBufferDSV(swapchain) {
         return swapchain.GetCurrentBackBufferDSV();
     }
-    ReadPixels(swapchain) {
+    ReadPixelsFromSwapchain(swapchain) {
         return swapchain.ReadPixels();
     }
 

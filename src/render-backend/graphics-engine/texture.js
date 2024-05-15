@@ -1,4 +1,4 @@
-import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE } from "../graphics/graphics-types";
+import { BIND_FLAGS, Box, COMPONENT_TYPE, GetViewFormat, RESOURCE_DIMENSION, TEXTURE_FORMAT, TEXTURE_VIEW_TYPE, USAGE } from "../graphics/graphics-types";
 import { ComputeMipLevelsCount, GetTextureFormatAttribs } from "../graphics-accessories/graphics-accessories";
 import { TextureViewDesc } from "../graphics/textureview-desc";
 

@@ -1,4 +1,3 @@
-import { Program } from '../graphics-engine/program';
 import { MAX_RENDER_TARGETS } from './device-caps'
 import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, TEXTURE_FORMAT } from './graphics-types'
 import { InputLayoutDesc } from './input-layout';

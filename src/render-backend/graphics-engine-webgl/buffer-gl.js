@@ -1,24 +1,19 @@
 import { Buffer, CorrectBufferViewDesc } from "../graphics-engine/buffer";
-import { BIND_FLAGS, CPU_ACCESS_FLAGS, MAP_TYPE, USAGE } from "../graphics/graphics-types";
+import { BIND_FLAGS, CPU_ACCESS_FLAGS, USAGE } from "../graphics/graphics-types";
 import { BufferViewGL } from "./bufferview-gl";
 import { GetCurrentContext } from "./gl-context";
-
 
 function UsageToGLUsage(usage) {
     const gl = GetCurrentContext();
     switch(usage) {
         case USAGE.USAGE_STATIC:
             return gl.STATIC_DRAW;
-            return 0x88E4;  // GL_STATIC_DRAW
         case USAGE.USAGE_DEFAULT:
             return gl.DYNAMIC_DRAW;
-            return 0x88E8;  // GL_DYNAMIC_DRAW
         case USAGE.USAGE_DYNAMIC:
             return gl.STREAM_DRAW;
-            return 0x88E0;  // GL_STREAM_DRAW
         case USAGE.USAGE_STAGING:
             return gl.DYNAMIC_READ;
-            return 0x88E9;  // GL_DYNAMIC_READ
     }
 }
 
@@ -45,7 +40,7 @@ function GetBufferBindTarget(bufferDesc) {
 }
 
 class BufferGL extends Buffer {
-    constructor(renderDevice, bufferDesc, bufferData, glHandle = null) {
+    constructor(renderDevice, bufferDesc, bufferData) {
         super(renderDevice, bufferDesc);
         const gl = GetCurrentContext();
         this.map_target = 0;
@@ -108,8 +103,8 @@ class BufferGL extends Buffer {
         gl.bindBuffer(gl.COPY_READ_BUFFER, null);
     }
 
-    Map(deviceContext, mapType, mapFlags, mappedData) {
-        super.Map(deviceContext, mapType, mapFlags, mappedData);
+    Map(deviceContext, mapType, mapFlags) {
+        super.Map(deviceContext, mapType, mapFlags);
         // Map and Unmap are not supported in WebGL
         // emscripten mock this by bufferSubData when and only when access is MAP_WRITE|INVALIDATE_BUFFER
         throw 'not suppoerted in WebGL';

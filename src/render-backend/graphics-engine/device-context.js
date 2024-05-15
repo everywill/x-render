@@ -56,7 +56,7 @@ class DeviceContext {
         this.active_render_pass = false;
     }
 
-    ResolveResource(msaaTexture, resolvedTexture) { throw 'implementation needed'; }
+    ResolveResourceTo(msaaTexture, resolvedTexture) { throw 'implementation needed'; }
 
     SetSwapChain(swapchain) { this.swapchain = swapchain; }
     GetSwapChain() { return this.swapchain; }

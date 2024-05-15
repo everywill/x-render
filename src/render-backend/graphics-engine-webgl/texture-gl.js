@@ -171,9 +171,9 @@ function TexFormatToGLInternalTexFormat(textureFormat, bindFlags = 0) {
         if(norm16Ext) {
             FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG16_SNORM] = norm16Ext.RG16_SNORM_EXT;
         }
-        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG16_SINT] = gl.RG16I
+        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG16_SINT] = gl.RG16I;
 
-        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R32_TYPELESS] = gl.R32F
+        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R32_TYPELESS] = gl.R32F;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_D32_FLOAT] = gl.DEPTH_COMPONENT32F;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R32_FLOAT] = gl.R32F;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R32_UINT] = gl.R32UI;
@@ -187,7 +187,7 @@ function TexFormatToGLInternalTexFormat(textureFormat, bindFlags = 0) {
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_UNORM] = gl.RG8;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_UINT] = gl.RG8UI;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_SNORM] = gl.RG8_SNORM;
-        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_SINT] = gl.RG8I
+        FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_RG8_SINT] = gl.RG8I;
 
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_TYPELESS] = gl.R16F;
         FORMAT_GL_INTERNAL_FORMAT_MAP[TEXTURE_FORMAT.TEX_FORMAT_R16_FLOAT] = gl.R16F;
@@ -352,7 +352,7 @@ class TextureGL extends Texture {
         this.bind_target = gl.TEXTURE_2D;
         this.PBOs = [];  
         this.current_PBO = null;
-        this.fences = [];
+        // this.fences = [];
 
         if(this.desc.sample_count<=1) {
             this.gl_texture = gl.createTexture();
@@ -933,6 +933,15 @@ class TextureGL extends Texture {
         
         if(this.desc.type == RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D) {
             // this.render_device.GetImmediateContext()
+            const gl = GetCurrentContext();
+            const fbo = gl.createFramebuffer();
+            this.render_device.GetImmediateContext().GetContextState().BindFBO(fbo);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, 
+                srcTexture.GetGLTexture(), srcMipLevel);
+
+            this.render_device.GetImmediateContext().GetContextState().BindTexture(0, GL_TEXTURE_2D, this.GetGLTexture());
+            gl.copyTexSubImage2D(gl.TEXTURE_2D, dstMipLevel, dstX, dstY, srcBox.min_x, srcBox.min_y, 
+                                    srcBox.max_x-srcBox.min_x, srcBox.max_y-srcBox.min_y);
         } else {
             throw 'WebGL texture copy not supported';
         }
@@ -1009,13 +1018,12 @@ class TextureGL extends Texture {
         }
     }
 
-    ReadPixels(deviceContext, pixels, isHDR) { 
+    ReadPixelsInternal(deviceContext, pixels, isHDR) { 
         if(isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA32_FLOAT)) {
-            console.error('Read Pixels only support 2D Texture, HDR Texture only support RGBA32F');
-            return;
+            throw 'Read Pixels only support 2D Texture, HDR Texture only support RGBA32F';
         }
         if(!isHDR && (this.desc.type != RESOURCE_DIMENSION.RESOURCE_DIM_TEX_2D || this.desc.format != TEXTURE_FORMAT.TEX_FORMAT_RGBA8_UNORM)) {
-            console.error('Read Pixels only support 2D Texture, 8bit Texture only support RGBA8');
+            throw 'Read Pixels only support 2D Texture, 8bit Texture only support RGBA8';
         }
         const gl = GetCurrentContext();
         const fbo = gl.createFramebuffer();
@@ -1060,9 +1068,9 @@ class TextureGL extends Texture {
 
     ReadPixels(deviceContext, pixels) {
         if(pixels instanceof Float32Array) {
-            return this.ReadPixels(deviceContext, pixels, true);
+            return this.ReadPixelsInternal(deviceContext, pixels, true);
         } else {
-            return this.ReadPixels(deviceContext, pixels, false);
+            return this.ReadPixelsInternal(deviceContext, pixels, false);
         }
     }
 } 

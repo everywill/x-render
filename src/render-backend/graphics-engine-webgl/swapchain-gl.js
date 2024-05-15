@@ -2,7 +2,6 @@ import { SwapChain } from "../graphics-engine/swapchain";
 import { RenderPassAttribs } from "../graphics/device-context-desc";
 import { GetCanvas } from "./gl-context";
 
-
 class SwapchainGL extends SwapChain {
     constructor(renderDevice, deviceContext, swapchainDesc) {
         super(renderDevice, deviceContext, swapchainDesc);
