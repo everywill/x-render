@@ -35,7 +35,7 @@ function GetShaderVariableType(defaultVariableType, variableDescs, numVars, comp
 }
 
 function GetShaderVariableTypeByName(name, defaultVariableType, variableDescs, numVars) {
-    return GetShaderVariableType(defaultVariableType, variableDescs, numVars, function(name) {return name == name});
+    return GetShaderVariableType(defaultVariableType, variableDescs, numVars, function(nm) {return nm == name});
 }
 
 class Shader {

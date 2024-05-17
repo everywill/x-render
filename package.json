@@ -4,14 +4,16 @@
   "description": "A universal renderer backended with WebGL/WebGPU",
   "main": "index.js",
   "dependencies": {
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "wgsl_reflect": "^1.0.6"
   },
   "devDependencies": {
     "esbuild": "^0.15.18"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild test/render-backend/webgl/index.js --bundle --outdir=./public"
+    "build:gl": "esbuild test/render-backend/webgl/index.js --bundle --outdir=./public",
+    "build:gpu": "esbuild test/render-backend/webgpu/index.js --bundle --outdir=./public"
   },
   "repository": {
     "type": "git",

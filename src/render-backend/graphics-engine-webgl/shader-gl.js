@@ -95,11 +95,11 @@ class ShaderGL extends Shader {
         }
     }
 
-    GetShaderReflection() {
+    GetShaderVariable(name) {
         if(!this.gl_program) {
-            throw 'Shader variable queries are currently suppored for separable programs only';
+            throw 'shader variable queries are currently supported for separable programs only'
         }
-    }
+    } 
 }
 
 export {
