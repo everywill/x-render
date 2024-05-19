@@ -11,13 +11,14 @@ class ShaderGPU extends Shader {
         this.const_resources = new ShaderResourcesGPU();
 
         const { source, entry } = shaderCreationAttribs;
+        this.entry = entry;
         const gpuDevice = this.render_device.GetWebGPUDevice();
         this.gpu_shader_module = gpuDevice.createShaderModule({
             code: source,
             // different implementations may be handle this in different ways
             // providing hints does not guarantee improved shader compilation performance on all browsers/systems.
             compilationHints: [{
-                entryPoint: entry,
+                entryPoint: this.entry,
                 // layout: GPUPipelineLayout | 'auto'
             }],
         });
@@ -25,6 +26,7 @@ class ShaderGPU extends Shader {
         this.InitResources(source);
     }
 
+    GetEntry() { return this.entry; }
     GetNativeHandle() { return this.gpu_shader_module; }
     GetAllResources() { return this.shader_resource; }
     GetConstantResources() { return this.const_resources; }

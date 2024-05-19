@@ -14,7 +14,8 @@ class LayoutElement {
         semanticIndex=0, bufferSlot=0, numComponents=1, 
         valueType=VALUE_TYPE.VT_FLOAT32, isNormalized=false, 
         relativeOffset=0, stride=0, frequency=INPUT_ELEMENT_FREQUENCY.INPUT_ELEMENT_FREQUENCY_PER_VERTEX,
-        instanceDataStepRate=0) {
+        instanceDataStepRate=0) 
+    {
         // semantic index in shader
         this.semantic_index = semanticIndex;
         // buffer slot index that this element is read from

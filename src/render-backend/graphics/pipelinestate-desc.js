@@ -181,7 +181,7 @@ class GraphicsPipelineDesc {
         this.num_render_targets = 0;   
         this.RTV_formats = [];  // MAX_RENDER_TARGETS
         this.DSV_format = TEXTURE_FORMAT.TEX_FORMAT_UNKNOWN;
-        // this.sample_desc = new SampleDesc(); not supported in OpenGL
+        this.sample_desc = new SampleDesc(); // not supported in OpenGL
         this.nodeMask = 0;
     }
 }

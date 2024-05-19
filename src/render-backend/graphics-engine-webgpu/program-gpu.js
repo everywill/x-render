@@ -12,10 +12,12 @@ class ProgramGPU extends Program {
         
         this.bind_group_layouts = [];
 
-        this.SetupBindGroups();
+        this.SetupBindGroupLayouts();
     }
 
     Release() { }
+
+    GetBindGroupLayouts() { return this.bind_group_layouts; }
 
     GetVSShaderReflection() {
         if(this.p_vs) {
@@ -53,7 +55,7 @@ class ProgramGPU extends Program {
         }
     }
 
-    SetupBindGroups() {
+    SetupBindGroupLayouts() {
         const device = this.render_device.GetWebGPUDevice();
         const layoutsInfo = [];
 
