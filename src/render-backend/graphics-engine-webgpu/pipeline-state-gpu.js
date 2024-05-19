@@ -1,5 +1,5 @@
 import { PipelineState } from "../graphics-engine/pipelinestate";
-import { PRIMITIVE_TOPOLOGY, VALUE_TYPE } from "../graphics/graphics-types";
+import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, VALUE_TYPE } from "../graphics/graphics-types";
 import { INPUT_ELEMENT_FREQUENCY } from "../graphics/input-layout";
 import { BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK, CULL_MODE } from "../graphics/pipelinestate-desc";
 import { ShaderResourceBindingGPU } from "./shader-resource-binding-gpu";
@@ -112,6 +112,15 @@ function GetAttributeFormat(valueType, isNormalized, numComponents) {
     }
 }
 
+const DEPTH_COMPARE_TO_GPU_COMPARE =[];
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NEVER] = 'never';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS] = 'less';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS_EQUAL] = 'less-equal';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER] = 'greater';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NOT_EQUAL] = 'not-equal';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER_EQUAL] = 'greater-equal';
+DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_ALWAYS] = 'always';
+
 class PipelineStateGPU extends PipelineState {
     constructor(renderDevice, pipelineStateDesc) {
         super(renderDevice, pipelineStateDesc);
@@ -183,25 +192,43 @@ class PipelineStateGPU extends PipelineState {
 
                 // target.writeMask not supported
                 target.format = FORMAT_GPU_INTERNAL_FORMAT_MAP[pipelineStateDesc.graphics_pipeline_desc.RTV_formats[i]];
-        
-                target.multisample = {
-                    alphaToCoverageEnabled: pipelineStateDesc.graphics_pipeline_desc.blend_state_desc.alpha_to_coverage_enable,
-                    count: pipelineStateDesc.graphics_pipeline_desc.sample_desc.count,
-                    mask: pipelineStateDesc.graphics_pipeline_desc.sample_mask,
-                };
-
-                target.primitive = {
-                    cullMode: CULLMODE_TO_GPU_CULLMODE[pipelineStateDesc.graphics_pipeline_desc.rasterizer_state_desc.cull_mode],
-                    frontFace: pipelineStateDesc.graphics_pipeline_desc.rasterizer_state_desc.front_counter_clock_wise ? 'ccw' : 'cw',
-                    // todo: related with primitive restart
-                    // stripIndexFormat: 
-                    topology: TOPOLOGY_TO_GPU_TOPOLOGY[pipelineStateDesc.graphics_pipeline_desc.primitive_topology],
-                    // todo: related with GPUDevice feature 
-                    // unclippedDepth:
-                };
 
                 targets[i] = target;
             }
+
+            const rasterizerStateDesc = pipelineStateDesc.graphics_pipeline_desc.rasterizer_state_desc;
+            const depthStencilStateDesc = pipelineStateDesc.graphics_pipeline_desc.depth_stencil_state_desc;
+
+            this.gpu_pipeline_desc.multisample = {
+                alphaToCoverageEnabled: pipelineStateDesc.graphics_pipeline_desc.blend_state_desc.alpha_to_coverage_enable,
+                count: pipelineStateDesc.graphics_pipeline_desc.sample_desc.count,
+                mask: pipelineStateDesc.graphics_pipeline_desc.sample_mask,
+            };
+
+            this.gpu_pipeline_desc.primitive = {
+                cullMode: CULLMODE_TO_GPU_CULLMODE[rasterizerStateDesc.cull_mode],
+                frontFace: rasterizerStateDesc.front_counter_clock_wise ? 'ccw' : 'cw',
+                // todo: related with primitive restart
+                // stripIndexFormat: 
+                topology: TOPOLOGY_TO_GPU_TOPOLOGY[pipelineStateDesc.graphics_pipeline_desc.primitive_topology],
+                // todo: related with GPUDevice feature 
+                // unclippedDepth:
+            };
+
+            this.gpu_pipeline_desc.depthStencil = {
+                depthBias: rasterizerStateDesc.depth_bias,
+                depthBiasClamp: rasterizerStateDesc.depth_bias_clamp,
+                depthBiasSlopeScale: rasterizerStateDesc.slope_scaled_depth_bias,
+                depthCompare: DEPTH_COMPARE_TO_GPU_COMPARE[depthStencilStateDesc.depth_func],
+                depthWriteEnabled: depthStencilStateDesc.depth_write_enable,
+                format: FORMAT_GPU_INTERNAL_FORMAT_MAP[pipelineStateDesc.graphics_pipeline_desc.DSV_format],
+                stencilFront: {
+
+                },
+                stencilBack: {
+                    
+                }
+            };
 
             this.gpu_pipeline = gpuDevice.createRenderPipeline(this.gpu_pipeline_desc);
         }

@@ -28,18 +28,7 @@ class DeviceContextGPU extends DeviceContext {
 
     BindProgramResources(shaderResourceBinding) {
         const program = this.pipelinestate.GetProgram();
-        
-
-        for(let i=0; i<program.GetNumShaders(); i++) {
-            const constResources = program.GetShader(i).GetConstantResources();
-
-        }
-
-        const dynamicResources = shaderResourceBinding ? shaderResourceBinding.GetProgramResources() : null;
-
-        for(let j=0; j<(dynamicResources ? 2 : 1); j++) {
-            const progResources = j ? dynamicResources : glProgram.GetConstantResources();
-        }
+        this.gpu_command_encoder.SetBindGroups(); program.GetBindGroups()
     }
 
     SetStencilRef(stencilRef) {

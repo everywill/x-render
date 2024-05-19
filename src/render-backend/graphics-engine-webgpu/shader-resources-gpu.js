@@ -152,7 +152,7 @@ class GPUShaderVariable extends ShaderVariable {
     }
 
     Set(object) {
-        this.resource_info.resources = object;
+        this.resource_info.resource = object;
     }
 }
 
