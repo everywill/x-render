@@ -109,7 +109,6 @@ class DeviceContextGL extends DeviceContext {
 
     CommitShaderResources(shaderResourceBinding, flags) {
         super.CommitShaderResources(shaderResourceBinding, flags);
-
         this.BindProgramResources(shaderResourceBinding);
     }
 

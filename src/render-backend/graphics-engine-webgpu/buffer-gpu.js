@@ -14,7 +14,7 @@ function GetBufferUsage(bufferDesc) {
     } else if(bufferDesc.bind_flags == BIND_FLAGS.BIND_INDIRECT_DRAW_ARGS) {
         usage |= GPUBufferUsage.INDIRECT;
     } else if(bufferDesc.bind_flags == BIND_FLAGS.BIND_UNORDERED_ACCESS) {
-        usage |= GetBufferUsage.STORAGE;
+        usage |= GPUBufferUsage.STORAGE;
     }
 
     if(bufferDesc.usage == USAGE.USAGE_DEFAULT) {

@@ -95,6 +95,18 @@ class CommandEncoder {
         const renderPassDesc = { colorAttachments, depthStencilAttachment };
         this.pass_encoder = this.command_encoder.beginRenderPass(renderPassDesc);
     }
+
+    SetPipelineState(pipelineState) {
+        this.pass_encoder.setPipeline(pipelineState);
+    }
+
+    SetBindGroups(bindGroups) {
+        for(let i=0; i<bindGroups.length; i++) {
+            if(bindGroups[i]) {
+                this.pass_encoder.setBindGroup(i, bindGroups[i]);
+            }
+        }
+    }
     
     EndRenderPass() {
         this.pass_encoder.end();

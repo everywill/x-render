@@ -8,18 +8,27 @@ class DeviceContextGPU extends DeviceContext {
         this.gpu_command_encoder = new CommandEncoder(this.render_device);
     }
 
-    SetPipelineState(pipelineState) {
-        super.SetPipelineState(pipelineState);
-    }
-
-    TransitionShaderResources(pipelineState, shaderResourceBinding) { }
-
-    CommitShaderResources(shaderResourceBinding, flags) { }
-
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
             this.gpu_command_encoder.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
         }
+    }
+
+    SetPipelineState(pipelineState) {
+        super.SetPipelineState(pipelineState);
+        this.gpu_command_encoder.SetPipelineState(pipelineState);
+    }
+
+    TransitionShaderResources(pipelineState, shaderResourceBinding) { }
+
+    CommitShaderResources(shaderResourceBinding, flags) {
+        super.CommitShaderResources(shaderResourceBinding, flags);
+        this.BindProgramResources(shaderResourceBinding);
+    }
+
+    BindProgramResources(shaderResourceBinding) {
+        const program = this.pipelinestate.GetProgram();
+        this.gpu_command_encoder.SetBindGroups(); program.GetBindGroups()
     }
 
     SetStencilRef(stencilRef) {

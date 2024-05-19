@@ -36,8 +36,13 @@ fn main(input: VertexInput) -> VertexOutput {
 `;
 
 const pShader_source = 
-`@binding(1) @group(1) var<uniform> color: texture_2d<f32>;
-@binding(0) @group(1) var<uniform> tex_sprite: sampler;
+`struct VertexOutput {
+    @builtin(position) Position: vec4<f32>,
+    @location(0) attr_var_UV: vec2<f32>
+}
+
+@binding(0) @group(1) var tex_sprite: sampler;
+@binding(1) @group(1) var color: texture_2d<f32>;
 
 @fragment
 fn fragment(fragData: VertexOutput) -> @location(0) vec4f {
@@ -45,12 +50,51 @@ fn fragment(fragData: VertexOutput) -> @location(0) vec4f {
     var _34: f32 = _33.x;
     var _41: f32 = _33.y;
     var _48: f32 = _33.z;
-    var _57: vec3<32> = vec3<f32>((_34 <= 0.040449999272823333740234375) ? (_34 * 0.077399380505084991455078125) : pow((_34 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625), (_41 <= 0.040449999272823333740234375) ? (_41 * 0.077399380505084991455078125) : pow((_41 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625), (_48 <= 0.040449999272823333740234375) ? (_48 * 0.077399380505084991455078125) : pow((_48 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625)) * _33.w;
+    var r: f32;
+    if (_34 <= 0.040449999272823333740234375) {
+        r = (_34 * 0.077399380505084991455078125);
+    }
+    else {
+        r = pow((_34 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625);
+    }
+    var g: f32;
+    if(_41 <= 0.040449999272823333740234375) {
+        g = (_41 * 0.077399380505084991455078125);
+    }
+    else {
+        g = pow((_41 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625);
+    }
+    var b: f32;
+    if(_48 <= 0.040449999272823333740234375) {
+        b = (_48 * 0.077399380505084991455078125);
+    } 
+    else {
+        b = pow((_48 + 0.054999999701976776123046875) * 0.947867333889007568359375, 2.400000095367431640625);
+    }
+    var _57: vec3<f32> = vec3<f32>(r, g, b) * _33.w;
     return vec4<f32>(_57.x, _57.y, _57.z, _33.w);
+}
+`;
+
+const cShader_source = 
+`
+@group(0) @binding(1) var mySampler : sampler;
+@group(0) @binding(2) var myTexture : texture_2d<f32>;
+@group(0) @binding(3) var<storage, read_write> storageImage : texture_storage_2d<rgba8unorm, write>;
+
+@fragment
+fn main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
+    let color : vec4<f32> = textureSample(myTexture, mySampler, uv);
+
+    // For demonstration purposes, write to the storage texture
+    textureStore(storageImage, vec2<i32>(uv * vec2<f32>(textureDimensions(storageImage, 0))), color);
+
+    return color;
 }
 `;
 
 export {
     vShader_source,
     pShader_source,
+    cShader_source,
 }
