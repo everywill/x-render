@@ -8,17 +8,37 @@ class DeviceContextGPU extends DeviceContext {
         this.gpu_command_encoder = new CommandEncoder(this.render_device);
     }
 
+    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
+        if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
+            this.gpu_command_encoder.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
+        }
+    }
+
     SetPipelineState(pipelineState) {
         super.SetPipelineState(pipelineState);
+        this.gpu_command_encoder.SetPipelineState(pipelineState);
     }
 
     TransitionShaderResources(pipelineState, shaderResourceBinding) { }
 
-    CommitShaderResources(shaderResourceBinding, flags) { }
+    CommitShaderResources(shaderResourceBinding, flags) {
+        super.CommitShaderResources(shaderResourceBinding, flags);
+        this.BindProgramResources(shaderResourceBinding);
+    }
 
-    BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
-        if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
-            this.gpu_command_encoder.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs);
+    BindProgramResources(shaderResourceBinding) {
+        const program = this.pipelinestate.GetProgram();
+        
+
+        for(let i=0; i<program.GetNumShaders(); i++) {
+            const constResources = program.GetShader(i).GetConstantResources();
+
+        }
+
+        const dynamicResources = shaderResourceBinding ? shaderResourceBinding.GetProgramResources() : null;
+
+        for(let j=0; j<(dynamicResources ? 2 : 1); j++) {
+            const progResources = j ? dynamicResources : glProgram.GetConstantResources();
         }
     }
 

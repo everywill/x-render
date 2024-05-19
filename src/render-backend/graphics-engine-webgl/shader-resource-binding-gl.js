@@ -17,9 +17,7 @@ class ShaderResourceBindingGL extends ShaderResourceBinding {
 
     Release() {}
 
-    GetProgramResources(shaderType, pipelineState) {
-        return this.dynamic_program_resources;
-    }
+    GetProgramResources(shaderType, pipelineState) { return this.dynamic_program_resources; }
 
     GetVariable(shaderType, name) {
         const shaderVariable = this.dynamic_program_resources.GetShaderVariable(name);

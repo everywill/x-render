@@ -1,3 +1,4 @@
+import { DummyShaderVariable } from "../graphics-engine/shader";
 import { ShaderResourceBinding } from "../graphics-engine/shader-reource-binding";
 import { ShaderResourcesGPU } from "./shader-resources-gpu";
 
@@ -21,8 +22,10 @@ class ShaderResourceBindingGPU extends ShaderResourceBinding {
 
     Release() {}
 
+    GetProgramResources(shaderType, pipelineState) { return this.dynamic_resources; }
+
     GetVariable(shaderType, name) {
-        const shaderVariable = this.dynamic_program_resources.GetShaderVariable(name);
+        const shaderVariable = this.dynamic_resources.GetShaderVariable(name);
         if(!shaderVariable) {
             return new DummyShaderVariable();
         }

@@ -95,6 +95,10 @@ class CommandEncoder {
         const renderPassDesc = { colorAttachments, depthStencilAttachment };
         this.pass_encoder = this.command_encoder.beginRenderPass(renderPassDesc);
     }
+
+    SetPipelineState(pipelineState) {
+        this.pass_encoder.setPipeline(pipelineState);
+    }
     
     EndRenderPass() {
         this.pass_encoder.end();
