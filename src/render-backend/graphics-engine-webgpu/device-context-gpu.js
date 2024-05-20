@@ -28,18 +28,18 @@ class DeviceContextGPU extends DeviceContext {
 
     BindProgramResources(shaderResourceBinding) {
         const program = this.pipelinestate.GetProgram();
-        this.gpu_command_encoder.SetBindGroups(); program.GetBindGroups()
+        this.gpu_command_encoder.SetBindGroups(program.GetBindGroups()); 
     }
 
     SetStencilRef(stencilRef) {
         if(super.SetStencilRef(stencilRef)) {
-
+            this.gpu_command_encoder.SetStencilRef(stencilRef);
         }
     }
 
     SetBlendFactors(factors) {
         if(super.SetBlendFactors(factors)) {
-            
+            this.gpu_command_encoder.SetBlendFactors(factors);
         }
     }
 

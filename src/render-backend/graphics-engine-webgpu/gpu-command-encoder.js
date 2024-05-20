@@ -97,7 +97,7 @@ class CommandEncoder {
     }
 
     SetPipelineState(pipelineState) {
-        this.pass_encoder.setPipeline(pipelineState);
+        this.pass_encoder.setPipeline(pipelineState.GetNativeHandle());
     }
 
     SetBindGroups(bindGroups) {
@@ -106,6 +106,14 @@ class CommandEncoder {
                 this.pass_encoder.setBindGroup(i, bindGroups[i]);
             }
         }
+    }
+
+    SetStencilRef(stencilRef) {
+        this.pass_encoder.setStencilReference(stencilRef);
+    }
+
+    SetBlendFactors(factors) {
+        this.pass_encoder.setBlendConstant(factors);
     }
     
     EndRenderPass() {
