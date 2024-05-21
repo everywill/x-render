@@ -45,10 +45,29 @@ class DeviceContextGPU extends DeviceContext {
 
     SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags) {
         super.SetVertexBuffers(startSlot, numBufferSet, buffers, offsets, flags);
+        this.gpu_command_encoder.SetVertexBuffers(this.vertex_streams);
     }
 
     SetIndexBuffer(indexBuffer, byteOffset) {
         super.SetIndexBuffer(indexBuffer, byteOffset);
+    }
+
+    SetViewports(numViewports, viewports, RTWidth, RTHeight) {
+        super.SetViewports(numViewports, viewports, RTWidth, RTHeight);
+        if(numViewports != this.num_viewports) {
+            console.warn('unexpected num of viewports');
+        }
+
+        if(numViewports == 1) {
+            const vp = viewports[0];
+            this.gpu_command_encoder.SetViewport(vp.top_left_x, vp.top_left_y, vp.width, vp.height, vp.min_depth, vp.max_depth);
+        } else {
+            throw 'not supported multiple viewports';
+        }
+    }
+
+    SetScissorRects(numRect, rects, RTWidth, RTHeight) {
+        super.SetScissorRects(numRect, rects, RTWidth, RTHeight);
     }
 
     ResolveResourceTo(msaaTexture, resolvedTexture) { }
@@ -60,10 +79,6 @@ class DeviceContextGPU extends DeviceContext {
     ExecuteCommandList(commandList) { }
 
     Flush() { }
-
-    SetViewports(numViewports, viewports, RTWidth, RTHeight) { }
-
-    SetScissorRects(numRect, rects) { }
 
     EndRenderPass() {
         super.EndRenderPass();

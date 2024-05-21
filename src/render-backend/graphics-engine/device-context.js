@@ -159,7 +159,12 @@ class DeviceContext {
         }
     }
 
-    SetScissorRects(numRect, rects) {
+    SetScissorRects(numRect, rects, RTWidth, RTHeight) {
+        if (RTWidth == 0 || RTHeight == 0)
+        {
+            RTWidth = this.framebuffer_width;
+            RTHeight = this.framebuffer_height;
+        }
         if(numRect >= MAX_VIEWPORTS) {
             throw 'number of scissor rects excced the limit'
         }

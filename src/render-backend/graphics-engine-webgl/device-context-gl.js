@@ -425,7 +425,7 @@ class DeviceContextGL extends DeviceContext {
             // OpenGL window coordinates start from left-bottom
             const vp = viewports[0];
             const bottomLeftX = vp.top_left_x;
-            const bottomLeftY = vp.top_left_y;
+            const bottomLeftY = RTHeight - (vp.top_left_y + vp.height);
             const width = vp.width;
             const height = vp.height;
 
@@ -433,12 +433,12 @@ class DeviceContextGL extends DeviceContext {
             gl.viewport(bottomLeftX, bottomLeftY, width, height);
             gl.depthRange(vp.min_depth, vp.max_depth);
         } else {
-            throw 'not support multople viewports';
+            throw 'not support multiple viewports';
         }
     }
 
-    SetScissorRects(numRect, rects) {
-        super.SetScissorRects(numRect, rects);
+    SetScissorRects(numRect, rects, RTWidth, RTHeight) {
+        super.SetScissorRects(numRect, rects, RTWidth, RTHeight);
         if(this.num_scissor_rects == 1) {
             const gl = GetCurrentContext();
             const rect = this.scissor_rects[0];
@@ -455,9 +455,10 @@ class DeviceContextGL extends DeviceContext {
             //     /
             //  OpenGL (0,0)
             //
+            const glBottom = RTHeight - rect.top;
             const width = rect.right - rect.left;
             const height = rect.top - rect.bottom;
-            gl.scissor(rect.left, rect.bottom, width, height);
+            gl.scissor(rect.left, glBottom, width, height);
         } else {
             console.error('not support multiple scissors');
         }
