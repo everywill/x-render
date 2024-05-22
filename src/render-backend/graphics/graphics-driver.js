@@ -123,8 +123,8 @@ class GraphicsDriver {
     SetViewports(numViewports, viewports, RTWidth, RTHeight) {
         this.device_context.SetViewports(numViewports, viewports, RTWidth, RTHeight);
     }
-    SetScissorRects(numRect, rects) {
-        this.device_context.SetScissorRects(numRect, rects);
+    SetScissorRects(numRect, rects, RTWidth, RTHeight) {
+        this.device_context.SetScissorRects(numRect, rects, RTWidth, RTHeight);
     }
     InvalidateState() {
         this.device_context.InvalidateState();

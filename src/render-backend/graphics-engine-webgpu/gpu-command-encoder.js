@@ -97,13 +97,30 @@ class CommandEncoder {
     }
 
     SetPipelineState(pipelineState) {
-        this.pass_encoder.setPipeline(pipelineState);
+        this.pass_encoder.setPipeline(pipelineState.GetNativeHandle());
     }
 
     SetBindGroups(bindGroups) {
         for(let i=0; i<bindGroups.length; i++) {
             if(bindGroups[i]) {
                 this.pass_encoder.setBindGroup(i, bindGroups[i]);
+            }
+        }
+    }
+
+    SetStencilRef(stencilRef) {
+        this.pass_encoder.setStencilReference(stencilRef);
+    }
+
+    SetBlendFactors(factors) {
+        this.pass_encoder.setBlendConstant(factors);
+    }
+
+    SetVertexBuffers(vertexStreams) {
+        for(let i=0; i<vertexStreams.length; i++) {
+            const currentStream = vertexStreams[i];
+            if(currentStream) {
+                this.pass_encoder.setVertexBuffer(i, currentStream.buffer, currentStream.offset);
             }
         }
     }
@@ -114,6 +131,10 @@ class CommandEncoder {
 
     SetIndexBuffer(indexBuffer, byteOffset) {
         
+    }
+
+    SetViewport(leftTopX, leftTopY, width, height, minDepth, maxDepth) {
+        this.pass_encoder.setViewport(leftTopX, leftTopY, width, height, minDepth, maxDepth);
     }
 
     CopyBufferToBuffer(srcBuffer, srcOffset, dstBuffer, dstOffset, size) {

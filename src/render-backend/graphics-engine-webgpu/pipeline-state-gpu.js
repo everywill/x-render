@@ -1,7 +1,7 @@
 import { PipelineState } from "../graphics-engine/pipelinestate";
 import { COMPARISON_FUNCTION, PRIMITIVE_TOPOLOGY, VALUE_TYPE } from "../graphics/graphics-types";
 import { INPUT_ELEMENT_FREQUENCY } from "../graphics/input-layout";
-import { BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK, CULL_MODE } from "../graphics/pipelinestate-desc";
+import { BLEND_FACTOR, BLEND_OPERATION, COLOR_MASK, CULL_MODE, STENCIL_OP } from "../graphics/pipelinestate-desc";
 import { ShaderResourceBindingGPU } from "./shader-resource-binding-gpu";
 import { FORMAT_GPU_INTERNAL_FORMAT_MAP } from "./texture-gpu";
 
@@ -112,14 +112,24 @@ function GetAttributeFormat(valueType, isNormalized, numComponents) {
     }
 }
 
-const DEPTH_COMPARE_TO_GPU_COMPARE =[];
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NEVER] = 'never';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS] = 'less';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS_EQUAL] = 'less-equal';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER] = 'greater';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NOT_EQUAL] = 'not-equal';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER_EQUAL] = 'greater-equal';
-DEPTH_COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_ALWAYS] = 'always';
+const COMPARE_TO_GPU_COMPARE =[];
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NEVER] = 'never';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS] = 'less';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_LESS_EQUAL] = 'less-equal';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER] = 'greater';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_NOT_EQUAL] = 'not-equal';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_GREATER_EQUAL] = 'greater-equal';
+COMPARE_TO_GPU_COMPARE[COMPARISON_FUNCTION.COMPARISON_FUNC_ALWAYS] = 'always';
+
+const STENCILOP_TO_GPU_STENCILOP = [];
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_KEEP] = 'keep';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_ZERO] = 'zero';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_REPLACE] = 'replace';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_INCR_SAT] = 'increment-clamp';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_DECR_SAT] = 'decrement-clamp';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_INVERT] = 'invert';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_INCR_WRAP] = 'increment-wrap';
+STENCILOP_TO_GPU_STENCILOP[STENCIL_OP.STENCIL_OP_DECR_WRAP] = 'decrement-wrap';
 
 class PipelineStateGPU extends PipelineState {
     constructor(renderDevice, pipelineStateDesc) {
@@ -219,20 +229,30 @@ class PipelineStateGPU extends PipelineState {
                 depthBias: rasterizerStateDesc.depth_bias,
                 depthBiasClamp: rasterizerStateDesc.depth_bias_clamp,
                 depthBiasSlopeScale: rasterizerStateDesc.slope_scaled_depth_bias,
-                depthCompare: DEPTH_COMPARE_TO_GPU_COMPARE[depthStencilStateDesc.depth_func],
+                depthCompare: COMPARE_TO_GPU_COMPARE[depthStencilStateDesc.depth_func],
                 depthWriteEnabled: depthStencilStateDesc.depth_write_enable,
                 format: FORMAT_GPU_INTERNAL_FORMAT_MAP[pipelineStateDesc.graphics_pipeline_desc.DSV_format],
                 stencilFront: {
-
+                    compare: COMPARE_TO_GPU_COMPARE[depthStencilStateDesc.front_face.stencil_func],
+                    depthFailOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.front_face.stencil_depth_fail_op],
+                    failOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.front_face.stencil_fail_op],
+                    passOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.front_face.stencil_pass_op],
                 },
                 stencilBack: {
-                    
-                }
+                    compare: COMPARE_TO_GPU_COMPARE[depthStencilStateDesc.back_face.stencil_func],
+                    depthFailOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.back_face.stencil_depth_fail_op],
+                    failOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.back_face.stencil_fail_op],
+                    passOp: STENCILOP_TO_GPU_STENCILOP[depthStencilStateDesc.back_face.stencil_pass_op],
+                },
+                stencilReadMask: depthStencilStateDesc.stencil_read_mask,
+                stencilWriteMask: depthStencilStateDesc.stencil_write_mask,
             };
 
             this.gpu_pipeline = gpuDevice.createRenderPipeline(this.gpu_pipeline_desc);
         }
     }
+
+    GetNativeHandle() { return this.gpu_pipeline; }
 
     Release() { }
 
