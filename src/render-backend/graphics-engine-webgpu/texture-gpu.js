@@ -218,4 +218,5 @@ class TextureGPU extends Texture {
 export {
     TextureGPU,
     FORMAT_GPU_INTERNAL_FORMAT_MAP,
+    TexFormatToGPUInternalTexFormat,
 }

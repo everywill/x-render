@@ -1,3 +1,4 @@
+import { KeyPool } from "../../utils/key-pool";
 import { MAX_RENDER_TARGETS } from "../graphics/device-caps";
 import { TEXTURE_FORMAT } from "../graphics/graphics-types";
 import { GetCurrentContext } from "./gl-context";
@@ -46,6 +47,7 @@ class FBOCache {
         this.texture_cachekey = new Map();
         // store fbo waiting for be released in next GetFBO action
         this.release_queue = [];
+        this.cache_key_pool = new KeyPool(() => new FBOCacheKey());
     }
 
     FindKey(cacheKey) {
@@ -97,7 +99,7 @@ class FBOCache {
             this.release_queue.length = 0;
         }
 
-        const key = new FBOCacheKey();
+        const key = this.cache_key_pool.GetKey();
         if(numRenderTargets>MAX_RENDER_TARGETS) {
             console.warn('Too many render targets set');
             numRenderTargets = Math.min(numRenderTargets, MAX_RENDER_TARGETS);
@@ -122,6 +124,7 @@ class FBOCache {
         const cacheKey = this.FindKey(key);
 
         if(cacheKey) {
+            this.cache_key_pool.ReleaseKey(key);
             return this.cache[cacheKey];
         } else {
             // create new FBO

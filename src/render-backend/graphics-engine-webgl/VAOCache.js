@@ -1,3 +1,4 @@
+import { KeyPool } from "../../utils/key-pool";
 import { MAX_BUFFER_SLOTS } from "../graphics/device-caps";
 import { VALUE_TYPE } from "../graphics/graphics-types";
 import { INPUT_ELEMENT_FREQUENCY } from "../graphics/input-layout";
@@ -53,7 +54,7 @@ class StreamAttribs {
 }
 
 class VAOCacheKey {
-    constructor(pipelineState, indexBuffer) {
+    constructor() {
         this.pso = pipelineState;
         this.index_buffer = indexBuffer;
         this.num_used_slots = 0;
@@ -90,6 +91,7 @@ class VAOCache {
         // buffer to VAOCacheKey array
         this.buffer_to_key = new Map();
         this.release_queue = [];
+        this.cache_key_pool = new KeyPool(() => new VAOCacheKey());
     }
 
     GetEmptyVAO() { return this.empty_vao; }
@@ -160,7 +162,9 @@ class VAOCache {
         const numElements = inputLayoutDesc.num_elements;
 
         const strides = pipelineState.GetBufferStrides();
-        const vaoCacheKey = new VAOCacheKey(pipelineState, indexBuffer);
+        const vaoCacheKey = this.cache_key_pool.GetKey();
+        vaoCacheKey.pso = pipelineState;
+        vaoCacheKey.index_buffer = indexBuffer;
 
         for(let elem=0; elem<numElements; elem++) {
             const buffSlot = inputElements[elem].buffer_slot;
@@ -212,6 +216,7 @@ class VAOCache {
         const cacheKey = this.FindKey(vaoCacheKey);
 
         if(cacheKey) {
+            this.cache_key_pool.ReleaseKey(vaoCacheKey);
             return this.cache.get(cacheKey);
         } else {
             const newVAO = gl.createVertexArray();

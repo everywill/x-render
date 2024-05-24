@@ -1,6 +1,6 @@
 import { DeviceContext } from "../graphics-engine/device-context";
 import { VALUE_TYPE, TARGET_BUFFER_FLAGS } from "../graphics/graphics-types";
-import { CommandEncoder } from "./gpu-command-encoder";
+import { RenderPassDescriptorCache } from "./renderpass-descriptor-cache";
 
 function TypeToGPUType(valueType) {
     let gpuType;
@@ -27,7 +27,7 @@ function TypeToGPUType(valueType) {
 class DeviceContextGPU extends DeviceContext {
     constructor(renderDevice, isDeferred) {
         super(renderDevice, isDeferred);
-
+        this.renderpass_descriptor_cache = new RenderPassDescriptorCache();
         this.command_encoder = renderDevice.GetWebGPUDevice().createCommandEncoder();
         this.pass_encoder = null;
     }
@@ -36,11 +36,13 @@ class DeviceContextGPU extends DeviceContext {
         if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
             const { flags, clear_color, depth_value, stencil_value } = renderPassAttribs;
 
-            const colorAttachments = [];
+            const descriptor = this.renderpass_descriptor_cache.GetDescriptor(numRenderTargets, renderTargets, depthStencil);
+
+            const colorAttachments = descriptor.colorAttachments;
             for(let i=0; i<numRenderTargets; i++) {
-                const attachment = {};
+                const attachment = colorAttachments[i];
                 attachment.view = renderTargets[i].GetNativeHandle();
-                if((1<<i) & flags.clear) {
+                if((1<<i) & (flags.clear | flags.discard_start)) {
                     attachment.clearValue = clear_color[i];
                     attachment.loadOp = "clear";
                 } else {
@@ -51,14 +53,13 @@ class DeviceContextGPU extends DeviceContext {
                 } else {
                     attachment.storeOp = "store";
                 }
-                colorAttachments[i] = attachment;
             }
 
-            const depthStencilAttachment = {};
-            if(depthStencil) {
+            const depthStencilAttachment = descriptor.depthStencilAttachment;
+            if(depthStencilAttachment) {
                 attachment = depthStencilAttachment;
                 attachment.view = depthStencil.GetNativeHandle();
-                if(TARGET_BUFFER_FLAGS.DEPTH & flags.clear) {
+                if(TARGET_BUFFER_FLAGS.DEPTH & (flags.clear | flags.discard_start)) {
                     attachment.depthClearValue = depth_value;
                     attachment.depthLoadOp = 'clear';
                 } else {
@@ -70,7 +71,7 @@ class DeviceContextGPU extends DeviceContext {
                     attachment.depthStoreOp = "store";
                 }
 
-                if(TARGET_BUFFER_FLAGS.STENCIL & flags.clear) {
+                if(TARGET_BUFFER_FLAGS.STENCIL & (flags.clear | flags.discard_start)) {
                     attachment.stencilClearValue  = stencil_value;
                     attachment.stencilLoadOp = 'clear';
                 } else {
@@ -83,8 +84,7 @@ class DeviceContextGPU extends DeviceContext {
                 }
             }
 
-            const renderPassDesc = { colorAttachments, depthStencilAttachment };
-            this.pass_encoder = this.command_encoder.beginRenderPass(renderPassDesc);
+            this.pass_encoder = this.command_encoder.beginRenderPass(descriptor);
         }
     }
 
