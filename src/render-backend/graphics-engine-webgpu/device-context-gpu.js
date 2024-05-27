@@ -32,6 +32,12 @@ class DeviceContextGPU extends DeviceContext {
         this.pass_encoder = null;
     }
 
+    EnsureRenderpassEncoder() {
+        if(!this.pass_encoder) {
+            throw 'commit viewport must be called inside render pass';
+        }
+    }
+
     BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs) {
         if(super.BeginRenderPass(numRenderTargets, renderTargets, depthStencil, renderPassAttribs)) {
             const { flags, clear_color, depth_value, stencil_value } = renderPassAttribs;
@@ -85,19 +91,55 @@ class DeviceContextGPU extends DeviceContext {
             }
 
             this.pass_encoder = this.command_encoder.beginRenderPass(descriptor);
+
+            // Set the viewport to match the render target size
+            this.SetViewports(1, null, 0, 0);
         }
     }
 
     SetPipelineState(pipelineState) {
+        if(pipelineState == this.pipelinestate) {
+            return;
+        }
+
+        const PSODesc = pipelineState.GetDesc();
+        let commitStates = false;
+        let commitScissor = false;
+
+        if(!this.pipelinestate) {
+            // If no pipeline state is bound, we are working with the fresh command
+            // list. We have to commit the states set in the context that are not
+            // committed by the draw command (render targets, viewports, scissor rects, etc.)
+            commitStates = true;
+        } else {
+            const oldPSODesc = this.pipelinestate.GetDesc();
+            commitStates = oldPSODesc.is_compute_pipeline;
+            commitScissor = !oldPSODesc.rasterizer_state_desc.scissor_enable;
+        }
+
+        this.EnsureRenderpassEncoder();
+
         super.SetPipelineState(pipelineState);
         this.pass_encoder.setPipeline(pipelineState.GetNativeHandle());
+
+        if(!PSODesc.is_compute_pipeline) {
+            if(commitStates) {
+                this.pass_encoder.setStencilReference(this.stencil_ref);
+                this.pass_encoder.setBlendConstant(this.blend_factors);
+                this.CommitViewports();
+            }
+            if(PSODesc.graphics_pipeline_desc.scissor_enable && (commitStates || commitScissor)) {
+                this.CommitScissorRects();
+            }
+        }
     }
 
+    // resources transition not supported in WebGPU 
     TransitionShaderResources(pipelineState, shaderResourceBinding) { }
 
     CommitShaderResources(shaderResourceBinding, flags) {
         super.CommitShaderResources(shaderResourceBinding, flags);
-        this.BindProgramResources(shaderResourceBinding);
+        // this.BindProgramResources(shaderResourceBinding);
     }
 
     BindProgramResources(shaderResourceBinding) {
@@ -114,12 +156,14 @@ class DeviceContextGPU extends DeviceContext {
 
     SetStencilRef(stencilRef) {
         if(super.SetStencilRef(stencilRef)) {
+            this.EnsureRenderpassEncoder();
             this.pass_encoder.setStencilReference(stencilRef);
         }
     }
 
     SetBlendFactors(factors) {
         if(super.SetBlendFactors(factors)) {
+            this.EnsureRenderpassEncoder();
             this.pass_encoder.setBlendConstant(factors);
         }
     }
@@ -145,7 +189,12 @@ class DeviceContextGPU extends DeviceContext {
             console.warn('unexpected num of viewports');
         }
 
+        this.CommitViewports();
+    }
+
+    CommitViewports() {
         if(numViewports == 1) {
+            this.EnsureRenderpassEncoder();
             const vp = viewports[0];
             this.pass_encoder.setViewport(vp.top_left_x, vp.top_left_y, vp.width, vp.height, vp.min_depth, vp.max_depth);
         } else {
@@ -155,11 +204,22 @@ class DeviceContextGPU extends DeviceContext {
 
     SetScissorRects(numRect, rects, RTWidth, RTHeight) {
         super.SetScissorRects(numRect, rects, RTWidth, RTHeight);
-        if(this.num_scissor_rects == 1) {
-            const rect = this.scissor_rects[0];
+        if(this.pipelinestate) {
+            const PSODesc = this.pipelinestate.GetDesc();
+            if(!PSODesc.is_compute_pipeline && PSODesc.graphics_pipeline_desc.rasterizer_state_desc.scissor_enable) {
+                this.CommitScissorRects();
+            }
+        }
+    }
 
+    CommitScissorRects() {
+        if(this.num_scissor_rects == 1) {
+            this.EnsureRenderpassEncoder();
+
+            const rect = this.scissor_rects[0];
             const width = rect.right - rect.left;
             const height = rect.top - rect.bottom;
+
             this.pass_encoder.setScissorRect(rect.left, rect.bottom, width, height);
         } else {
             console.error('not support multiple scissors');
@@ -256,7 +316,7 @@ class DeviceContextGPU extends DeviceContext {
             depthOrArrayLayers: srcBox.max_z - srcBox.min_z,
         };
 
-        this.gpu_command_encoder.copyTextureToTexture(source, dest, copySize);
+        this.command_encoder.copyTextureToTexture(source, dest, copySize);
     }
 
     UpdateTextureRegion(texture, mipLevel, slice, dstBox, subResData) {
@@ -309,7 +369,7 @@ class DeviceContextGPU extends DeviceContext {
                 height: dstBox.max_y - dstBox.min_y,
                 depthOrArrayLayers: dstBox.max_z - dstBox.min_x,
             };
-            this.gpu_command_encoder.copyBufferToTexture(source, destination, copySize);
+            this.command_encoder.copyBufferToTexture(source, destination, copySize);
         }
     }
 }

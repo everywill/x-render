@@ -259,6 +259,10 @@ class PipelineStateGPU extends PipelineState {
     CreateShaderResourceBinding() {
         return new ShaderResourceBindingGPU(this);
     }
+
+    CommitAndTransitionShaderResources(shaderResourceBinding, deviceContext, isCommitResources, flags, bindGroupDescs) {
+
+    }
 }
 
 export {

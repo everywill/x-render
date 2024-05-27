@@ -7,10 +7,12 @@ class ShaderGPU extends Shader {
     constructor(renderDevice, shaderCreationAttribs) {
         super(renderDevice, shaderCreationAttribs.shader_desc);
 
-        this.shader_resource = new ShaderResourcesGPU();
-        this.const_resources = new ShaderResourcesGPU();
+        // this.shader_resource = new ShaderResourcesGPU();
+        // this.const_resources = new ShaderResourcesGPU();
 
         const { source, entry } = shaderCreationAttribs;
+        this.shader_resources = new ShaderResourcesGPU(source, this.desc);
+
         this.entry = entry;
         const gpuDevice = this.render_device.GetWebGPUDevice();
         this.gpu_shader_module = gpuDevice.createShaderModule({
@@ -23,42 +25,42 @@ class ShaderGPU extends Shader {
             }],
         });
 
-        this.InitResources(source);
+        
     }
 
     GetEntry() { return this.entry; }
     GetNativeHandle() { return this.gpu_shader_module; }
-    GetAllResources() { return this.shader_resource; }
-    GetConstantResources() { return this.const_resources; }
+    GetShaderResources() { return this.shader_resources; }
+    // GetAllResources() { return this.shader_resource; }
+    // GetConstantResources() { return this.const_resources; }
 
     Release() {
         this.gpu_shader_module = null;
     }
 
-    InitResources(shaderSource) {
-        const info  = GPUShaderReflect(shaderSource);
-        let defaultVarType = SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+    // InitResources(shaderSource) {
+    //     const info  = GPUShaderReflect(shaderSource);
 
-        const shaderDesc = this.desc;
-        const mergedVarTypesArray = [];
-        const mergedStaticSamplersArray = [];
-        defaultVarType = shaderDesc.default_variable_type;
+    //     const shaderDesc = this.desc;
+    //     const mergedVarTypesArray = [];
+    //     const mergedStaticSamplersArray = [];
+    //     defaultVarType = shaderDesc.default_variable_type;
 
-        if(defaultVarType != shaderDesc.default_variable_type) {
-            console.error('inconsistent default variable types for shaders in one program');
-        }
-        for(let v=0; v<shaderDesc.variable_desc.length; v++) {
-            mergedVarTypesArray.push(shaderDesc.variable_desc[v]);
-        }
-        for(let s=0; s<shaderDesc.static_sampler_desc.length; s++) {
-            mergedStaticSamplersArray.push(shaderDesc.static_sampler_desc[s]);
-        }
+    //     if(defaultVarType != shaderDesc.default_variable_type) {
+    //         console.error('inconsistent default variable types for shaders in one program');
+    //     }
+    //     for(let v=0; v<shaderDesc.variable_desc.length; v++) {
+    //         mergedVarTypesArray.push(shaderDesc.variable_desc[v]);
+    //     }
+    //     for(let s=0; s<shaderDesc.static_sampler_desc.length; s++) {
+    //         mergedStaticSamplersArray.push(shaderDesc.static_sampler_desc[s]);
+    //     }
 
-        this.shader_reflection = this.shader_resource.Load(info, defaultVarType, mergedVarTypesArray, mergedStaticSamplersArray);
+    //     this.shader_reflection = this.shader_resource.Load(info, defaultVarType, mergedVarTypesArray, mergedStaticSamplersArray);
 
-        const filterVarTypes = [SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_STATIC];
-        this.const_resources.Clone(this.all_resources, filterVarTypes);
-    }
+    //     const filterVarTypes = [SHADER_RESOURCE_VARIABLE_TYPE.SHADER_RESOURCE_VARIABLE_TYPE_STATIC];
+    //     this.const_resources.Clone(this.all_resources, filterVarTypes);
+    // }
 }
 
 export {

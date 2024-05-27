@@ -11,9 +11,7 @@ class ProgramGPU extends Program {
         super(renderDevice, programDesc);
         
         this.bind_group_layouts = [];
-        this.bind_groups = []
-
-        // this.SetupBindGroupLayouts();
+        this.bind_groups = [];
     }
 
     Release() { }
